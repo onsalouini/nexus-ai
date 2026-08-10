@@ -1,5 +1,5 @@
 import { useEffect, useState, FormEvent } from "react";
-import apiClient from "../api/client";
+import { api as apiClient } from "../lib/api";
 
 type Invitation = {
   id: number;
@@ -45,12 +45,16 @@ export default function DirectionDashboard() {
       setFeedback({ type: "success", text: `Invitation envoyée à ${form.email}` });
       setForm({ first_name: "", email: "", role: "chef_de_projet" });
       loadInvitations();
-    } catch (err: any) {
-      setFeedback({
-        type: "error",
-        text: err?.response?.data?.message ?? "Impossible d'envoyer l'invitation.",
-      });
-    } finally {
+    } catch (err) {
+  const message =
+    err instanceof Error && "response" in err
+      ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+      : undefined;
+  setFeedback({
+    type: "error",
+    text: message ?? "Impossible d'envoyer l'invitation.",
+  });
+} finally {
       setSending(false);
     }
   }
