@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Mail\InvitationMail;
+
 use App\Models\Invitation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
+use Illuminate\Support\Str;
+use App\Services\BrevoMailService;
 class InvitationController extends Controller
 {
     // Direction invite un chef de projet (ou autre role interne)
@@ -34,7 +34,26 @@ class InvitationController extends Controller
             'expires_at' => now()->addDays(7),
         ]);
 
-        Mail::to($invitation->email)->send(new InvitationMail($invitation));
+       $link = rtrim(config('app.frontend_url'), '/') . '/signup?token=' . $invitation->token;
+
+$intro = app(\App\Services\GroqService::class)->generateInvitationIntro(
+    $invitation->first_name ?? 'là',
+    $invitation->role,
+    $invitation->company->name ?? "l'entreprise"
+) ?? "Vous avez été invité(e) à rejoindre votre espace de travail.";
+
+$htmlContent = view('emails.invitation', [
+    'link' => $link,
+    'invitation' => $invitation,
+    'intro' => $intro,
+])->render();
+
+app(BrevoMailService::class)->send(
+    $invitation->email,
+    'Invitation à rejoindre NEXUS AI',
+    $htmlContent,
+    $invitation->first_name
+);
 
         return response()->json(['message' => 'Invitation envoyée.', 'invitation' => $invitation], 201);
     }
