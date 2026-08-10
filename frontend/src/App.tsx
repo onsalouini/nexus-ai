@@ -21,7 +21,8 @@ import Home from "./pages/Dashboard/Home";
 import Landing from "./pages/Landing";
 import { AuthProvider } from "./context/AuthContext";
 import CompanyForm from "./pages/Onboarding/CompanyForm";
-
+import DirectionDashboard from "./pages/DirectionDashboard";
+import PrivateRoute from "./components/PrivateRoute";
 export default function App() {
   return (
     <AuthProvider>
@@ -33,32 +34,39 @@ export default function App() {
           <Route path="/onboarding/entreprise" element={<CompanyForm />} />
 
           {/* Dashboard Layout (protégé plus tard par un vrai contrôle d'auth) */}
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Home />} />
+          {/* Dashboard Layout, protege par PrivateRoute */}
+<Route
+  element={
+    <PrivateRoute>
+      <AppLayout />
+    </PrivateRoute>
+  }
+>
+  <Route path="/dashboard" element={<Home />} />
+  <Route path="/dashboard/team" element={<DirectionDashboard />} />
+  {/* Others Page */}
+  <Route path="/profile" element={<UserProfiles />} />
+  <Route path="/calendar" element={<Calendar />} />
+  <Route path="/blank" element={<Blank />} />
 
-            {/* Others Page */}
-            <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/blank" element={<Blank />} />
+  {/* Forms */}
+  <Route path="/form-elements" element={<FormElements />} />
 
-            {/* Forms */}
-            <Route path="/form-elements" element={<FormElements />} />
+  {/* Tables */}
+  <Route path="/basic-tables" element={<BasicTables />} />
 
-            {/* Tables */}
-            <Route path="/basic-tables" element={<BasicTables />} />
+  {/* Ui Elements */}
+  <Route path="/alerts" element={<Alerts />} />
+  <Route path="/avatars" element={<Avatars />} />
+  <Route path="/badge" element={<Badges />} />
+  <Route path="/buttons" element={<Buttons />} />
+  <Route path="/images" element={<Images />} />
+  <Route path="/videos" element={<Videos />} />
 
-            {/* Ui Elements */}
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/avatars" element={<Avatars />} />
-            <Route path="/badge" element={<Badges />} />
-            <Route path="/buttons" element={<Buttons />} />
-            <Route path="/images" element={<Images />} />
-            <Route path="/videos" element={<Videos />} />
-
-            {/* Charts */}
-            <Route path="/line-chart" element={<LineChart />} />
-            <Route path="/bar-chart" element={<BarChart />} />
-          </Route>
+  {/* Charts */}
+  <Route path="/line-chart" element={<LineChart />} />
+  <Route path="/bar-chart" element={<BarChart />} />
+</Route>
 
           {/* Auth Layout */}
           <Route path="/signin" element={<SignIn />} />

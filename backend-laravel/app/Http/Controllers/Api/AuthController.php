@@ -46,7 +46,7 @@ class AuthController extends Controller
     return response()->json([
         'token' => $token,
         'user' => $user,
-        'needsCompanySetup' => is_null($user->company_id),
+         'needs_company_setup' => is_null($user->company_id),
     ], 201);
 }
 
@@ -68,7 +68,7 @@ class AuthController extends Controller
         return response()->json([
             'token' => $token,
             'user' => $user,
-            'needsCompanySetup' => is_null($user->company_id),
+             'needs_company_setup' => is_null($user->company_id),
         ]);
     }
 
