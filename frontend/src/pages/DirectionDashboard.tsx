@@ -1,5 +1,6 @@
 import { useEffect, useState, FormEvent } from "react";
 import { api as apiClient } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 
 type Invitation = {
   id: number;
@@ -13,6 +14,7 @@ type Invitation = {
 type Tab = "invite" | "list";
 
 export default function DirectionDashboard() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("invite");
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,15 +48,15 @@ export default function DirectionDashboard() {
       setForm({ first_name: "", email: "", role: "chef_de_projet" });
       loadInvitations();
     } catch (err) {
-  const message =
-    err instanceof Error && "response" in err
-      ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-      : undefined;
-  setFeedback({
-    type: "error",
-    text: message ?? "Impossible d'envoyer l'invitation.",
-  });
-} finally {
+      const message =
+        err instanceof Error && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      setFeedback({
+        type: "error",
+        text: message ?? "Impossible d'envoyer l'invitation.",
+      });
+    } finally {
       setSending(false);
     }
   }
@@ -65,7 +67,12 @@ export default function DirectionDashboard() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800 dark:text-white/90">Équipe</h1>
+        <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">
+          NEXUS AI — {user?.company?.name ?? "Espace direction"}
+        </p>
+        <h1 className="text-2xl font-semibold text-gray-800 dark:text-white/90">
+          Bonjour, {user?.first_name ?? "Directeur"}
+        </h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Gérez les invitations envoyées à vos chefs de projet et agents support.
         </p>
