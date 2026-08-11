@@ -16,7 +16,7 @@ class InvitationMail extends Mailable
 
     public function build()
     {
-        $link = rtrim(config('app.frontend_url'), '/') . '/signup?token=' . $this->invitation->token;
+        $link = rtrim(config('app.frontend_url'), '/') . '/invitation?token=' . $this->invitation->token;
 
         $intro = app(GroqService::class)->generateInvitationIntro(
             $this->invitation->first_name ?? 'là',

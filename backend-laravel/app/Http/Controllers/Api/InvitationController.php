@@ -34,7 +34,7 @@ class InvitationController extends Controller
             'expires_at' => now()->addDays(7),
         ]);
 
-       $link = rtrim(config('app.frontend_url'), '/') . '/signup?token=' . $invitation->token;
+       $link = rtrim(config('app.frontend_url'), '/') . '/invitation?token=' . $invitation->token;
 
 $intro = app(\App\Services\GroqService::class)->generateInvitationIntro(
     $invitation->first_name ?? 'là',
