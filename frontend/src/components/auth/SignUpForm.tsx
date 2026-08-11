@@ -34,9 +34,9 @@ export default function SignUpForm() {
       // needsCompanySetup vaut toujours true juste après une inscription
       await register(form);
       navigate("/onboarding/entreprise");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(
-        err?.response?.data?.message ??
+        (err as Error)?.message ??
           "Impossible de créer le compte. Vérifie les champs et réessaie."
       );
     } finally {

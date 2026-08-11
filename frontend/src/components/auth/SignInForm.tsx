@@ -17,12 +17,15 @@ export default function SignInForm() {
     try {
       const { needsCompanySetup } = await login(email, password);
       navigate(needsCompanySetup ? "/onboarding/entreprise" : "/dashboard");
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ??
-          "Impossible de se connecter. Vérifie ton email et ton mot de passe."
-      );
-    } finally {
+    } catch (err) {
+  const message =
+    err instanceof Error && "response" in err
+      ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+      : undefined;
+  setError(
+    message ?? "Impossible de se connecter. Vérifie ton email et ton mot de passe."
+  );
+} finally {
       setLoading(false);
     }
   }
