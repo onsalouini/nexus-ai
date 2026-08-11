@@ -18,6 +18,8 @@ class AuthController extends Controller
         'email'      => 'required|email|unique:users,email',
         'password'   => 'required|string|min:8|confirmed',
         'invitation_token' => 'nullable|string',
+        'avatar' => 'nullable|image|max:2048',       // 2 Mo max
+        'cv' => 'nullable|mimes:pdf|max:5120',        // 5 Mo max, PDF uniquement
     ]);
 
     $invitation = null;
@@ -28,6 +30,14 @@ class AuthController extends Controller
         }
     }
 
+    $avatarPath = $request->hasFile('avatar')
+        ? $request->file('avatar')->store('avatars', 'public')
+        : null;
+
+    $cvPath = $request->hasFile('cv')
+        ? $request->file('cv')->store('cvs', 'public')
+        : null;
+
     $user = User::create([
         'first_name' => $validated['first_name'],
         'last_name'  => $validated['last_name'],
@@ -35,6 +45,8 @@ class AuthController extends Controller
         'password'   => Hash::make($validated['password']),
         'role'       => $invitation->role ?? 'direction',
         'company_id' => $invitation->company_id ?? null,
+        'avatar_path' => $avatarPath,
+        'cv_path' => $cvPath,
     ]);
 
     if ($invitation) {
@@ -46,7 +58,7 @@ class AuthController extends Controller
     return response()->json([
         'token' => $token,
         'user' => $user,
-         'needs_company_setup' => is_null($user->company_id),
+        'needs_company_setup' => is_null($user->company_id),
     ], 201);
 }
 
