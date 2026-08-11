@@ -48,14 +48,22 @@ $htmlContent = view('emails.invitation', [
     'intro' => $intro,
 ])->render();
 
-app(BrevoMailService::class)->send(
-    $invitation->email,
-    'Invitation à rejoindre NEXUS AI',
-    $htmlContent,
-    $invitation->first_name
-);
+try {
+    app(BrevoMailService::class)->send(
+        $invitation->email,
+        'Invitation à rejoindre NEXUS AI',
+        $htmlContent,
+        $invitation->first_name
+    );
+} catch (\Throwable $e) {
+    \Illuminate\Support\Facades\Log::error('Echec envoi invitation', ['error' => $e->getMessage()]);
+    return response()->json([
+        'message' => 'Invitation créée mais l\'email n\'a pas pu être envoyé.',
+        'invitation' => $invitation,
+    ], 500);
+}
 
-        return response()->json(['message' => 'Invitation envoyée.', 'invitation' => $invitation], 201);
+return response()->json(['message' => 'Invitation envoyée.', 'invitation' => $invitation], 201);
     }
 
     // Liste des invitations envoyees par l'entreprise (pour affichage dashboard)

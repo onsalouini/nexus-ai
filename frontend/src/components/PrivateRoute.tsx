@@ -8,7 +8,7 @@ export default function PrivateRoute({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center text-sm text-gray-400">
-        Chargement...
+        Merci pour votre patience ...
       </div>
     );
   }

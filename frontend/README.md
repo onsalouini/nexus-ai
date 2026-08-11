@@ -1,6 +1,15 @@
 # TailAdmin React - Free React Tailwind Admin Dashboard Template
 cd C:\Users\Lenovo\Desktop\Anypli\nexus-ai\backend-laravel
 // php artisan serve
+
+/& "C:\Users\Lenovo\Desktop\Anypli\bin\mysql\mysql-8.4.3-winx64\bin\mysql.exe" -h mysql-37e46980-onsalouini5-aa43.g.aivencloud.com -P 12506 -u avnadmin -p defaultdb --ssl-ca="C:\Users\Lenovo\Desktop\Anypli\nexus-ai\backend-laravel\storage\certs\ca.pem"
+//Appuie sur Entrée — cette fois ça devrait te demander le mot de passe (Enter password:). Tape alors :
+
+AVNS_aVncFwD-gUw7nGTG7A1
+
+
+
+
 TailAdmin is a free and open-source admin dashboard template built on **React and Tailwind CSS**, providing developers
 with everything they need to create a comprehensive, data-driven back-end,
 dashboard, or admin panel solution for upcoming web projects.
