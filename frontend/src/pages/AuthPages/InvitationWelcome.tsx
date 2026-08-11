@@ -72,7 +72,7 @@ export default function InvitationWelcome() {
           ))}
         </ul>
         <button
-          onClick={() => navigate(`/signup/complete?token=${token}`)}
+          onClick={() => navigate(`/invitation/complete?token=${token}`)}
           className="mt-8 w-full rounded-lg bg-gray-900 py-3 text-sm font-semibold text-white transition hover:bg-gray-800 dark:bg-brand-500 dark:hover:bg-brand-600"
         >
           Continuer

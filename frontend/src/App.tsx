@@ -70,13 +70,16 @@ export default function App() {
   <Route path="/bar-chart" element={<BarChart />} />
 </Route>
 
-          {/* Auth Layout */}
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-<Route path="/signup" element={<InvitationWelcome />} />
-<Route path="/signup/complete" element={<SignUpComplete />} />
-          {/* Fallback Route */}
-          <Route path="*" element={<NotFound />} />
+         {/* Auth Layout */}
+<Route path="/signin" element={<SignIn />} />
+<Route path="/signup" element={<SignUp />} />
+
+{/* Flux invitation (chef de projet / agent support) */}
+<Route path="/invitation" element={<InvitationWelcome />} />
+<Route path="/invitation/complete" element={<SignUpComplete />} />
+
+{/* Fallback Route */}
+<Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </AuthProvider>
