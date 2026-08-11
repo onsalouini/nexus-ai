@@ -24,6 +24,7 @@ type AuthContextType = {
     password: string;
     password_confirmation: string;
   }) => Promise<{ needsCompanySetup: boolean }>;
+  registerWithFiles: (formData: FormData) => Promise<{ needsCompanySetup: boolean }>;
   logout: () => Promise<void>;
 };
 
@@ -68,6 +69,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { needsCompanySetup: res.data.needs_company_setup };
   }
 
+  async function registerWithFiles(formData: FormData) {
+    const res = await api.post("/register", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    localStorage.setItem("nexus_token", res.data.token);
+    setUser(res.data.user);
+    return { needsCompanySetup: res.data.needs_company_setup };
+  }
+
   async function logout() {
     try {
       await api.post("/logout");
@@ -79,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, registerWithFiles, logout }}>
       {children}
     </AuthContext.Provider>
   );

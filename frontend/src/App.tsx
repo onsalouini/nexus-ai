@@ -23,6 +23,8 @@ import { AuthProvider } from "./context/AuthContext";
 import CompanyForm from "./pages/Onboarding/CompanyForm";
 import DirectionDashboard from "./pages/DirectionDashboard";
 import PrivateRoute from "./components/PrivateRoute";
+import InvitationWelcome from "./pages/AuthPages/InvitationWelcome";
+import SignUpComplete from "./pages/AuthPages/SignUpComplete";
 export default function App() {
   return (
     <AuthProvider>
@@ -71,7 +73,8 @@ export default function App() {
           {/* Auth Layout */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
-
+<Route path="/signup" element={<InvitationWelcome />} />
+<Route path="/signup/complete" element={<SignUpComplete />} />
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
