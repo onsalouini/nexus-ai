@@ -57,13 +57,16 @@ export default function SignUpComplete() {
         fd.append("cv", cv);
       }
 
-      const { needsCompanySetup } = await registerWithFiles(fd);
+      const { needsCompanySetup, role } = await registerWithFiles(fd);
+const roleName = typeof role === "string" ? role : role?.name;
 
-      navigate(
-        needsCompanySetup
-          ? "/onboarding/entreprise"
-          : "/dashboard"
-      );
+if (needsCompanySetup) {
+  navigate("/onboarding/entreprise");
+} else if (roleName === "chef_de_projet") {
+  navigate("/dashboard/chef");
+} else {
+  navigate("/dashboard");
+}
     } catch (err) {
       const message =
         err &&

@@ -47,6 +47,7 @@ export default function App() {
 >
   <Route path="/dashboard" element={<Home />} />
   <Route path="/dashboard/team" element={<DirectionDashboard />} />
+  <Route path="/dashboard/chef" element={<ChefDashboard />} />
   {/* Others Page */}
   <Route path="/profile" element={<UserProfiles />} />
   <Route path="/calendar" element={<Calendar />} />
@@ -78,7 +79,7 @@ export default function App() {
 {/* Flux invitation (chef de projet / agent support) */}
 <Route path="/invitation" element={<InvitationWelcome />} />
 <Route path="/invitation/complete" element={<SignUpComplete />} />
-<Route path="c" element={<ChefDashboard />} />
+
 {/* Fallback Route */}
 <Route path="*" element={<NotFound />} />
         </Routes>

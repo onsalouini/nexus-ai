@@ -25,7 +25,10 @@ type AuthContextType = {
     password: string;
     password_confirmation: string;
   }) => Promise<{ needsCompanySetup: boolean }>;
-  registerWithFiles: (formData: FormData) => Promise<{ needsCompanySetup: boolean }>;
+  registerWithFiles: (formData: FormData) => Promise<{
+  needsCompanySetup: boolean;
+  role: string | { id: number; name: string } | null;
+}>;
   logout: () => Promise<void>;
 };
 
@@ -51,11 +54,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function login(email: string, password: string) {
-    const res = await api.post("/login", { email, password });
-    localStorage.setItem("nexus_token", res.data.token);
-    setUser(res.data.user);
-    return { needsCompanySetup: res.data.needs_company_setup };
-  }
+  const res = await api.post("/login", { email, password });
+  localStorage.setItem("nexus_token", res.data.token);
+  setUser(res.data.user);
+  return { needsCompanySetup: res.data.needs_company_setup, role: res.data.user.role };
+}
 
   async function register(data: {
     first_name: string;
@@ -71,13 +74,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function registerWithFiles(formData: FormData) {
-    const res = await api.post("/register", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    localStorage.setItem("nexus_token", res.data.token);
-    setUser(res.data.user);
-    return { needsCompanySetup: res.data.needs_company_setup };
-  }
+  const res = await api.post("/register", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  localStorage.setItem("nexus_token", res.data.token);
+  setUser(res.data.user);
+  return {
+    needsCompanySetup: res.data.needs_company_setup,
+    role: res.data.user.role,
+  };
+}
 
   async function logout() {
     try {
