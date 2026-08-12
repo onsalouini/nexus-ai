@@ -78,7 +78,7 @@ export default function App() {
 {/* Flux invitation (chef de projet / agent support) */}
 <Route path="/invitation" element={<InvitationWelcome />} />
 <Route path="/invitation/complete" element={<SignUpComplete />} />
-<Route path="/dashboard" element={<ChefDashboard />} />
+<Route path="c" element={<ChefDashboard />} />
 {/* Fallback Route */}
 <Route path="*" element={<NotFound />} />
         </Routes>
