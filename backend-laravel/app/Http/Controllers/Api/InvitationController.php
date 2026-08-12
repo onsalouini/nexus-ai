@@ -15,10 +15,12 @@ class InvitationController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'email' => 'required|email',
-            'first_name' => 'nullable|string|max:100',
-            'role' => 'required|in:chef_de_projet,agent_support',
-        ]);
+    'email' => 'required|email',
+    'first_name' => 'nullable|string|max:100',
+    'role' => 'required|in:chef_de_projet,agent_support,membre_equipe',
+    'job_title' => 'nullable|string|max:100',
+    'project_id' => 'nullable|exists:projects,id',
+]);
 
         $user = $request->user();
 

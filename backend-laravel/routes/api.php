@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\InvitationController;
-
+use App\Http\Controllers\Api\ProjectController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -25,4 +25,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/company', [AuthController::class, 'setupCompany']);
     Route::post('/invitations', [InvitationController::class, 'store']);
     Route::get('/invitations', [InvitationController::class, 'index']);
+    Route::apiResource('/projects', ProjectController::class)->only(['index', 'store', 'show']);
 });
