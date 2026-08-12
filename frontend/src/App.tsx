@@ -26,6 +26,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import InvitationWelcome from "./pages/AuthPages/InvitationWelcome";
 import SignUpComplete from "./pages/AuthPages/SignUpComplete";
 import ChefDashboard from "./pages/Dashboard/ChefDashboard";
+
 export default function App() {
   return (
     <AuthProvider>
@@ -36,52 +37,60 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/onboarding/entreprise" element={<CompanyForm />} />
 
-          {/* Dashboard Layout (protégé plus tard par un vrai contrôle d'auth) */}
-          {/* Dashboard Layout, protege par PrivateRoute */}
-<Route
-  element={
-    <PrivateRoute>
-      <AppLayout />
-    </PrivateRoute>
-  }
->
-  <Route path="/dashboard" element={<Home />} />
-  <Route path="/dashboard/team" element={<DirectionDashboard />} />
-  <Route path="/dashboard/chef" element={<ChefDashboard />} />
-  {/* Others Page */}
-  <Route path="/profile" element={<UserProfiles />} />
-  <Route path="/calendar" element={<Calendar />} />
-  <Route path="/blank" element={<Blank />} />
+          {/* Dashboard Layout (TailAdmin), protege par PrivateRoute */}
+          <Route
+            element={
+              <PrivateRoute>
+                <AppLayout />
+              </PrivateRoute>
+            }
+          >
+            <Route path="/dashboard" element={<Home />} />
+            <Route path="/dashboard/team" element={<DirectionDashboard />} />
+            {/* Others Page */}
+            <Route path="/profile" element={<UserProfiles />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/blank" element={<Blank />} />
 
-  {/* Forms */}
-  <Route path="/form-elements" element={<FormElements />} />
+            {/* Forms */}
+            <Route path="/form-elements" element={<FormElements />} />
 
-  {/* Tables */}
-  <Route path="/basic-tables" element={<BasicTables />} />
+            {/* Tables */}
+            <Route path="/basic-tables" element={<BasicTables />} />
 
-  {/* Ui Elements */}
-  <Route path="/alerts" element={<Alerts />} />
-  <Route path="/avatars" element={<Avatars />} />
-  <Route path="/badge" element={<Badges />} />
-  <Route path="/buttons" element={<Buttons />} />
-  <Route path="/images" element={<Images />} />
-  <Route path="/videos" element={<Videos />} />
+            {/* Ui Elements */}
+            <Route path="/alerts" element={<Alerts />} />
+            <Route path="/avatars" element={<Avatars />} />
+            <Route path="/badge" element={<Badges />} />
+            <Route path="/buttons" element={<Buttons />} />
+            <Route path="/images" element={<Images />} />
+            <Route path="/videos" element={<Videos />} />
 
-  {/* Charts */}
-  <Route path="/line-chart" element={<LineChart />} />
-  <Route path="/bar-chart" element={<BarChart />} />
-</Route>
+            {/* Charts */}
+            <Route path="/line-chart" element={<LineChart />} />
+            <Route path="/bar-chart" element={<BarChart />} />
+          </Route>
 
-         {/* Auth Layout */}
-<Route path="/signin" element={<SignIn />} />
-<Route path="/signup" element={<SignUp />} />
+          {/* Interface Chef de projet — design indépendant, sans TailAdmin */}
+          <Route
+            path="/dashboard/chef"
+            element={
+              <PrivateRoute>
+                <ChefDashboard />
+              </PrivateRoute>
+            }
+          />
 
-{/* Flux invitation (chef de projet / agent support) */}
-<Route path="/invitation" element={<InvitationWelcome />} />
-<Route path="/invitation/complete" element={<SignUpComplete />} />
+          {/* Auth Layout */}
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
 
-{/* Fallback Route */}
-<Route path="*" element={<NotFound />} />
+          {/* Flux invitation (chef de projet / agent support) */}
+          <Route path="/invitation" element={<InvitationWelcome />} />
+          <Route path="/invitation/complete" element={<SignUpComplete />} />
+
+          {/* Fallback Route */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </AuthProvider>

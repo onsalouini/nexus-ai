@@ -17,7 +17,13 @@ export type NexusUser = {
 type AuthContextType = {
   user: NexusUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ needsCompanySetup: boolean }>;
+  login: (
+  email: string,
+  password: string
+) => Promise<{
+  needsCompanySetup: boolean;
+  role: Role | null;
+}>;
   register: (data: {
     first_name: string;
     last_name: string;

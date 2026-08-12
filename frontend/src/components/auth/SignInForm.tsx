@@ -10,25 +10,53 @@ export default function SignInForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const { needsCompanySetup } = await login(email, password);
-      navigate(needsCompanySetup ? "/onboarding/entreprise" : "/dashboard");
-    } catch (err) {
-  const message =
-    err instanceof Error && "response" in err
-      ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-      : undefined;
-  setError(
-    message ?? "Impossible de se connecter. Vérifie ton email et ton mot de passe."
-  );
-} finally {
-      setLoading(false);
+ async function handleSubmit(e: FormEvent) {
+  e.preventDefault();
+  setError(null);
+  setLoading(true);
+
+  try {
+    const { needsCompanySetup, role } = await login(email, password);
+
+    // Si l'entreprise doit encore être configurée
+    if (needsCompanySetup) {
+      navigate("/onboarding/entreprise", { replace: true });
+      return;
     }
+
+    // Direction
+    if (role?.name === "direction") {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+
+    // Chef de projet
+    if (role?.name === "chef_de_projet") {
+      navigate("/dashboard/chef", { replace: true });
+      return;
+    }
+
+    setError("Rôle utilisateur non reconnu.");
+  } catch (err) {
+    const message =
+      err instanceof Error && "response" in err
+        ? (err as {
+            response?: {
+              data?: {
+                message?: string;
+              };
+            };
+          }).response?.data?.message
+        : undefined;
+
+    setError(
+      message ??
+        "Impossible de se connecter. Vérifie ton email et ton mot de passe."
+    );
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
