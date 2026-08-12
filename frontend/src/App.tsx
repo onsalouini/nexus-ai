@@ -25,6 +25,7 @@ import DirectionDashboard from "./pages/DirectionDashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import InvitationWelcome from "./pages/AuthPages/InvitationWelcome";
 import SignUpComplete from "./pages/AuthPages/SignUpComplete";
+import ChefDashboard from "./pages/Dashboard/ChefDashboard";
 export default function App() {
   return (
     <AuthProvider>
@@ -77,7 +78,7 @@ export default function App() {
 {/* Flux invitation (chef de projet / agent support) */}
 <Route path="/invitation" element={<InvitationWelcome />} />
 <Route path="/invitation/complete" element={<SignUpComplete />} />
-
+<Route path="/dashboard" element={<ChefDashboard />} />
 {/* Fallback Route */}
 <Route path="*" element={<NotFound />} />
         </Routes>

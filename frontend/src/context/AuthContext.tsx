@@ -9,6 +9,7 @@ export type NexusUser = {
   first_name: string;
   last_name: string;
   email: string;
+  avatar_path?: string | null;
   role: Role | null;
   company: Company;
 };
