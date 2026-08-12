@@ -22,4 +22,8 @@ class Invitation extends Model
     {
         return is_null($this->accepted_at) && $this->expires_at->isFuture();
     }
+    public function project()
+{
+    return $this->belongsTo(Project::class);
+}
 }

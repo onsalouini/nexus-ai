@@ -5,8 +5,7 @@ import { api } from "../../lib/api";
 import ChefTopbar from "../../components/chef/ChefTopbar";
 import CreateProjectModal from "../../components/chef/CreateProjectModal";
 import TeamModal from "../../components/chef/TeamModal";
-import ProjectsGrid from "../../components/chef/ProjectsGrid";
-
+import ProjectsGrid from "../../components/chef/ProjectsGrid.tsx";
 
 /* =========================================================
    TYPES
@@ -15,8 +14,12 @@ import ProjectsGrid from "../../components/chef/ProjectsGrid";
 type Project = {
   id: number;
   name: string;
-  description?: string | null;
-  status?: string | null;
+  description: string | null;
+  status: string;
+  length: number;
+  planned_effort: number;
+  risk_score: number | null;
+  risk_level: string | null;
   created_at?: string;
   updated_at?: string;
 };
