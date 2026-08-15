@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { api } from "../lib/api";
 
-type Role = { id: number; name: string };
+export type UserRole = "direction" | "chef_de_projet" | "agent_support" | "membre_equipe";
+
 type Company = { id: number; name: string } | null;
 
 export type NexusUser = {
@@ -10,20 +11,14 @@ export type NexusUser = {
   last_name: string;
   email: string;
   avatar_path?: string | null;
-  role: Role | null;
+  role: UserRole | null;
   company: Company;
 };
 
 type AuthContextType = {
   user: NexusUser | null;
   loading: boolean;
-  login: (
-  email: string,
-  password: string
-) => Promise<{
-  needsCompanySetup: boolean;
-  role: Role | null;
-}>;
+  login: (email: string, password: string) => Promise<{ needsCompanySetup: boolean; role: UserRole | null }>;
   register: (data: {
     first_name: string;
     last_name: string;
@@ -31,14 +26,23 @@ type AuthContextType = {
     password: string;
     password_confirmation: string;
   }) => Promise<{ needsCompanySetup: boolean }>;
-  registerWithFiles: (formData: FormData) => Promise<{
-  needsCompanySetup: boolean;
-  role: string | { id: number; name: string } | null;
-}>;
+  registerWithFiles: (formData: FormData) => Promise<{ needsCompanySetup: boolean; role: UserRole | null }>;
   logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export function getDashboardPath(role: UserRole | null): string {
+  switch (role) {
+    case "direction":
+      return "/dashboard/direction";
+    case "chef_de_projet":
+      return "/dashboard/chef";
+    case "agent_support":
+      return "/dashboard/support";
+    default:
+      return "/dashboard";
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<NexusUser | null>(null);

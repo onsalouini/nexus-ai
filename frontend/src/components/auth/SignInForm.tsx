@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth, getDashboardPath } from "../../context/AuthContext";
 
 export default function SignInForm() {
   const { login } = useAuth();
@@ -15,28 +15,15 @@ export default function SignInForm() {
   setError(null);
   setLoading(true);
 
-  try {
+try {
     const { needsCompanySetup, role } = await login(email, password);
 
-    // Si l'entreprise doit encore être configurée
     if (needsCompanySetup) {
       navigate("/onboarding/entreprise", { replace: true });
       return;
     }
 
-    // Direction
-    if (role?.name === "direction") {
-      navigate("/dashboard", { replace: true });
-      return;
-    }
-
-    // Chef de projet
-    if (role?.name === "chef_de_projet") {
-      navigate("/dashboard/chef", { replace: true });
-      return;
-    }
-
-    setError("Rôle utilisateur non reconnu.");
+    navigate(getDashboardPath(role), { replace: true });
   } catch (err) {
     const message =
       err instanceof Error && "response" in err

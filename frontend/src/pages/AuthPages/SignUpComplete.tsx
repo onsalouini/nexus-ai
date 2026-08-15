@@ -1,7 +1,6 @@
 import { FormEvent, ChangeEvent, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { useAuth } from "../../context/AuthContext";
-
+import { useAuth, getDashboardPath } from "../../context/AuthContext";
 export default function SignUpComplete() {
   const { registerWithFiles } = useAuth();
   const navigate = useNavigate();
@@ -57,15 +56,12 @@ export default function SignUpComplete() {
         fd.append("cv", cv);
       }
 
-      const { needsCompanySetup, role } = await registerWithFiles(fd);
-const roleName = typeof role === "string" ? role : role?.name;
+     const { needsCompanySetup, role } = await registerWithFiles(fd);
 
 if (needsCompanySetup) {
   navigate("/onboarding/entreprise");
-} else if (roleName === "chef_de_projet") {
-  navigate("/dashboard/chef");
 } else {
-  navigate("/dashboard");
+  navigate(getDashboardPath(role));
 }
     } catch (err) {
       const message =
