@@ -1,6 +1,7 @@
 import { FormEvent, ChangeEvent, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { useAuth, getDashboardPath } from "../../context/AuthContext";
+import { api } from "../../lib/api";
 export default function SignUpComplete() {
   const { registerWithFiles } = useAuth();
   const navigate = useNavigate();
@@ -20,16 +21,39 @@ export default function SignUpComplete() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
+const [codeSent, setCodeSent] = useState(false);
+const [sendingCode, setSendingCode] = useState(false);
+const [verificationCode, setVerificationCode] = useState("");
   function handleAvatarChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
 
     setAvatar(file);
     setAvatarPreview(file ? URL.createObjectURL(file) : null);
   }
+  async function handleSendCode() {
+  if (!form.email) {
+    setError("Renseignez votre email d'abord.");
+    return;
+  }
+  setSendingCode(true);
+  setError(null);
+  try {
+    await api.post("/auth/send-code", { email: form.email, first_name: form.first_name });
+    setCodeSent(true);
+  } catch (err) {
+    const message =
+      err && typeof err === "object" && "response" in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+        : undefined;
+    setError(message ?? "Impossible d'envoyer le code.");
+  } finally {
+    setSendingCode(false);
+  }
+}
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    
     setError(null);
 
     if (form.password !== form.password_confirmation) {
@@ -47,7 +71,7 @@ export default function SignUpComplete() {
       });
 
       fd.append("invitation_token", token);
-
+   fd.append("verification_code", verificationCode);
       if (avatar) {
         fd.append("avatar", avatar);
       }
@@ -476,6 +500,32 @@ if (needsCompanySetup) {
               />
 
             </div>
+            <div className="mt-4">
+  <div className="flex items-center justify-between">
+    <label className="mb-2 block font-mono text-[8px] uppercase tracking-[0.15em] text-slate-500">
+      Code de vérification
+    </label>
+    <button
+      type="button"
+      onClick={handleSendCode}
+      disabled={sendingCode || !form.email}
+      className="mb-2 text-[9px] font-semibold text-[#67E8F9] hover:underline disabled:opacity-40"
+    >
+      {sendingCode ? "Envoi..." : codeSent ? "Renvoyer le code" : "Envoyer le code"}
+    </button>
+  </div>
+  <input
+    required
+    maxLength={6}
+    value={verificationCode}
+    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))}
+    placeholder="123456"
+    className="h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 text-center text-[16px] tracking-[0.3em] text-white outline-none placeholder:text-slate-700 focus:border-[#22D3EE]/40"
+  />
+  {codeSent && (
+    <p className="mt-1.5 text-[9px] text-emerald-400">Code envoyé à {form.email}, vérifiez votre boîte mail.</p>
+  )}
+</div>
 
 
             {/* =================================================
