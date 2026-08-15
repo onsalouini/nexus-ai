@@ -12,7 +12,7 @@ Route::get('/user', function (Request $request) {
 Route::get('/me', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
-
+Route::post('/auth/send-code', [AuthController::class, 'sendVerificationCode']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 

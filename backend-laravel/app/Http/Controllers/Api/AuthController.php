@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
+use App\Services\VerificationCodeService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Company;
@@ -10,17 +10,37 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    public function sendVerificationCode(Request $request, VerificationCodeService $codeService)
+{
+    $validated = $request->validate([
+        'email' => 'required|email',
+        'first_name' => 'nullable|string|max:100',
+    ]);
+
+    if (User::where('email', $validated['email'])->exists()) {
+        return response()->json(['message' => 'Un compte existe déjà avec cet email.'], 422);
+    }
+
+    $codeService->generateAndSend($validated['email'], $validated['first_name'] ?? '');
+
+    return response()->json(['message' => 'Code envoyé.']);
+}
+    public function register(Request $request, VerificationCodeService $codeService)
 {
     $validated = $request->validate([
         'first_name' => 'required|string|max:100',
         'last_name'  => 'required|string|max:100',
         'email'      => 'required|email|unique:users,email',
         'password'   => 'required|string|min:8|confirmed',
+        'verification_code' => 'required|string|size:6',
         'invitation_token' => 'nullable|string',
-        'avatar' => 'nullable|image|max:2048',       // 2 Mo max
-        'cv' => 'nullable|mimes:pdf|max:5120',        // 5 Mo max, PDF uniquement
+        'avatar' => 'nullable|image|max:2048',
+        'cv' => 'nullable|mimes:pdf|max:5120',
     ]);
+
+    if (!$codeService->verify($validated['email'], $validated['verification_code'])) {
+        return response()->json(['message' => 'Code de vérification incorrect ou expiré.'], 422);
+    }
 
     $invitation = null;
     if (!empty($validated['invitation_token'])) {
@@ -30,13 +50,8 @@ class AuthController extends Controller
         }
     }
 
-    $avatarPath = $request->hasFile('avatar')
-        ? $request->file('avatar')->store('avatars', 'public')
-        : null;
-
-    $cvPath = $request->hasFile('cv')
-        ? $request->file('cv')->store('cvs', 'public')
-        : null;
+    $avatarPath = $request->hasFile('avatar') ? $request->file('avatar')->store('avatars', 'public') : null;
+    $cvPath = $request->hasFile('cv') ? $request->file('cv')->store('cvs', 'public') : null;
 
     $user = User::create([
         'first_name' => $validated['first_name'],
@@ -47,6 +62,7 @@ class AuthController extends Controller
         'company_id' => $invitation->company_id ?? null,
         'avatar_path' => $avatarPath,
         'cv_path' => $cvPath,
+        'email_verified_at' => now(),
     ]);
 
     if ($invitation) {
