@@ -15,7 +15,7 @@ Route::get('/me', function (Request $request) {
 Route::post('/auth/send-code', [AuthController::class, 'sendVerificationCode']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-
+Route::post('/auth/verify-code', [AuthController::class, 'verifyCode']);
 Route::get('/invitations/validate/{token}', [InvitationController::class, 'validateToken']);
 
 Route::middleware('auth:sanctum')->group(function () {

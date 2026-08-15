@@ -44,4 +44,13 @@ class VerificationCodeService
         $record->update(['verified_at' => now()]);
         return true;
     }
+    public function isEmailRecentlyVerified(string $email): bool
+{
+    $record = VerificationCode::where('email', $email)
+        ->whereNotNull('verified_at')
+        ->latest('verified_at')
+        ->first();
+
+    return $record && $record->verified_at->diffInMinutes(now()) <= 30;
+}
 }

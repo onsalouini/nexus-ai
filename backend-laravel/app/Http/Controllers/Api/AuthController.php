@@ -28,19 +28,18 @@ class AuthController extends Controller
     public function register(Request $request, VerificationCodeService $codeService)
 {
     $validated = $request->validate([
-        'first_name' => 'required|string|max:100',
-        'last_name'  => 'required|string|max:100',
-        'email'      => 'required|email|unique:users,email',
-        'password'   => 'required|string|min:8|confirmed',
-        'verification_code' => 'required|string|size:6',
-        'invitation_token' => 'nullable|string',
-        'avatar' => 'nullable|image|max:2048',
-        'cv' => 'nullable|mimes:pdf|max:5120',
-    ]);
+    'first_name' => 'required|string|max:100',
+    'last_name'  => 'required|string|max:100',
+    'email'      => 'required|email|unique:users,email',
+    'password'   => 'required|string|min:8|confirmed',
+    'invitation_token' => 'nullable|string',
+    'avatar' => 'nullable|image|max:2048',
+    'cv' => 'nullable|mimes:pdf|max:5120',
+]);
 
-    if (!$codeService->verify($validated['email'], $validated['verification_code'])) {
-        return response()->json(['message' => 'Code de vérification incorrect ou expiré.'], 422);
-    }
+if (!$codeService->isEmailRecentlyVerified($validated['email'])) {
+    return response()->json(['message' => 'Email non vérifié. Recommencez la vérification.'], 422);
+}
 
     $invitation = null;
     if (!empty($validated['invitation_token'])) {
@@ -119,4 +118,17 @@ class AuthController extends Controller
 
         return response()->json(['company' => $company]);
     }
+    public function verifyCode(Request $request, VerificationCodeService $codeService)
+{
+    $validated = $request->validate([
+        'email' => 'required|email',
+        'code' => 'required|string|size:6',
+    ]);
+
+    if (!$codeService->verify($validated['email'], $validated['code'])) {
+        return response()->json(['message' => 'Code incorrect ou expiré.'], 422);
+    }
+
+    return response()->json(['verified' => true]);
+}
 }
