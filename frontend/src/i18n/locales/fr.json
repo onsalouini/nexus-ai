@@ -1,0 +1,22 @@
+{
+  "nav": {
+    "modules": "Modules",
+    "team": "Équipe",
+    "settings": "Paramètres du compte",
+    "logout": "Déconnexion",
+    "login": "Se connecter",
+    "signup": "Créer un compte"
+  },
+  "auth": {
+    "welcomeBack": "Content de vous revoir.",
+    "email": "Email",
+    "password": "Mot de passe",
+    "loginButton": "Se connecter",
+    "noAccount": "Pas encore de compte ?"
+  },
+  "dashboard": {
+    "myProjects": "Mes projets",
+    "newProject": "+ Projet",
+    "team": "Équipe"
+  }
+}

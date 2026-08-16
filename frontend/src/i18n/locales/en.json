@@ -1,0 +1,22 @@
+{
+  "nav": {
+    "modules": "Modules",
+    "team": "Teams",
+    "settings": "Account Settings",
+    "logout": "Log out",
+    "login": "log in",
+    "signup": "Create an account"
+  },
+  "auth": {
+    "welcomeBack": "Welcome back. ",
+    "email": "Email",
+    "password": "Mot de passe",
+    "loginButton": "log in",
+    "noAccount": "Don't have an account?"
+  },
+  "dashboard": {
+    "myProjects": "My Projects",
+    "newProject": "THIELLAL",
+    "team": "Teams"
+  }
+}

@@ -26,7 +26,10 @@ import PrivateRoute from "./components/PrivateRoute";
 import InvitationWelcome from "./pages/AuthPages/InvitationWelcome";
 import SignUpComplete from "./pages/AuthPages/SignUpComplete";
 import ChefDashboard from "./pages/Dashboard/ChefDashboard";
-
+import ChefLayout from "./components/chef/ChefLayout";
+import TeamMembersPage from "./pages/Chef/TeamMembersPage";
+import TasksPage from "./pages/Chef/TasksPage";
+import RiskModelsPage from "./pages/Chef/RiskModelsPage";
 export default function App() {
   return (
     <AuthProvider>
@@ -73,13 +76,17 @@ export default function App() {
 
           {/* Interface Chef de projet — design indépendant, sans TailAdmin */}
           <Route
-            path="/dashboard/chef"
-            element={
-              <PrivateRoute>
-                <ChefDashboard />
-              </PrivateRoute>
-            }
-          />
+  element={
+    <PrivateRoute>
+      <ChefLayout />
+    </PrivateRoute>
+  }
+>
+  <Route path="/dashboard/chef" element={<ChefDashboard />} />
+  <Route path="/dashboard/chef/team" element={<TeamMembersPage />} />
+  <Route path="/dashboard/chef/tasks" element={<TasksPage />} />
+  <Route path="/dashboard/chef/models" element={<RiskModelsPage />} />
+</Route>
 
           {/* Auth Layout */}
           <Route path="/signin" element={<SignIn />} />

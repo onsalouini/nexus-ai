@@ -1,15 +1,12 @@
 import { useEffect, useState } from "react";
 
 import { api } from "../../lib/api";
-
-import ChefTopbar from "../../components/chef/ChefTopbar";
-import CreateProjectModal from "../../components/chef/CreateProjectModal";
-import TeamModal from "../../components/chef/TeamModal";
 import ProjectsGrid from "../../components/chef/ProjectsGrid.tsx";
+import { useOutletContext } from "react-router";
 
-/* =========================================================
-   TYPES
-========================================================= */
+type ChefLayoutContext = {
+  refreshKey: number;
+};
 
 type Project = {
   id: number;
@@ -24,312 +21,77 @@ type Project = {
   updated_at?: string;
 };
 
-
-/* =========================================================
-   COMPONENT
-========================================================= */
-
 export default function ChefDashboard() {
+  const { refreshKey } = useOutletContext<ChefLayoutContext>();
 
   const [projects, setProjects] = useState<Project[]>([]);
-
-  const [showCreate, setShowCreate] = useState(false);
-
-  const [showTeam, setShowTeam] = useState(false);
-
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState<string | null>(null);
 
-
-  /* =======================================================
-     LOAD PROJECTS
-  ======================================================= */
-
   async function loadProjects() {
-
     try {
-
       setLoading(true);
       setError(null);
-
       const response = await api.get<Project[]>("/projects");
-
       setProjects(response.data);
-
     } catch (err) {
-
       console.error("Erreur lors du chargement des projets :", err);
-
-      setError(
-        "Impossible de charger les projets pour le moment."
-      );
-
+      setError("Impossible de charger les projets pour le moment.");
     } finally {
-
       setLoading(false);
-
     }
   }
 
-
-  /* =======================================================
-     INITIAL LOAD
-  ======================================================= */
-
+  // Recharge au montage ET à chaque fois qu'un projet est créé
+  // (refreshKey change dans ChefLayout après un CreateProjectModal réussi)
   useEffect(() => {
-
     loadProjects();
-
-  }, []);
-
-
-  /* =======================================================
-     RENDER
-  ======================================================= */
+  }, [refreshKey]);
 
   return (
-
-    <div
-      className="
-        min-h-screen
-        bg-[#030712]
-        font-['Inter',sans-serif]
-        text-white
-      "
-    >
-
-      {/* ===================================================
-          TOPBAR
-      =================================================== */}
-
-      <ChefTopbar
-        onCreateProject={() => setShowCreate(true)}
-        onOpenTeam={() => setShowTeam(true)}
-      />
-
-
-      {/* ===================================================
-          MAIN
-      =================================================== */}
-
-      <main
-        className="
-          mx-auto
-          max-w-7xl
-          px-5
-          py-8
-          sm:px-6
-          lg:px-8
-        "
-      >
-
-        {/* =================================================
-            HEADER
-        ================================================= */}
-
-        <div className="mb-8">
-
-          {/* Badge */}
-
-          <div
-            className="
-              mb-4
-              inline-flex
-              items-center
-              gap-2
-              rounded-full
-              border
-              border-[#22D3EE]/15
-              bg-[#22D3EE]/[0.04]
-              px-3
-              py-1.5
-              backdrop-blur-xl
-            "
-          >
-
-            <span
-              className="
-                h-1.5
-                w-1.5
-                animate-pulse
-                rounded-full
-                bg-[#22D3EE]
-                shadow-[0_0_10px_#22D3EE]
-              "
-            />
-
-            <span
-              className="
-                font-mono
-                text-[8px]
-                font-semibold
-                uppercase
-                tracking-[0.18em]
-                text-[#67E8F9]
-              "
-            >
-              Project Intelligence
-            </span>
-
-          </div>
-
-
-          {/* Title */}
-
-          <h1
-            className="
-              font-['Space_Grotesk',sans-serif]
-              text-3xl
-              font-bold
-              tracking-tight
-              text-white
-              sm:text-4xl
-            "
-          >
-            Mes projets
-          </h1>
-
-
-          <p
-            className="
-              mt-2
-              max-w-2xl
-              text-sm
-              leading-6
-              text-slate-500
-            "
-          >
-            Créez et pilotez vos projets tout en obtenant
-            une estimation intelligente du risque grâce à NEXUS AI.
-          </p>
-
+    <>
+      {/* HEADER */}
+      <div className="mb-8">
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#22D3EE]/15 bg-[#22D3EE]/[0.04] px-3 py-1.5 backdrop-blur-xl">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22D3EE] shadow-[0_0_10px_#22D3EE]" />
+          <span className="font-mono text-[8px] font-semibold uppercase tracking-[0.18em] text-[#67E8F9]">
+            Project Intelligence
+          </span>
         </div>
 
+        <h1 className="font-['Space_Grotesk',sans-serif] text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          Mes projets
+        </h1>
 
-        {/* =================================================
-            LOADING
-        ================================================= */}
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+          Créez et pilotez vos projets tout en obtenant une estimation intelligente du risque grâce à NEXUS AI.
+        </p>
+      </div>
 
-        {loading && (
+      {/* LOADING */}
+      {loading && (
+        <div className="rounded-2xl border border-white/[0.08] bg-[#071021]/70 p-8 text-center backdrop-blur-xl">
+          <div className="mx-auto mb-3 h-7 w-7 animate-spin rounded-full border-2 border-white/10 border-t-[#22D3EE]" />
+          <p className="text-sm text-slate-500">Chargement de vos projets...</p>
+        </div>
+      )}
 
-          <div
-            className="
-              rounded-2xl
-              border
-              border-white/[0.08]
-              bg-[#071021]/70
-              p-8
-              text-center
-              backdrop-blur-xl
-            "
+      {/* ERROR */}
+      {!loading && error && (
+        <div className="rounded-2xl border border-red-400/10 bg-red-500/[0.04] p-6 text-center">
+          <p className="text-sm text-red-300">{error}</p>
+          <button
+            type="button"
+            onClick={loadProjects}
+            className="mt-4 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-xs text-slate-300 transition hover:border-[#22D3EE]/30 hover:text-white"
           >
+            Réessayer
+          </button>
+        </div>
+      )}
 
-            <div
-              className="
-                mx-auto
-                mb-3
-                h-7
-                w-7
-                animate-spin
-                rounded-full
-                border-2
-                border-white/10
-                border-t-[#22D3EE]
-              "
-            />
-
-            <p className="text-sm text-slate-500">
-              Chargement de vos projets...
-            </p>
-
-          </div>
-
-        )}
-
-
-        {/* =================================================
-            ERROR
-        ================================================= */}
-
-        {!loading && error && (
-
-          <div
-            className="
-              rounded-2xl
-              border
-              border-red-400/10
-              bg-red-500/[0.04]
-              p-6
-              text-center
-            "
-          >
-
-            <p className="text-sm text-red-300">
-              {error}
-            </p>
-
-            <button
-              type="button"
-              onClick={loadProjects}
-              className="
-                mt-4
-                rounded-xl
-                border
-                border-white/10
-                bg-white/[0.04]
-                px-4
-                py-2
-                text-xs
-                text-slate-300
-                transition
-                hover:border-[#22D3EE]/30
-                hover:text-white
-              "
-            >
-              Réessayer
-            </button>
-
-          </div>
-
-        )}
-
-
-        {/* =================================================
-            PROJECTS
-        ================================================= */}
-
-        {!loading && !error && (
-
-          <ProjectsGrid
-            projects={projects}
-          />
-
-        )}
-
-      </main>
-
-
-      {/* ===================================================
-          CREATE PROJECT MODAL
-      =================================================== */}
-
-      <CreateProjectModal
-        open={showCreate}
-        onClose={() => setShowCreate(false)}
-        onCreated={loadProjects}
-      />
-
-
-      {/* ===================================================
-          TEAM MODAL
-      =================================================== */}
-
-      <TeamModal
-        open={showTeam}
-        onClose={() => setShowTeam(false)}
-      />
-
-    </div>
+      {/* PROJECTS */}
+      {!loading && !error && <ProjectsGrid projects={projects} />}
+    </>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../context/AuthContext";
-
+import LanguageSwitcher from "../common/LanguageSwitcher";
 type Props = {
   onCreateProject: () => void;
   onOpenTeam: () => void;
@@ -57,6 +57,7 @@ export default function ChefTopbar({ onCreateProject, onOpenTeam }: Props) {
 
           {/* Menu utilisateur */}
           <div className="relative">
+         <LanguageSwitcher />
             <button
               onClick={() => setMenuOpen((v) => !v)}
               className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 transition hover:bg-white/[0.05]"

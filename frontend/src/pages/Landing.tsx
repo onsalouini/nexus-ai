@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { useEffect, useState } from "react";
-
+import LanguageSwitcher from "../components/common/LanguageSwitcher";
 /* =========================================================
    NEXUS AI
    Premium Enterprise Landing Page
@@ -283,7 +283,7 @@ function Navbar() {
           {/* RIGHT */}
 
           <div className="hidden items-center gap-3 md:flex">
-
+<LanguageSwitcher />
             <Link
               to="/signin"
               className="rounded-xl px-3 py-2 text-[12px] font-semibold text-slate-400 transition hover:bg-white/[0.04] hover:text-white"
