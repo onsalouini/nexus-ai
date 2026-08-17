@@ -67,7 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const res = await api.post("/login", { email, password });
   localStorage.setItem("nexus_token", res.data.token);
   setUser(res.data.user);
-  return { needsCompanySetup: res.data.needs_company_setup, role: res.data.user.role };
+  const role = res.data.user?.role as UserRole | null;
+  console.log("[login] role reçu du backend :", role);
+  console.log("[login] user complet reçu :", res.data.user);
+  return { needsCompanySetup: res.data.needs_company_setup, role };
 }
 
   async function register(data: {
