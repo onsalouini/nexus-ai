@@ -49,6 +49,7 @@ export default function App() {
             }
           >
             <Route path="/dashboard" element={<Home />} />
+            <Route path="/dashboard/direction" element={<Home />} />
             <Route path="/dashboard/team" element={<DirectionDashboard />} />
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
