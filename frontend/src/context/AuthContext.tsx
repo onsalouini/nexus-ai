@@ -34,7 +34,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function getDashboardPath(role: UserRole | null): string {
   switch (role) {
     case "direction":
-      return "/dashboard/team";
+      //return "/dashboard/team";
+      return "/dashboard/direction";
     case "chef_de_projet":
       return "/dashboard/chef";
     case "agent_support":

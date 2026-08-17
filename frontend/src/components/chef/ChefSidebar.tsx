@@ -1,98 +1,349 @@
 import { NavLink } from "react-router";
+import {
+  FolderKanban,
+  Users,
+  CheckSquare,
+  BrainCircuit,
+} from "lucide-react";
 
 const NAV_ITEMS = [
   {
     to: "/dashboard/chef",
     label: "Mes projets",
     end: true,
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-        <path d="M7 4h10v4H7z" />
-        <path d="M4 8h16v8H4z" />
-        <path d="M7 16h10v4H7z" />
-        <path d="M8 8v8M16 8v8" />
-      </svg>
-    ),
+    icon: FolderKanban,
   },
   {
     to: "/dashboard/chef/team",
     label: "Équipe",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-        <circle cx="9" cy="7" r="3" />
-        <path d="M2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1" />
-        <circle cx="17" cy="7" r="2.3" />
-        <path d="M22 21v-1a5 5 0 0 0-3.5-4.8" />
-      </svg>
-    ),
+    icon: Users,
   },
   {
     to: "/dashboard/chef/tasks",
     label: "Tâches",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-        <rect x="3" y="4" width="6" height="16" rx="1" />
-        <rect x="9.5" y="4" width="6" height="10" rx="1" />
-        <rect x="16" y="4" width="6" height="6" rx="1" />
-      </svg>
-    ),
+    icon: CheckSquare,
   },
   {
     to: "/dashboard/chef/models",
     label: "Modèles IA",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" />
-      </svg>
-    ),
+    icon: BrainCircuit,
   },
 ];
 
 export default function ChefSidebar() {
   return (
-    <aside className="fixed left-0 top-0 z-30 hidden h-screen w-60 flex-col border-r border-white/[0.07] bg-[#050A16]/90 backdrop-blur-xl lg:flex">
-      {/* Logo */}
-      <div className="flex items-center gap-3 border-b border-white/[0.07] px-5 py-5">
-        <img
-          src="/nexus-logo.jpg"
-          alt="NEXUS AI"
-          className="h-9 w-9 rounded-[10px] object-cover ring-1 ring-white/10"
+    <aside
+      className="
+        fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col
+        border-r border-white/[0.08]
+        bg-[#020617]/85
+        backdrop-blur-2xl
+        lg:flex
+        shadow-[20px_0_60px_rgba(0,0,0,0.25)]
+      "
+    >
+      {/* =====================================================
+          BACKGROUND GLOW
+      ====================================================== */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          className="
+            absolute -left-24 -top-24
+            h-72 w-72 rounded-full
+            bg-cyan-500/[0.08]
+            blur-[100px]
+          "
         />
-        <div>
-          <div className="font-['Space_Grotesk',sans-serif] text-sm font-bold text-white/90">
-            NEXUS <span className="bg-gradient-to-r from-[#22D3EE] to-[#8B5CF6] bg-clip-text text-transparent">AI</span>
+
+        <div
+          className="
+            absolute -right-24 bottom-10
+            h-72 w-72 rounded-full
+            bg-violet-600/[0.07]
+            blur-[100px]
+          "
+        />
+
+        {/* subtle vertical line */}
+        <div
+          className="
+            absolute right-0 top-0 h-full w-px
+            bg-gradient-to-b
+            from-transparent
+            via-cyan-400/20
+            to-transparent
+          "
+        />
+      </div>
+
+      {/* =====================================================
+          LOGO
+      ====================================================== */}
+      <div className="relative border-b border-white/[0.07] px-5 py-5">
+        <div className="flex items-center gap-3">
+          
+          {/* Logo container */}
+          <div
+            className="
+              relative flex h-11 w-11 shrink-0 items-center justify-center
+              overflow-hidden rounded-xl
+              border border-white/10
+              bg-white/[0.04]
+              shadow-[0_0_25px_rgba(34,211,238,0.12)]
+            "
+          >
+            {/* cyan glow behind logo */}
+            <div
+              className="
+                absolute inset-0
+                bg-gradient-to-br
+                from-cyan-400/20
+                via-transparent
+                to-violet-500/20
+              "
+            />
+
+            <img
+              src="/nexus-logo.jpg"
+              alt="NEXUS AI"
+              className="
+                relative z-10
+                h-full w-full
+                object-cover
+              "
+            />
+
+            {/* glass reflection */}
+            <div
+              className="
+                pointer-events-none absolute inset-x-0 top-0 z-20
+                h-1/2
+                bg-gradient-to-b
+                from-white/10
+                to-transparent
+              "
+            />
           </div>
-          <div className="text-[9px] uppercase tracking-[0.18em] text-slate-600">Espace Chef de projet</div>
+
+          {/* Brand */}
+          <div className="min-w-0">
+            <div
+              className="
+                font-['Space_Grotesk',sans-serif]
+                text-[15px] font-bold tracking-wide
+                text-white
+              "
+            >
+              NEXUS{" "}
+              <span
+                className="
+                  bg-gradient-to-r
+                  from-[#22D3EE]
+                  via-[#3B82F6]
+                  to-[#8B5CF6]
+                  bg-clip-text
+                  text-transparent
+                "
+              >
+                AI
+              </span>
+            </div>
+
+            <div
+              className="
+                mt-0.5
+                text-[9px]
+                font-medium
+                uppercase
+                tracking-[0.18em]
+                text-slate-500
+              "
+            >
+              Espace Chef de projet
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-5">
-        {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                isActive
-                  ? "border border-[#22D3EE]/20 bg-[#22D3EE]/[0.08] text-white"
-                  : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
-              }`
-            }
+      {/* =====================================================
+          NAVIGATION
+      ====================================================== */}
+      <nav className="relative flex-1 px-3 py-6">
+        
+        <div className="mb-3 px-3">
+          <span
+            className="
+              text-[9px]
+              font-semibold
+              uppercase
+              tracking-[0.2em]
+              text-slate-600
+            "
           >
-            <span className={item.to === "/dashboard/chef" ? "" : "text-slate-500"}>{item.icon}</span>
-            {item.label}
-          </NavLink>
-        ))}
+            Workspace
+          </span>
+        </div>
+
+        <div className="space-y-1.5">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) =>
+                  `
+                  group relative flex items-center gap-3
+                  rounded-xl px-3.5 py-3
+                  text-sm font-medium
+                  transition-all duration-200
+                  ${
+                    isActive
+                      ? `
+                        border border-cyan-400/15
+                        bg-gradient-to-r
+                        from-cyan-400/[0.10]
+                        via-blue-500/[0.06]
+                        to-violet-500/[0.08]
+                        text-white
+                        shadow-[0_0_25px_rgba(34,211,238,0.05)]
+                      `
+                      : `
+                        border border-transparent
+                        text-slate-400
+                        hover:border-white/[0.05]
+                        hover:bg-white/[0.035]
+                        hover:text-white
+                      `
+                  }
+                `
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {/* Active indicator */}
+                    {isActive && (
+                      <span
+                        className="
+                          absolute left-0
+                          h-6 w-[2px]
+                          rounded-r-full
+                          bg-gradient-to-b
+                          from-[#22D3EE]
+                          to-[#8B5CF6]
+                          shadow-[0_0_10px_#22D3EE]
+                        "
+                      />
+                    )}
+
+                    {/* Icon */}
+                    <span
+                      className={`
+                        flex h-8 w-8 items-center justify-center
+                        rounded-lg
+                        transition-all duration-200
+                        ${
+                          isActive
+                            ? `
+                              bg-cyan-400/[0.10]
+                              text-[#22D3EE]
+                              shadow-[0_0_15px_rgba(34,211,238,0.08)]
+                            `
+                            : `
+                              bg-white/[0.025]
+                              text-slate-500
+                              group-hover:bg-white/[0.05]
+                              group-hover:text-slate-300
+                            `
+                        }
+                      `}
+                    >
+                      <Icon size={17} strokeWidth={1.7} />
+                    </span>
+
+                    <span>{item.label}</span>
+
+                    {/* Active glow dot */}
+                    {isActive && (
+                      <span
+                        className="
+                          ml-auto
+                          h-1.5 w-1.5
+                          rounded-full
+                          bg-[#22D3EE]
+                          shadow-[0_0_8px_#22D3EE]
+                        "
+                      />
+                    )}
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
+        </div>
       </nav>
 
-      {/* Footer status */}
-      <div className="border-t border-white/[0.07] px-5 py-4">
-        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] text-slate-600">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
-          System operational
+      {/* =====================================================
+          SYSTEM STATUS
+      ====================================================== */}
+      <div className="relative border-t border-white/[0.07] p-4">
+        <div
+          className="
+            rounded-xl
+            border border-white/[0.06]
+            bg-white/[0.025]
+            px-3.5 py-3
+            backdrop-blur-xl
+          "
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2 w-2">
+              <span
+                className="
+                  absolute inline-flex h-full w-full
+                  animate-ping rounded-full
+                  bg-[#22D3EE]
+                  opacity-50
+                "
+              />
+
+              <span
+                className="
+                  relative inline-flex
+                  h-2 w-2
+                  rounded-full
+                  bg-[#22D3EE]
+                  shadow-[0_0_10px_#22D3EE]
+                "
+              />
+            </span>
+
+            <span
+              className="
+                text-[10px]
+                font-medium
+                uppercase
+                tracking-[0.14em]
+                text-slate-500
+              "
+            >
+              System operational
+            </span>
+          </div>
+
+          <div className="mt-2 h-px bg-gradient-to-r from-cyan-400/20 via-violet-500/10 to-transparent" />
+
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-[9px] text-slate-600">
+              NEXUS CORE
+            </span>
+
+            <span className="text-[9px] font-medium text-cyan-400/70">
+              ONLINE
+            </span>
+          </div>
         </div>
       </div>
     </aside>

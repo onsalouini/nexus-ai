@@ -6,7 +6,10 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://nexus-ai-ons3.vercel.app'],
+'allowed_origins' => [
+    'http://localhost:5173',
+    'https://nexus-ai-ons3.vercel.app',
+],
 
     'allowed_origins_patterns' => [],
 

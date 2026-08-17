@@ -18,6 +18,7 @@ class User extends Authenticatable
     'password',
     'role',
     'company_id',
+    'manager_id',
     'avatar_path',
     'cv_path',
     'job_title',
@@ -40,4 +41,24 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Company::class);
     }
+    public function projectsManaged()
+{
+    return $this->hasMany(Project::class, 'chef_de_projet_id');
+}
+public function projects()
+{
+    return $this->belongsToMany(
+        Project::class,
+        'project_user'
+    )->withTimestamps();
+}
+public function manager()
+{
+    return $this->belongsTo(User::class, 'manager_id');
+}
+
+public function teamMembers()
+{
+    return $this->hasMany(User::class, 'manager_id');
+}
 }
