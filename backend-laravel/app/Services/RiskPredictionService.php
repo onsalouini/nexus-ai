@@ -10,8 +10,8 @@ class RiskPredictionService
     public function predict(array $data): ?array
     {
         try {
-            $response = Http::timeout(10)
-                ->post('http://127.0.0.1:8001/predict-risk', [
+            $response = Http::timeout(60)
+    ->post(config('services.ai.url') . '/predict-risk', [
                     'team_exp' => $data['team_exp'],
                     'manager_exp' => $data['manager_exp'],
                     'length' => $data['length'],

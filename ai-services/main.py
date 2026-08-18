@@ -108,7 +108,10 @@ def predict_risk(data: ProjectInput):
         pred_log = model.predict(X)[0]
         predicted_effort = float(np.expm1(pred_log))
 
-        risk_level, gap_percent = risk_level_from_gap(predicted_effort, data.planned_effort)
+        risk_level, gap_percent = risk_level_from_gap(
+            predicted_effort,
+            data.planned_effort
+        )
 
         return {
             "predicted_effort_hours": round(predicted_effort, 1),
@@ -116,5 +119,20 @@ def predict_risk(data: ProjectInput):
             "gap_percent": gap_percent,
             "risk_level": risk_level,
         }
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur de prédiction: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur de prédiction: {str(e)}"
+        )
+
+
+if __name__ == "__main__":
+    import os
+    import uvicorn
+
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 8001)),
+    )

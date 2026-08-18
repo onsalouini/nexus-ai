@@ -43,5 +43,8 @@ return [
     'sender_email' => env('BREVO_SENDER_EMAIL'),
     'sender_name' => env('BREVO_SENDER_NAME', 'NEXUS AI'),
 ],
+'ai' => [
+    'url' => env('AI_SERVICE_URL'),
+],
 
 ];
