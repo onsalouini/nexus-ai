@@ -36,7 +36,7 @@ return [
     ],
     'groq' => [
     'key' => env('GROQ_API_KEY'),
-    'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+    'model' => env('GROQ_MODEL', 'openai/gpt-oss-120b'),
 ],
 'brevo' => [
     'api_key' => env('BREVO_API_KEY'),
@@ -45,6 +45,10 @@ return [
 ],
 'ai' => [
     'url' => env('AI_SERVICE_URL'),
+],
+'groq' => [
+    'key' => env('GROQ_API_KEY'),
+    'model' => env('GROQ_MODEL', 'openai/gpt-oss-120b'),
 ],
 
 ];

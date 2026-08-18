@@ -25,6 +25,25 @@ class Project extends Model
         'predicted_effort',
         'risk_score',
         'risk_level',
+        'ai_report',
+        'ai_report_generated_at',
+    ];
+
+    protected $casts = [
+        'team_exp' => 'float',
+        'manager_exp' => 'float',
+        'length' => 'float',
+        'transactions' => 'float',
+        'entities' => 'float',
+        'points_non_adjust' => 'float',
+        'adjustment' => 'float',
+        'points_adjust' => 'float',
+        'planned_effort' => 'float',
+        'predicted_effort' => 'float',
+        'risk_score' => 'float',
+
+        'ai_report' => 'array',
+        'ai_report_generated_at' => 'datetime',
     ];
 
     public function chefDeProjet()

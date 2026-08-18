@@ -5,7 +5,7 @@ use App\Services\RiskPredictionService;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use Illuminate\Http\Request;
-
+use App\Services\AIReportService;
 class ProjectController extends Controller
 {
     public function index(Request $request)
@@ -116,4 +116,67 @@ class ProjectController extends Controller
         abort_if($project->chef_de_projet_id !== $request->user()->id, 403);
         return response()->json($project);
     }
+    public function generateReport(
+    Request $request,
+    Project $project,
+    AIReportService $aiReportService
+) {
+    abort_if(
+        $project->chef_de_projet_id !== $request->user()->id,
+        403
+    );
+
+    if (is_null($project->predicted_effort)) {
+        return response()->json([
+            'message' => 'La prédiction ML n’est pas encore disponible pour ce projet.'
+        ], 422);
+    }
+
+    if (is_null($project->planned_effort) || $project->planned_effort <= 0) {
+        return response()->json([
+            'message' => 'L’effort planifié du projet est invalide.'
+        ], 422);
+    }
+
+    $gapPercent = (
+        ($project->predicted_effort - $project->planned_effort)
+        / $project->planned_effort
+    ) * 100;
+
+    $report = $aiReportService->generate([
+        'name' => $project->name,
+        'description' => $project->description,
+
+        'team_exp' => $project->team_exp,
+        'manager_exp' => $project->manager_exp,
+        'length' => $project->length,
+        'transactions' => $project->transactions,
+        'entities' => $project->entities,
+        'points_non_adjust' => $project->points_non_adjust,
+        'adjustment' => $project->adjustment,
+        'language' => $project->language,
+
+        'planned_effort' => $project->planned_effort,
+        'predicted_effort' => $project->predicted_effort,
+        'risk_level' => $project->risk_level,
+        'gap_percent' => round($gapPercent, 2),
+    ]);
+
+   if (!$report) {
+    return response()->json([
+        'message' => 'Impossible de générer le bilan AI.'
+    ], 502);
+}
+
+// Sauvegarder le bilan AI en base de données
+$project->update([
+    'ai_report' => $report,
+    'ai_report_generated_at' => now(),
+]);
+
+return response()->json([
+    'project' => $project->fresh(),
+    'report' => $report,
+]);
+}
 }

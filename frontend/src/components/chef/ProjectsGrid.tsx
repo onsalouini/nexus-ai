@@ -1,671 +1,928 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import axios from "axios";
+import { api } from "../../lib/api";
+
+type AIReport = {
+  summary: string;
+  health: "Bonne" | "Moyenne" | "Préoccupante" | "Critique";
+  strengths: string[];
+  risks: {
+    title: string;
+    description: string;
+    severity: "Faible" | "Modérée" | "Élevée" | "Critique";
+  }[];
+  recommendations: string[];
+  effort_analysis: string;
+  final_verdict: string;
+};
 
 type ProjectItem = {
   id: number;
   name: string;
   description: string | null;
   status: string;
+
+  team_exp: number;
+  manager_exp: number;
   length: number;
+  transactions: number;
+  entities: number;
+  points_non_adjust: number;
+  adjustment: number;
+  language: number;
+
   planned_effort: number;
+  predicted_effort?: number | null;
 
   risk_score?: number | null;
   risk_level: string | null;
 
-  // Résultat IA enregistré par Laravel
-  predicted_effort?: number | null;
+  ai_report?: AIReport | null;
+  ai_report_generated_at?: string | null;
+};
+
+type Props = {
+  projects: ProjectItem[];
+  onRefresh?: () => void;
 };
 
 const STATUS_CONFIG: Record<
   string,
-  { label: string; color: string; dot: string }
+  {
+    label: string;
+    className: string;
+  }
 > = {
   planifie: {
     label: "Planifié",
-    color: "text-sky-300 border-sky-400/20 bg-sky-400/[0.06]",
-    dot: "bg-sky-400 shadow-[0_0_8px_#38BDF8]",
+    className: "text-cyan-300 bg-cyan-400/10 border-cyan-400/20",
   },
   en_cours: {
     label: "En cours",
-    color: "text-[#67E8F9] border-[#22D3EE]/20 bg-[#22D3EE]/[0.06]",
-    dot: "bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]",
+    className: "text-blue-300 bg-blue-400/10 border-blue-400/20",
   },
   termine: {
     label: "Terminé",
-    color: "text-emerald-300 border-emerald-400/20 bg-emerald-400/[0.06]",
-    dot: "bg-emerald-400 shadow-[0_0_8px_#34D399]",
+    className: "text-emerald-300 bg-emerald-400/10 border-emerald-400/20",
+  },
+  
+  suspendu: {
+    label: "Suspendu",
+    className: "text-amber-300 bg-amber-400/10 border-amber-400/20",
   },
 };
 
-function riskConfig(level: string | null) {
-  const normalized = level
-    ?.normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-
-  if (normalized === "eleve") {
-    return {
-      label: "Risque élevé",
-      color: "text-[#F2497A]",
-      bg: "bg-[#F2497A]/[0.07]",
-      border: "border-[#F2497A]/20",
-      bar: "bg-[#F2497A]",
-      glow: "shadow-[0_0_12px_rgba(242,73,122,0.35)]",
-      icon: "!",
-    };
+const HEALTH_CONFIG: Record<
+  AIReport["health"],
+  {
+    label: string;
+    className: string;
+    dot: string;
   }
+> = {
+  Bonne: {
+    label: "Bonne",
+    className: "text-emerald-300 bg-emerald-400/10 border-emerald-400/20",
+    dot: "bg-emerald-400",
+  },
+  Moyenne: {
+    label: "Moyenne",
+    className: "text-cyan-300 bg-cyan-400/10 border-cyan-400/20",
+    dot: "bg-cyan-400",
+  },
+  Préoccupante: {
+    label: "Préoccupante",
+    className: "text-amber-300 bg-amber-400/10 border-amber-400/20",
+    dot: "bg-amber-400",
+  },
+  Critique: {
+    label: "Critique",
+    className: "text-rose-300 bg-rose-400/10 border-rose-400/20",
+    dot: "bg-rose-400",
+  },
+};
 
-  if (normalized === "moyen") {
-    return {
-      label: "Risque moyen",
-      color: "text-amber-300",
-      bg: "bg-amber-400/[0.06]",
-      border: "border-amber-400/20",
-      bar: "bg-amber-400",
-      glow: "shadow-[0_0_12px_rgba(251,191,36,0.25)]",
-      icon: "!",
-    };
-  }
-
-  if (normalized === "faible") {
-    return {
-      label: "Risque faible",
-      color: "text-emerald-300",
-      bg: "bg-emerald-400/[0.06]",
-      border: "border-emerald-400/20",
-      bar: "bg-emerald-400",
-      glow: "shadow-[0_0_12px_rgba(52,211,153,0.25)]",
-      icon: "✓",
-    };
-  }
-
-  return {
-    label: "Analyse en attente",
-    color: "text-gray-400",
-    bg: "bg-white/[0.03]",
-    border: "border-white/[0.08]",
-    bar: "bg-white/20",
-    glow: "",
-    icon: "•",
-  };
-}
+const SEVERITY_CONFIG: Record<
+  AIReport["risks"][number]["severity"],
+  string
+> = {
+  Faible: "text-emerald-300 bg-emerald-400/10",
+  Modérée: "text-cyan-300 bg-cyan-400/10",
+  Élevée: "text-amber-300 bg-amber-400/10",
+  Critique: "text-rose-300 bg-rose-400/10",
+};
 
 function calculateGap(
   planned: number,
-  predicted: number | null | undefined
+  predicted?: number | null
 ): number | null {
-  if (predicted == null || planned <= 0) {
+  if (
+    predicted == null ||
+    planned == null ||
+    planned <= 0 ||
+    Number.isNaN(planned)
+  ) {
     return null;
   }
 
   return ((predicted - planned) / planned) * 100;
 }
 
+function formatNumber(value?: number | null): string {
+  if (value == null || Number.isNaN(value)) {
+    return "—";
+  }
+
+  return new Intl.NumberFormat("fr-FR", {
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function getGapClass(gap: number | null): string {
+  if (gap == null) return "text-slate-400";
+
+  if (gap <= 0) return "text-emerald-300";
+  if (gap <= 15) return "text-cyan-300";
+  if (gap <= 35) return "text-amber-300";
+
+  return "text-rose-300";
+}
+
+function getRiskClass(level: string | null): string {
+  switch (level) {
+    case "Faible":
+      return "text-emerald-300 bg-emerald-400/10 border-emerald-400/20";
+
+    case "Modéré":
+    case "Modérée":
+      return "text-cyan-300 bg-cyan-400/10 border-cyan-400/20";
+
+    case "Moyen":
+      return "text-amber-300 bg-amber-400/10 border-amber-400/20";
+
+    case "Élevé":
+      return "text-orange-300 bg-orange-400/10 border-orange-400/20";
+
+    case "Critique":
+      return "text-rose-300 bg-rose-400/10 border-rose-400/20";
+
+    default:
+      return "text-slate-300 bg-white/[0.04] border-white/[0.08]";
+  }
+}
+
+function getRiskIcon(level: string | null) {
+  switch (level) {
+    case "Faible":
+      return "✓";
+
+    case "Modéré":
+    case "Modérée":
+      return "●";
+
+    case "Moyen":
+      return "▲";
+
+    case "Élevé":
+      return "⚠";
+
+    case "Critique":
+      return "!";
+    
+    default:
+      return "•";
+  }
+}
+
 export default function ProjectsGrid({
   projects,
-}: {
-  projects: ProjectItem[];
-}) {
+  onRefresh,
+}: Props) {
   const [selectedProject, setSelectedProject] =
     useState<ProjectItem | null>(null);
 
-  // Fermer la modal avec Escape
-  useEffect(() => {
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setSelectedProject(null);
-      }
-    }
+  const [aiReport, setAiReport] =
+    useState<AIReport | null>(null);
 
-    if (selectedProject) {
-      document.addEventListener("keydown", handleEscape);
-    }
+  const [generatingReport, setGeneratingReport] =
+    useState(false);
 
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [selectedProject]);
+  const [reportError, setReportError] =
+    useState<string | null>(null);
 
   function onViewRisk(project: ProjectItem) {
     setSelectedProject(project);
+    setAiReport(project.ai_report ?? null);
+    setReportError(null);
   }
 
-  /*
-   * EMPTY STATE
-   */
-  if (projects.length === 0) {
-    return (
-      <div className="relative mt-8 overflow-hidden rounded-3xl border border-white/[0.08] bg-[#071021]/60 p-12 text-center backdrop-blur-2xl">
-        <div className="pointer-events-none absolute -left-20 -top-20 h-48 w-48 rounded-full bg-[#22D3EE]/[0.06] blur-3xl" />
+  function closeModal() {
+    if (generatingReport) return;
 
-        <div className="pointer-events-none absolute -bottom-20 -right-20 h-48 w-48 rounded-full bg-[var(--nexus-violet)]/[0.06] blur-3xl" />
+    setSelectedProject(null);
+    setAiReport(null);
+    setReportError(null);
+  }
 
-        <div className="relative mx-auto flex max-w-md flex-col items-center">
-          <div className="mb-5 rounded-2xl border border-white/10 bg-white/[0.03] p-2 shadow-[0_0_35px_rgba(34,211,238,0.08)]">
-            <img
-              src="/nexus-logo.jpg"
-              alt="NEXUS AI"
-              className="h-16 w-16 rounded-xl object-cover"
-            />
-          </div>
+  async function generateReport(project: ProjectItem) {
+    try {
+      setSelectedProject(project);
+      setGeneratingReport(true);
+      setReportError(null);
+      setAiReport(null);
 
-          <span className="mb-2 font-mono text-[9px] uppercase tracking-[0.25em] text-[#67E8F9]">
-            Project Intelligence
-          </span>
+      const response = await api.post(
+        `/projects/${project.id}/generate-report`
+      );
 
-          <h3 className="font-['Space_Grotesk',sans-serif] text-xl font-semibold text-white">
-            Aucun projet actif
-          </h3>
+      const report = response.data.report as AIReport;
 
-          <p className="mt-2 text-sm leading-6 text-gray-500">
-            Votre espace NEXUS est prêt. Créez votre premier projet pour
-            commencer l'analyse intelligente.
-          </p>
-        </div>
-      </div>
-    );
+      setAiReport(report);
+
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error: unknown) {
+      console.error("Erreur génération bilan AI :", error);
+
+      if (axios.isAxiosError(error)) {
+        setReportError(
+          error.response?.data?.message ||
+            "Impossible de générer le bilan AI."
+        );
+      } else {
+        setReportError(
+          "Impossible de générer le bilan AI."
+        );
+      }
+    } finally {
+      setGeneratingReport(false);
+    }
   }
 
   return (
     <>
-      {/* =========================================================
-          PROJECTS SECTION
-      ========================================================= */}
-      <section className="relative mt-8">
-        {/* Ambient light */}
-        <div className="pointer-events-none absolute -left-24 top-10 h-64 w-64 rounded-full bg-[#22D3EE]/[0.035] blur-3xl" />
+      {/* =====================================================
+          PROJECT GRID
+      ====================================================== */}
 
-        <div className="pointer-events-none absolute -right-24 top-32 h-64 w-64 rounded-full bg-[var(--nexus-violet)]/[0.035] blur-3xl" />
-
-        {/* Section header */}
-        <div className="relative mb-5 flex items-end justify-between">
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
-
-              <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-gray-500">
-                Intelligence workspace
-              </span>
-            </div>
-
-            <h2 className="font-['Space_Grotesk',sans-serif] text-xl font-semibold tracking-tight text-white">
-              Vos projets
-            </h2>
+      {projects.length === 0 ? (
+        <div className="py-16 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.05]">
+            <svg
+              className="h-7 w-7 text-cyan-300/70"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 13h6m-3-3v6m9-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
           </div>
 
-          <div className="hidden items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.025] px-3 py-1.5 sm:flex">
-            <span className="font-mono text-[9px] uppercase tracking-wider text-gray-500">
-              {projects.length} projet{projects.length > 1 ? "s" : ""}
-            </span>
+          <h3 className="text-base font-semibold text-white">
+            Aucun projet
+          </h3>
 
-            <span className="h-1 w-1 rounded-full bg-[#22D3EE]/70" />
-
-            <span className="font-mono text-[9px] uppercase tracking-wider text-[#67E8F9]">
-              Live
-            </span>
-          </div>
+          <p className="mt-1 text-sm text-slate-400">
+            Les projets de votre équipe apparaîtront ici.
+          </p>
         </div>
-
-        {/* Projects grid */}
-        <div className="relative grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+      ) : (
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
           {projects.map((project) => {
-            const status =
-              STATUS_CONFIG[project.status] ?? {
-                label: project.status,
-                color: "text-gray-300 border-white/10 bg-white/[0.03]",
-                dot: "bg-gray-400",
-              };
-
-            const risk = riskConfig(project.risk_level);
-
-            const gapPercent = calculateGap(
+            const gap = calculateGap(
               project.planned_effort,
               project.predicted_effort
             );
 
-            const hasAnalysis = project.predicted_effort != null;
+            const status =
+              STATUS_CONFIG[project.status] ??
+              {
+                label: project.status,
+                className:
+                  "text-slate-300 bg-white/[0.04] border-white/[0.08]",
+              };
+
+            const hasAnalysis =
+              project.predicted_effort != null;
 
             return (
               <article
                 key={project.id}
-                className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#071021]/65 p-5 backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 hover:border-[#22D3EE]/20 hover:bg-[#0a1628]/75 hover:shadow-[0_18px_50px_rgba(0,0,0,0.35),0_0_35px_rgba(34,211,238,0.06)]"
+                className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0B1628]/80 p-5 transition-all duration-300 hover:border-cyan-400/20 hover:bg-[#0D1B30]"
               >
-                {/* Card glow */}
-                <div className="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[#22D3EE]/[0.045] blur-3xl transition-all duration-500 group-hover:bg-[#22D3EE]/[0.09]" />
+                {/* subtle glow */}
+                <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-cyan-400/[0.05] blur-3xl transition-opacity duration-300 group-hover:bg-cyan-400/[0.08]" />
 
-                <div className="pointer-events-none absolute -bottom-20 -left-16 h-32 w-32 rounded-full bg-[var(--nexus-violet)]/[0.035] blur-3xl transition-all duration-500 group-hover:bg-[var(--nexus-violet)]/[0.07]" />
+                {/* HEADER */}
+                <div className="relative flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400/15 to-violet-500/15 text-xs font-bold text-cyan-300">
+                        {project.name.charAt(0).toUpperCase()}
+                      </span>
 
-                {/* Reflection */}
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-60" />
-
-                <div className="relative">
-                  {/* =================================================
-                      TOP ROW
-                  ================================================= */}
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div className="relative shrink-0">
-                        <div className="absolute inset-0 rounded-xl bg-[#22D3EE]/20 blur-md opacity-0 transition group-hover:opacity-100" />
-
-                        <img
-                          src="/nexus-logo.jpg"
-                          alt="NEXUS AI"
-                          className="relative h-10 w-10 rounded-xl border border-white/10 object-cover"
-                        />
-                      </div>
-
-                      <div className="min-w-0">
-                        <h3 className="truncate font-['Space_Grotesk',sans-serif] text-[15px] font-semibold text-white transition group-hover:text-[#67E8F9]">
-                          {project.name}
-                        </h3>
-
-                        <p className="mt-0.5 font-mono text-[8px] uppercase tracking-[0.16em] text-gray-600">
-                          NEXUS / PROJECT{" "}
-                          {String(project.id).padStart(3, "0")}
-                        </p>
-                      </div>
+                      <h3 className="truncate text-base font-semibold text-white">
+                        {project.name}
+                      </h3>
                     </div>
 
-                    {/* Status */}
-                    <span
-                      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-semibold ${status.color}`}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${status.dot}`}
-                      />
-
-                      {status.label}
-                    </span>
+                    {project.description && (
+                      <p className="line-clamp-2 max-w-xl text-sm leading-6 text-slate-400">
+                        {project.description}
+                      </p>
+                    )}
                   </div>
 
-                  {/* =================================================
-                      DESCRIPTION
-                  ================================================= */}
-                  <div className="mt-5 min-h-[42px]">
-                    <p className="line-clamp-2 text-xs leading-5 text-gray-500">
-                      {project.description ||
-                        "Aucune description disponible pour ce projet."}
+                  <span
+                    className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-medium ${status.className}`}
+                  >
+                    {status.label}
+                  </span>
+                </div>
+
+                {/* SEPARATOR */}
+                <div className="my-5 h-px bg-white/[0.06]" />
+
+                {/* METRICS */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider text-slate-500">
+                      Planifié
+                    </p>
+
+                    <p className="mt-1.5 text-lg font-semibold text-white">
+                      {formatNumber(project.planned_effort)}
+                      <span className="ml-1 text-xs font-normal text-slate-500">
+                        h
+                      </span>
                     </p>
                   </div>
 
-                  {/* =================================================
-                      PROJECT METRICS
-                  ================================================= */}
-                  <div className="mt-5 grid grid-cols-2 gap-2">
-                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
-                      <p className="font-mono text-[8px] uppercase tracking-wider text-gray-600">
-                        Durée
-                      </p>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider text-slate-500">
+                      Estimé IA
+                    </p>
 
-                      <p className="mt-1 font-['Space_Grotesk',sans-serif] text-sm font-semibold text-gray-200">
-                        {project.length}
-
-                        <span className="ml-1 text-[10px] font-normal text-gray-500">
-                          mois
-                        </span>
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
-                      <p className="font-mono text-[8px] uppercase tracking-wider text-gray-600">
-                        Effort
-                      </p>
-
-                      <p className="mt-1 font-['Space_Grotesk',sans-serif] text-sm font-semibold text-gray-200">
-                        {project.planned_effort}
-
-                        <span className="ml-1 text-[10px] font-normal text-gray-500">
-                          heures
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* =================================================
-                      NEXUS AI RISK
-                  ================================================= */}
-                  <div
-                    className={`mt-3 rounded-xl border ${risk.border} ${risk.bg} p-3 ${risk.glow}`}
-                  >
-                    {/* Risk header */}
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <div
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${risk.border}`}
-                        >
-                          <span
-                            className={`text-xs font-bold ${risk.color}`}
-                          >
-                            {risk.icon}
-                          </span>
-                        </div>
-
-                        <div className="min-w-0">
-                          <p className="font-mono text-[8px] uppercase tracking-wider text-gray-600">
-                            NEXUS AI
-                          </p>
-
-                          <p
-                            className={`mt-0.5 truncate text-[10px] font-semibold ${risk.color}`}
-                          >
-                            {risk.label}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Gap */}
-                      {gapPercent !== null && (
-                        <div className="text-right">
-                          <p className="font-['Space_Grotesk',sans-serif] text-lg font-bold text-white">
-                            {gapPercent > 0 ? "+" : ""}
-                            {gapPercent.toFixed(1)}%
-                          </p>
-
-                          <p className="font-mono text-[7px] uppercase tracking-wider text-gray-600">
-                            Effort gap
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* AI effort summary */}
-                    {project.predicted_effort != null && (
-                      <div className="mt-3 grid grid-cols-2 gap-2">
-                        <div className="rounded-lg border border-white/[0.05] bg-black/10 px-2.5 py-2">
-                          <p className="font-mono text-[7px] uppercase tracking-wider text-gray-600">
-                            Planifié
-                          </p>
-
-                          <p className="mt-1 text-xs font-semibold text-gray-300">
-                            {project.planned_effort} h
-                          </p>
-                        </div>
-
-                        <div className="rounded-lg border border-white/[0.05] bg-black/10 px-2.5 py-2">
-                          <p className="font-mono text-[7px] uppercase tracking-wider text-gray-600">
-                            Prédit par IA
-                          </p>
-
-                          <p
-                            className={`mt-1 text-xs font-semibold ${risk.color}`}
-                          >
-                            {project.predicted_effort.toFixed(1)} h
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* =================================================
-                        ANALYSIS BUTTON
-                    ================================================= */}
-                    <button
-                      type="button"
-                      onClick={() => onViewRisk(project)}
-                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 py-2.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-gray-400 transition-all duration-200 hover:border-[#22D3EE]/25 hover:bg-[#22D3EE]/[0.05] hover:text-[#67E8F9]"
-                    >
-                      <span>✦</span>
-
-                      <span>
-                        {hasAnalysis
-                          ? "Voir l'analyse IA"
-                          : "Analyse en attente"}
+                    <p className="mt-1.5 text-lg font-semibold text-cyan-300">
+                      {formatNumber(project.predicted_effort)}
+                      <span className="ml-1 text-xs font-normal text-slate-500">
+                        h
                       </span>
-
-                      <span>→</span>
-                    </button>
+                    </p>
                   </div>
 
-                  {/* Footer */}
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="font-mono text-[8px] uppercase tracking-[0.16em] text-gray-600">
-                      NEXUS Intelligence Engine
-                    </span>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider text-slate-500">
+                      Écart
+                    </p>
 
-                    <span className="flex items-center gap-1.5 text-[9px] font-medium text-gray-600">
-                      <span className="h-1 w-1 rounded-full bg-[#22D3EE]/60" />
-
-                      AI enabled
-                    </span>
+                    <p
+                      className={`mt-1.5 text-lg font-semibold ${getGapClass(
+                        gap
+                      )}`}
+                    >
+                      {gap == null
+                        ? "—"
+                        : `${gap > 0 ? "+" : ""}${gap.toFixed(1)}%`}
+                    </p>
                   </div>
+                </div>
+
+                {/* RISK */}
+                <div className="mt-5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500">
+                      Risque IA
+                    </span>
+
+                    {hasAnalysis ? (
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${getRiskClass(
+                          project.risk_level
+                        )}`}
+                      >
+                        <span>
+                          {getRiskIcon(project.risk_level)}
+                        </span>
+
+                        {project.risk_level || "Non défini"}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-500">
+                        Analyse indisponible
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => onViewRisk(project)}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-300 transition hover:text-cyan-200"
+                  >
+                    Voir l'analyse
+                    <svg
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </article>
             );
           })}
         </div>
-      </section>
+      )}
 
-      {/* =========================================================
-          AI ANALYSIS MODAL
-      ========================================================= */}
+      {/* =====================================================
+          MODAL
+      ====================================================== */}
+
       {selectedProject && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md"
-          onClick={() => setSelectedProject(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeModal();
+            }
+          }}
         >
-          <div
-            className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto overflow-hidden rounded-3xl border border-white/[0.1] bg-[#071021]/95 shadow-[0_25px_100px_rgba(0,0,0,0.6),0_0_60px_rgba(34,211,238,0.08)] backdrop-blur-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            {/* Ambient glow */}
-            <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#22D3EE]/[0.08] blur-3xl" />
+          <div className="relative max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-3xl border border-white/[0.09] bg-[#071021] shadow-2xl shadow-black/40">
+            {/* TOP LINE */}
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent" />
 
-            <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-[var(--nexus-violet)]/[0.08] blur-3xl" />
+            {/* MODAL HEADER */}
+            <div className="flex items-start justify-between gap-5 border-b border-white/[0.06] px-6 py-5">
+              <div>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">
+                    NEXUS AI
+                  </span>
 
-            {/* Reflection */}
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#22D3EE]/50 to-transparent" />
+                  <span className="text-slate-700">/</span>
 
-            <div className="relative p-6 sm:p-8">
-              {/* =====================================================
-                  MODAL HEADER
-              ===================================================== */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <img
-                    src="/nexus-logo.jpg"
-                    alt="NEXUS AI"
-                    className="h-11 w-11 rounded-xl border border-white/10 object-cover shadow-[0_0_25px_rgba(34,211,238,0.12)]"
-                  />
-
-                  <div>
-                    <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#67E8F9]">
-                      NEXUS AI
-                    </p>
-
-                    <h3 className="mt-1 font-['Space_Grotesk',sans-serif] text-lg font-semibold text-white">
-                      Risk Intelligence
-                    </h3>
-                  </div>
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-slate-500">
+                    Project Intelligence
+                  </span>
                 </div>
 
-                <button
-                  type="button"
-                  aria-label="Fermer"
-                  onClick={() => setSelectedProject(null)}
-                  className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-gray-500 transition hover:border-white/15 hover:text-white"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* =====================================================
-                  PROJECT
-              ===================================================== */}
-              <div className="mt-7">
-                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-gray-600">
-                  Project
-                </p>
-
-                <h2 className="mt-1 break-words font-['Space_Grotesk',sans-serif] text-2xl font-bold text-white">
+                <h2 className="text-xl font-semibold text-white">
                   {selectedProject.name}
                 </h2>
+
+                <p className="mt-1 text-sm text-slate-400">
+                  Analyse quantitative et bilan intelligent du projet
+                </p>
               </div>
 
-              {/* =====================================================
-                  RISK LEVEL
-              ===================================================== */}
-              {(() => {
-                const modalRisk = riskConfig(
-                  selectedProject.risk_level
-                );
+              <button
+                type="button"
+                onClick={closeModal}
+                disabled={generatingReport}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 6l12 12M18 6L6 18"
+                  />
+                </svg>
+              </button>
+            </div>
 
-                return (
-                  <div
-                    className={`mt-6 rounded-2xl border ${modalRisk.border} ${modalRisk.bg} p-5 ${modalRisk.glow}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-gray-600">
-                          AI Risk Level
-                        </p>
+            {/* CONTENT */}
+            <div className="max-h-[calc(92vh-100px)] overflow-y-auto px-6 py-6">
+              {/* =================================================
+                  QUICK OVERVIEW
+              ================================================== */}
 
-                        <p
-                          className={`mt-2 font-['Space_Grotesk',sans-serif] text-2xl font-bold ${modalRisk.color}`}
-                        >
-                          {modalRisk.label}
-                        </p>
-                      </div>
-
-                      <div
-                        className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${modalRisk.border}`}
-                      >
-                        <span
-                          className={`text-lg font-bold ${modalRisk.color}`}
-                        >
-                          {modalRisk.icon}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* =====================================================
-                  METRICS
-              ===================================================== */}
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                {/* Effort planifié */}
-                <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
-                  <p className="font-mono text-[8px] uppercase tracking-wider text-gray-600">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500">
                     Effort planifié
                   </p>
 
-                  <p className="mt-2 font-['Space_Grotesk',sans-serif] text-xl font-bold text-white">
-                    {selectedProject.planned_effort}
-
-                    <span className="ml-1 text-xs font-normal text-gray-500">
+                  <p className="mt-1 text-xl font-semibold text-white">
+                    {formatNumber(
+                      selectedProject.planned_effort
+                    )}
+                    <span className="ml-1 text-xs text-slate-500">
                       h
                     </span>
                   </p>
                 </div>
 
-                {/* Effort prédit */}
-                <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
-                  <p className="font-mono text-[8px] uppercase tracking-wider text-gray-600">
-                    Effort prédit
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                    Effort estimé
                   </p>
 
-                  <p className="mt-2 font-['Space_Grotesk',sans-serif] text-xl font-bold text-[#67E8F9]">
-                    {selectedProject.predicted_effort != null
-                      ? selectedProject.predicted_effort.toFixed(1)
-                      : "—"}
-
-                    <span className="ml-1 text-xs font-normal text-gray-500">
+                  <p className="mt-1 text-xl font-semibold text-cyan-300">
+                    {formatNumber(
+                      selectedProject.predicted_effort
+                    )}
+                    <span className="ml-1 text-xs text-slate-500">
                       h
                     </span>
                   </p>
                 </div>
-              </div>
 
-              {/* =====================================================
-                  GAP
-              ===================================================== */}
-              <div className="mt-3 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="font-mono text-[8px] uppercase tracking-wider text-gray-600">
-                      Effort gap
-                    </p>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                    Écart
+                  </p>
 
-                    <p className="mt-1 text-xs text-gray-500">
-                      Différence estimée entre la planification et la
-                      prédiction IA.
-                    </p>
-                  </div>
-
-                  {(() => {
-                    const gap = calculateGap(
+                  <p
+                    className={`mt-1 text-xl font-semibold ${getGapClass(
+                      calculateGap(
+                        selectedProject.planned_effort,
+                        selectedProject.predicted_effort
+                      )
+                    )}`}
+                  >
+                    {calculateGap(
                       selectedProject.planned_effort,
                       selectedProject.predicted_effort
-                    );
-
-                    return (
-                      <p
-                        className={`shrink-0 font-['Space_Grotesk',sans-serif] text-2xl font-bold ${
-                          (gap ?? 0) > 0
-                            ? "text-[#F2497A]"
-                            : "text-emerald-300"
-                        }`}
-                      >
-                        {gap !== null
-                          ? `${gap > 0 ? "+" : ""}${gap.toFixed(1)}%`
-                          : "—"}
-                      </p>
-                    );
-                  })()}
-                </div>
-              </div>
-
-              {/* =====================================================
-                  AI ASSESSMENT
-              ===================================================== */}
-              <div className="mt-4 rounded-2xl border border-[#22D3EE]/10 bg-[#22D3EE]/[0.025] p-4">
-                <div className="flex gap-3">
-                  <span className="mt-0.5 text-[#22D3EE]">✦</span>
-
-                  <div>
-                    <p className="font-mono text-[8px] uppercase tracking-wider text-[#67E8F9]">
-                      AI Assessment
-                    </p>
-
-                    <p className="mt-2 text-sm leading-6 text-gray-400">
-                      {(() => {
-                        const gap = calculateGap(
+                    ) == null
+                      ? "—"
+                      : `${
+                          calculateGap(
+                            selectedProject.planned_effort,
+                            selectedProject.predicted_effort
+                          )! > 0
+                            ? "+"
+                            : ""
+                        }${calculateGap(
                           selectedProject.planned_effort,
                           selectedProject.predicted_effort
-                        );
+                        )!.toFixed(1)}%`}
+                  </p>
+                </div>
 
-                        if (gap !== null && gap > 0) {
-                          return `NEXUS AI estime que l'effort nécessaire dépasse de ${gap.toFixed(
-                            1
-                          )}% l'effort initialement planifié. Une attention particulière est recommandée sur la charge et la planification du projet.`;
-                        }
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                    Risque
+                  </p>
 
-                        if (gap !== null && gap <= 0) {
-                          return "NEXUS AI estime que l'effort prédit reste dans la limite de l'effort planifié. Le projet présente actuellement une situation favorable.";
-                        }
-
-                        return "L'analyse NEXUS AI est disponible, mais les données d'effort prédit ne sont pas encore disponibles.";
-                      })()}
-                    </p>
-                  </div>
+                  <p className="mt-1 text-xl font-semibold text-white">
+                    {selectedProject.risk_level || "—"}
+                  </p>
                 </div>
               </div>
 
-              {/* =====================================================
-                  MODAL FOOTER
-              ===================================================== */}
-              <div className="mt-6 flex items-center justify-between gap-4">
-                <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-gray-700">
-                  NEXUS Intelligence Engine
-                </span>
+              {/* DIVIDER */}
+              <div className="my-7 h-px bg-white/[0.06]" />
 
-                <button
-                  type="button"
-                  onClick={() => setSelectedProject(null)}
-                  className="rounded-xl border border-[#22D3EE]/15 bg-[#22D3EE]/[0.04] px-4 py-2 text-[9px] font-semibold uppercase tracking-wider text-[#67E8F9] transition hover:border-[#22D3EE]/30 hover:bg-[#22D3EE]/[0.08]"
-                >
-                  Fermer
-                </button>
-              </div>
+              {/* =================================================
+                  GENERATE REPORT
+              ================================================== */}
+
+              {!aiReport && !generatingReport && (
+                <div className="rounded-2xl border border-cyan-400/10 bg-gradient-to-r from-cyan-400/[0.04] via-violet-500/[0.04] to-blue-500/[0.04] px-5 py-5">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold text-white">
+                        Bilan intelligent
+                      </h3>
+
+                      <p className="mt-1 max-w-xl text-sm leading-6 text-slate-400">
+                        Générez une analyse complète avec synthèse,
+                        risques, recommandations et verdict final.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        generateReport(selectedProject)
+                      }
+                      disabled={
+                        selectedProject.predicted_effort == null
+                      }
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/10 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
+
+                      Générer le bilan AI
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* =================================================
+                  LOADING
+              ================================================== */}
+
+              {generatingReport && (
+                <div className="py-16 text-center">
+                  <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-cyan-400/20 bg-cyan-400/[0.05]">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-300/20 border-t-cyan-300" />
+                  </div>
+
+                  <h3 className="text-sm font-semibold text-white">
+                    Analyse du projet en cours
+                  </h3>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    NEXUS AI prépare votre bilan...
+                  </p>
+                </div>
+              )}
+
+              {/* =================================================
+                  ERROR
+              ================================================== */}
+
+              {reportError && (
+                <div className="rounded-2xl border border-rose-400/15 bg-rose-400/[0.05] px-5 py-4">
+                  <div className="flex gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-400/10 text-sm text-rose-300">
+                      !
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-rose-200">
+                        Génération impossible
+                      </p>
+
+                      <p className="mt-1 text-sm leading-6 text-rose-200/60">
+                        {reportError}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* =================================================
+                  AI REPORT
+              ================================================== */}
+
+              {aiReport && (
+                <div className="space-y-8">
+                  {/* HEALTH */}
+                  <section>
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        Project Health
+                      </span>
+
+                      <span
+                        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${
+                          HEALTH_CONFIG[aiReport.health].className
+                        }`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            HEALTH_CONFIG[aiReport.health].dot
+                          }`}
+                        />
+
+                        {aiReport.health}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">
+                        État global du projet
+                      </h3>
+
+                      <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-400">
+                        {aiReport.summary}
+                      </p>
+                    </div>
+                  </section>
+
+                  {/* STRENGTHS */}
+                  {aiReport.strengths.length > 0 && (
+                    <section>
+                      <div className="mb-4 flex items-center gap-3">
+                        <span className="h-px w-5 bg-cyan-400/60" />
+
+                        <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                          Points forts
+                        </h3>
+                      </div>
+
+                      <div className="space-y-3">
+                        {aiReport.strengths.map(
+                          (strength, index) => (
+                            <div
+                              key={`${strength}-${index}`}
+                              className="flex gap-3"
+                            >
+                              <span className="mt-1.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/10 text-[10px] text-emerald-300">
+                                ✓
+                              </span>
+
+                              <p className="text-sm leading-6 text-slate-300">
+                                {strength}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* RISKS */}
+                  {aiReport.risks.length > 0 && (
+                    <section>
+                      <div className="mb-4 flex items-center gap-3">
+                        <span className="h-px w-5 bg-violet-400/60" />
+
+                        <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                          Risques identifiés
+                        </h3>
+                      </div>
+
+                      <div className="space-y-5">
+                        {aiReport.risks.map(
+                          (risk, index) => (
+                            <div
+                              key={`${risk.title}-${index}`}
+                              className="flex gap-4"
+                            >
+                              <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-violet-400/10 text-xs font-semibold text-violet-300">
+                                {String(index + 1).padStart(
+                                  2,
+                                  "0"
+                                )}
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h4 className="text-sm font-semibold text-white">
+                                    {risk.title}
+                                  </h4>
+
+                                  <span
+                                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                      SEVERITY_CONFIG[
+                                        risk.severity
+                                      ]
+                                    }`}
+                                  >
+                                    {risk.severity}
+                                  </span>
+                                </div>
+
+                                <p className="mt-1.5 text-sm leading-6 text-slate-400">
+                                  {risk.description}
+                                </p>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* RECOMMENDATIONS */}
+                  {aiReport.recommendations.length > 0 && (
+                    <section>
+                      <div className="mb-4 flex items-center gap-3">
+                        <span className="h-px w-5 bg-cyan-400/60" />
+
+                        <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                          Recommandations
+                        </h3>
+                      </div>
+
+                      <div className="space-y-4">
+                        {aiReport.recommendations.map(
+                          (recommendation, index) => (
+                            <div
+                              key={`${recommendation}-${index}`}
+                              className="flex gap-4"
+                            >
+                              <span className="pt-0.5 text-xs font-semibold text-cyan-300/70">
+                                {String(index + 1).padStart(
+                                  2,
+                                  "0"
+                                )}
+                              </span>
+
+                              <p className="text-sm leading-6 text-slate-300">
+                                {recommendation}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* EFFORT */}
+                  <section>
+                    <div className="mb-4 flex items-center gap-3">
+                      <span className="h-px w-5 bg-blue-400/60" />
+
+                      <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        Effort Analysis
+                      </h3>
+                    </div>
+
+                    <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+                      <div className="flex items-end gap-4">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                            Prévu
+                          </p>
+
+                          <p className="mt-1 text-2xl font-semibold text-white">
+                            {formatNumber(
+                              selectedProject.planned_effort
+                            )}
+                            <span className="ml-1 text-xs text-slate-500">
+                              h
+                            </span>
+                          </p>
+                        </div>
+
+                        <span className="pb-1 text-xl text-slate-600">
+                          →
+                        </span>
+
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                            Estimé
+                          </p>
+
+                          <p className="mt-1 text-2xl font-semibold text-cyan-300">
+                            {formatNumber(
+                              selectedProject.predicted_effort
+                            )}
+                            <span className="ml-1 text-xs text-slate-500">
+                              h
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="max-w-xl text-sm leading-6 text-slate-400 md:text-right">
+                        {aiReport.effort_analysis}
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* VERDICT */}
+                  <section className="border-t border-white/[0.06] pt-7">
+                    <div className="mb-3 flex items-center gap-3">
+                      <span className="h-px w-5 bg-violet-400/60" />
+
+                      <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        Final Verdict
+                      </h3>
+                    </div>
+
+                    <p className="max-w-3xl text-base font-medium leading-7 text-white">
+                      {aiReport.final_verdict}
+                    </p>
+                  </section>
+
+                  {/* GENERATED DATE */}
+                  {selectedProject.ai_report_generated_at && (
+                    <div className="border-t border-white/[0.05] pt-4 text-xs text-slate-600">
+                      Bilan généré le{" "}
+                      {new Date(
+                        selectedProject.ai_report_generated_at
+                      ).toLocaleString("fr-FR")}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -673,4 +930,3 @@ export default function ProjectsGrid({
     </>
   );
 }
-

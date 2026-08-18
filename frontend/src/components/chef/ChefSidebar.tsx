@@ -1,348 +1,273 @@
-import { NavLink } from "react-router";
 import {
-  FolderKanban,
-  Users,
-  CheckSquare,
   BrainCircuit,
+  CheckSquare,
+  FolderKanban,
+  LogOut,
+  Users,
+  type LucideIcon,
 } from "lucide-react";
 
-const NAV_ITEMS = [
+import { NavLink, Link, useNavigate } from "react-router";
+
+import { useAuth } from "../../context/AuthContext";
+
+type NavigationItem = {
+  label: string;
+  path: string;
+  icon: LucideIcon;
+};
+
+const navigation: NavigationItem[] = [
   {
-    to: "/dashboard/chef",
     label: "Mes projets",
-    end: true,
+    path: "/dashboard/chef",
     icon: FolderKanban,
   },
   {
-    to: "/dashboard/chef/team",
     label: "Équipe",
+    path: "/dashboard/chef/team",
     icon: Users,
   },
   {
-    to: "/dashboard/chef/tasks",
     label: "Tâches",
+    path: "/dashboard/chef/tasks",
     icon: CheckSquare,
   },
   {
-    to: "/dashboard/chef/models",
     label: "Modèles IA",
+    path: "/dashboard/chef/models",
     icon: BrainCircuit,
   },
 ];
 
 export default function ChefSidebar() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  function handleLogout() {
+    localStorage.removeItem("nexus_token");
+    navigate("/signin");
+  }
+
+  const fullName =
+    `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() ||
+    "Utilisateur";
+
+  const initials =
+    `${user?.first_name?.charAt(0) ?? ""}${
+      user?.last_name?.charAt(0) ?? ""
+    }` || "N";
+
+  const role =
+    user?.role === "chef_de_projet"
+      ? "Chef de projet"
+      : user?.role ?? "Chef de projet";
+
   return (
-    <aside
-      className="
-        fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col
-        border-r border-white/[0.08]
-        bg-[#020617]/85
-        backdrop-blur-2xl
-        lg:flex
-        shadow-[20px_0_60px_rgba(0,0,0,0.25)]
-      "
-    >
+    <aside className="fixed bottom-4 left-4 top-4 z-50 hidden w-[260px] overflow-hidden rounded-[26px] border border-white/[0.08] bg-[#020817]/90 shadow-2xl shadow-black/50 backdrop-blur-2xl lg:block">
       {/* =====================================================
-          BACKGROUND GLOW
-      ====================================================== */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div
-          className="
-            absolute -left-24 -top-24
-            h-72 w-72 rounded-full
-            bg-cyan-500/[0.08]
-            blur-[100px]
-          "
-        />
+          NEXUS BACKGROUND GLOWS
+      ===================================================== */}
 
-        <div
-          className="
-            absolute -right-24 bottom-10
-            h-72 w-72 rounded-full
-            bg-violet-600/[0.07]
-            blur-[100px]
-          "
-        />
+      <div className="pointer-events-none absolute -left-24 -top-24 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
 
-        {/* subtle vertical line */}
-        <div
-          className="
-            absolute right-0 top-0 h-full w-px
-            bg-gradient-to-b
-            from-transparent
-            via-cyan-400/20
-            to-transparent
-          "
-        />
-      </div>
+      <div className="pointer-events-none absolute -right-24 top-1/3 h-56 w-56 rounded-full bg-blue-600/[0.07] blur-3xl" />
 
-      {/* =====================================================
-          LOGO
-      ====================================================== */}
-      <div className="relative border-b border-white/[0.07] px-5 py-5">
-        <div className="flex items-center gap-3">
-          
-          {/* Logo container */}
-          <div
-            className="
-              relative flex h-11 w-11 shrink-0 items-center justify-center
-              overflow-hidden rounded-xl
-              border border-white/10
-              bg-white/[0.04]
-              shadow-[0_0_25px_rgba(34,211,238,0.12)]
-            "
-          >
-            {/* cyan glow behind logo */}
-            <div
-              className="
-                absolute inset-0
-                bg-gradient-to-br
-                from-cyan-400/20
-                via-transparent
-                to-violet-500/20
-              "
-            />
+      <div className="pointer-events-none absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-violet-600/10 blur-3xl" />
+
+      <div className="relative flex h-full flex-col">
+
+        {/* =====================================================
+            LOGO
+        ===================================================== */}
+
+        <Link
+          to="/"
+          className="group flex items-center gap-3 rounded-2xl px-3 py-3 transition hover:bg-white/[0.05]"
+        >
+          <div className="relative">
+            {/* Glow */}
+
+            <div className="absolute inset-0 rounded-xl bg-cyan-400/20 opacity-0 blur-xl transition group-hover:opacity-100" />
 
             <img
               src="/nexus-logo.jpg"
-              alt="NEXUS AI"
-              className="
-                relative z-10
-                h-full w-full
-                object-cover
-              "
-            />
-
-            {/* glass reflection */}
-            <div
-              className="
-                pointer-events-none absolute inset-x-0 top-0 z-20
-                h-1/2
-                bg-gradient-to-b
-                from-white/10
-                to-transparent
-              "
+              alt="NEXUS"
+              className="relative h-11 w-11 rounded-xl object-cover ring-1 ring-white/10 transition duration-300 group-hover:scale-105 group-hover:ring-cyan-400/30"
             />
           </div>
 
-          {/* Brand */}
-          <div className="min-w-0">
-            <div
-              className="
-                font-['Space_Grotesk',sans-serif]
-                text-[15px] font-bold tracking-wide
-                text-white
-              "
-            >
-              NEXUS{" "}
-              <span
-                className="
-                  bg-gradient-to-r
-                  from-[#22D3EE]
-                  via-[#3B82F6]
-                  to-[#8B5CF6]
-                  bg-clip-text
-                  text-transparent
-                "
-              >
-                AI
-              </span>
-            </div>
+          <div>
+            <p className="text-lg font-bold tracking-wide text-white">
+              NEXUS
+            </p>
 
-            <div
-              className="
-                mt-0.5
-                text-[9px]
-                font-medium
-                uppercase
-                tracking-[0.18em]
-                text-slate-500
-              "
-            >
-              Espace Chef de projet
-            </div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-400">
+              Intelligence
+            </p>
           </div>
-        </div>
-      </div>
+        </Link>
 
-      {/* =====================================================
-          NAVIGATION
-      ====================================================== */}
-      <nav className="relative flex-1 px-3 py-6">
-        
-        <div className="mb-3 px-3">
-          <span
-            className="
-              text-[9px]
-              font-semibold
-              uppercase
-              tracking-[0.2em]
-              text-slate-600
-            "
-          >
-            Workspace
-          </span>
-        </div>
+        {/* =====================================================
+            CONNECTED USER
+        ===================================================== */}
 
-        <div className="space-y-1.5">
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
+        <div className="border-b border-white/[0.06] px-5 py-5">
+          <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.025] p-3">
 
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  `
-                  group relative flex items-center gap-3
-                  rounded-xl px-3.5 py-3
-                  text-sm font-medium
-                  transition-all duration-200
-                  ${
-                    isActive
-                      ? `
-                        border border-cyan-400/15
-                        bg-gradient-to-r
-                        from-cyan-400/[0.10]
-                        via-blue-500/[0.06]
-                        to-violet-500/[0.08]
-                        text-white
-                        shadow-[0_0_25px_rgba(34,211,238,0.05)]
-                      `
-                      : `
-                        border border-transparent
-                        text-slate-400
-                        hover:border-white/[0.05]
-                        hover:bg-white/[0.035]
-                        hover:text-white
-                      `
-                  }
-                `
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    {/* Active indicator */}
-                    {isActive && (
-                      <span
-                        className="
-                          absolute left-0
-                          h-6 w-[2px]
-                          rounded-r-full
-                          bg-gradient-to-b
-                          from-[#22D3EE]
-                          to-[#8B5CF6]
-                          shadow-[0_0_10px_#22D3EE]
-                        "
-                      />
-                    )}
+            {/* Violet glow */}
 
-                    {/* Icon */}
-                    <span
-                      className={`
-                        flex h-8 w-8 items-center justify-center
-                        rounded-lg
-                        transition-all duration-200
-                        ${
-                          isActive
-                            ? `
-                              bg-cyan-400/[0.10]
-                              text-[#22D3EE]
-                              shadow-[0_0_15px_rgba(34,211,238,0.08)]
-                            `
-                            : `
-                              bg-white/[0.025]
-                              text-slate-500
-                              group-hover:bg-white/[0.05]
-                              group-hover:text-slate-300
-                            `
-                        }
-                      `}
-                    >
-                      <Icon size={17} strokeWidth={1.7} />
+            <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-violet-500/10 blur-2xl" />
+
+            <div className="relative flex items-center gap-3">
+
+              {/* Avatar */}
+
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-md" />
+
+                {user?.avatar_path ? (
+                  <img
+                    src={user.avatar_path}
+                    alt={fullName}
+                    className="relative h-10 w-10 rounded-full border border-cyan-400/30 object-cover"
+                  />
+                ) : (
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-full border border-cyan-400/25 bg-gradient-to-br from-cyan-400/15 via-blue-500/10 to-violet-500/15">
+                    <span className="text-sm font-semibold text-cyan-200">
+                      {initials.toUpperCase()}
                     </span>
-
-                    <span>{item.label}</span>
-
-                    {/* Active glow dot */}
-                    {isActive && (
-                      <span
-                        className="
-                          ml-auto
-                          h-1.5 w-1.5
-                          rounded-full
-                          bg-[#22D3EE]
-                          shadow-[0_0_8px_#22D3EE]
-                        "
-                      />
-                    )}
-                  </>
+                  </div>
                 )}
-              </NavLink>
-            );
-          })}
+
+                {/* Online indicator */}
+
+                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#06101f] bg-cyan-400 shadow-[0_0_8px_#22D3EE]" />
+              </div>
+
+              {/* User information */}
+
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-white">
+                  {fullName}
+                </p>
+
+                <p className="mt-0.5 truncate text-xs text-slate-400">
+                  {role}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-      </nav>
 
-      {/* =====================================================
-          SYSTEM STATUS
-      ====================================================== */}
-      <div className="relative border-t border-white/[0.07] p-4">
-        <div
-          className="
-            rounded-xl
-            border border-white/[0.06]
-            bg-white/[0.025]
-            px-3.5 py-3
-            backdrop-blur-xl
-          "
-        >
-          <div className="flex items-center gap-2.5">
-            <span className="relative flex h-2 w-2">
-              <span
-                className="
-                  absolute inline-flex h-full w-full
-                  animate-ping rounded-full
-                  bg-[#22D3EE]
-                  opacity-50
-                "
-              />
+        {/* =====================================================
+            NAVIGATION
+        ===================================================== */}
 
-              <span
-                className="
-                  relative inline-flex
-                  h-2 w-2
-                  rounded-full
-                  bg-[#22D3EE]
-                  shadow-[0_0_10px_#22D3EE]
-                "
-              />
-            </span>
+        <nav className="flex-1 overflow-y-auto px-3 py-5">
 
-            <span
-              className="
-                text-[10px]
-                font-medium
-                uppercase
-                tracking-[0.14em]
-                text-slate-500
-              "
-            >
-              System operational
-            </span>
+          {/* Workspace */}
+
+          <div className="mb-3 flex items-center gap-2 px-3">
+            <span className="h-px flex-1 bg-white/[0.05]" />
+
+            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/25">
+              Workspace
+            </p>
+
+            <span className="h-px flex-1 bg-white/[0.05]" />
           </div>
 
-          <div className="mt-2 h-px bg-gradient-to-r from-cyan-400/20 via-violet-500/10 to-transparent" />
+          <div className="space-y-1">
 
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-[9px] text-slate-600">
-              NEXUS CORE
+            {navigation.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={item.path === "/dashboard/chef"}
+                  className={({ isActive }) =>
+                    [
+                      "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
+
+                      isActive
+                        ? "border border-cyan-400/15 bg-gradient-to-r from-cyan-400/[0.10] via-blue-500/[0.06] to-violet-500/[0.08] text-white shadow-[0_0_25px_rgba(34,211,238,0.05)]"
+                        : "border border-transparent text-white/40 hover:border-white/[0.05] hover:bg-white/[0.035] hover:text-white/80",
+                    ].join(" ")
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {/* Active glow line */}
+
+                      {isActive && (
+                        <span className="absolute bottom-2 left-0 top-2 w-[2px] rounded-full bg-gradient-to-b from-cyan-300 to-violet-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+                      )}
+
+                      {/* Icon */}
+
+                      <Icon
+                        size={17}
+                        strokeWidth={isActive ? 2 : 1.7}
+                        className={
+                          isActive
+                            ? "text-cyan-300"
+                            : "text-white/35 transition group-hover:text-cyan-300"
+                        }
+                      />
+
+                      {/* Label */}
+
+                      <span className="flex-1">
+                        {item.label}
+                      </span>
+
+                      {/* Active dot */}
+
+                      {isActive && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_#22D3EE]" />
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
+
+          </div>
+        </nav>
+
+        {/* =====================================================
+            FOOTER / LOGOUT
+        ===================================================== */}
+
+        <div className="border-t border-white/[0.06] p-3">
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="group flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-sm text-white/35 transition-all duration-200 hover:border-red-400/10 hover:bg-red-500/[0.05] hover:text-red-300"
+          >
+            <LogOut
+              size={17}
+              strokeWidth={1.7}
+              className="transition group-hover:text-red-300"
+            />
+
+            <span>Déconnexion</span>
+          </button>
+
+          <div className="mt-3 flex items-center justify-center gap-2">
+
+            <span className="h-1 w-1 rounded-full bg-cyan-400/60" />
+
+            <span className="text-[9px] uppercase tracking-[0.18em] text-white/20">
+              NEXUS Intelligence
             </span>
 
-            <span className="text-[9px] font-medium text-cyan-400/70">
-              ONLINE
-            </span>
+            <span className="h-1 w-1 rounded-full bg-violet-400/60" />
+
           </div>
         </div>
       </div>

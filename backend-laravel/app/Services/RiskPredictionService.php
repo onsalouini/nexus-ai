@@ -11,6 +11,7 @@ class RiskPredictionService
     {
         try {
             $response = Http::timeout(60)
+    ->withOptions(['verify' => false])
     ->post(config('services.ai.url') . '/predict-risk', [
                     'team_exp' => $data['team_exp'],
                     'manager_exp' => $data['manager_exp'],

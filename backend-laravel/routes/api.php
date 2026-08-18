@@ -47,6 +47,11 @@ Route::middleware('auth:sanctum')->group(function () {
         '/director/team/{member}',
         [DirectorTeamController::class, 'show']
     );
+    Route::post(
+    '/projects/{project}/generate-report',
+    [ProjectController::class, 'generateReport']
+);
+
 
 
 
