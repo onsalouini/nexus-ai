@@ -99,7 +99,7 @@ export default function DirectorSidebar() {
       <div className="relative flex h-full flex-col">
 
        <Link
-  to="/dashboard/direction"
+  to="/"
   className="group flex items-center gap-3 rounded-2xl px-3 py-3 transition hover:bg-white/[0.05]"
 >
   <div className="relative">
