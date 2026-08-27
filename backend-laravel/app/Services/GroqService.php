@@ -7,8 +7,14 @@ use Illuminate\Support\Facades\Log;
 
 class GroqService
 {
-    public function generateInvitationIntro(string $firstName, string $role, string $companyName): ?string
-    {
+    /**
+     * Générer une introduction pour une invitation.
+     */
+    public function generateInvitationIntro(
+        string $firstName,
+        string $role,
+        string $companyName
+    ): ?string {
         $roleLabel = match ($role) {
             'chef_de_projet' => 'chef de projet',
             'agent_support' => 'agent support',
@@ -16,31 +22,81 @@ class GroqService
         };
 
         try {
-            $response = Http::withToken(config('services.groq.key'))
+            $response = Http::withToken(
+                config('services.groq.key')
+            )
                 ->timeout(6)
-                ->post('https://api.groq.com/openai/v1/chat/completions', [
-                    'model' => config('services.groq.model'),
-                    'messages' => [
-                        ['role' => 'system', 'content' => 'Tu ecris une seule phrase courte, chaleureuse et professionnelle en francais pour introduire un email d\'invitation. Pas de guillemets, pas de signature, une seule phrase.'],
-                        ['role' => 'user', 'content' => "Prenom: {$firstName} | Role propose: {$roleLabel} | Entreprise: {$companyName}"],
-                    ],
-                    'max_tokens' => 60,
-                    'temperature' => 0.7,
-                ]);
+                ->post(
+                    'https://api.groq.com/openai/v1/chat/completions',
+                    [
+                        'model' => config('services.groq.model'),
+
+                        'messages' => [
+                            [
+                                'role' => 'system',
+                                'content' =>
+                                    'Tu ecris une seule phrase courte, '
+                                    . 'chaleureuse et professionnelle en francais '
+                                    . 'pour introduire un email d\'invitation. '
+                                    . 'Pas de guillemets, pas de signature, '
+                                    . 'une seule phrase.',
+                            ],
+                            [
+                                'role' => 'user',
+                                'content' =>
+                                    "Prenom: {$firstName} | "
+                                    . "Role propose: {$roleLabel} | "
+                                    . "Entreprise: {$companyName}",
+                            ],
+                        ],
+
+                        'max_tokens' => 60,
+                        'temperature' => 0.7,
+                    ]
+                );
 
             if ($response->failed()) {
-                Log::warning('Groq invitation intro failed', ['status' => $response->status()]);
+                Log::warning(
+                    'Groq invitation intro failed',
+                    [
+                        'status' => $response->status(),
+                    ]
+                );
+
                 return null;
             }
 
-            return trim($response->json('choices.0.message.content'));
+            return trim(
+                $response->json(
+                    'choices.0.message.content'
+                ) ?? ''
+            );
         } catch (\Throwable $e) {
-            Log::warning('Groq invitation intro exception', ['message' => $e->getMessage()]);
-            return null; // le mail part quand meme, juste sans la phrase generee
+            Log::warning(
+                'Groq invitation intro exception',
+                [
+                    'message' => $e->getMessage(),
+                ]
+            );
+
+            return null;
         }
     }
-    public function chat(string $message, array $history = []): ?string
-{
+
+    /**
+     * Chat NEXUS AI.
+     *
+     * Peut recevoir :
+     * - le message utilisateur ;
+     * - l'historique de conversation ;
+     * - le texte extrait d'un document ;
+     * - le nom du document.
+     */
+    public function chat(
+    string $message,
+    array $history = [],
+    ?string $documentText = null
+): ?string {
     try {
         $messages = [
             [
@@ -79,15 +135,42 @@ RÈGLES IMPORTANTES :
 9. Tu n'es pas un assistant généraliste.
 10. Si la question n'a aucun rapport avec la gestion d'entreprise, les projets, les équipes ou les tâches, explique poliment que ton rôle est limité au domaine de NEXUS AI.
 
+GESTION DES DOCUMENTS :
+
+Lorsqu'un document est fourni dans le contexte de la conversation, considère son contenu comme une source d'information fournie par l'utilisateur.
+
+Tu peux :
+- analyser son contenu ;
+- résumer ses informations ;
+- identifier les objectifs ;
+- identifier les acteurs ;
+- identifier les tâches ;
+- identifier les contraintes ;
+- analyser les risques ;
+- proposer une organisation ;
+- estimer les charges lorsque les données nécessaires sont présentes ;
+- répondre aux questions de l'utilisateur en te basant sur le document.
+
+Ne dis jamais que tu ne peux pas lire le document si son contenu est présent dans ton contexte.
+
+Si une information demandée n'existe pas dans le document, indique clairement qu'elle n'est pas précisée.
+
+Les informations provenant du document doivent être distinguées des informations générales que tu proposes.
+
 Réponds de manière naturelle et conversationnelle.
 PROMPT
             ],
         ];
 
+        // Historique de conversation
         foreach ($history as $item) {
             if (
                 isset($item['role'], $item['content']) &&
-                in_array($item['role'], ['user', 'assistant'], true)
+                in_array(
+                    $item['role'],
+                    ['user', 'assistant'],
+                    true
+                )
             ) {
                 $messages[] = [
                     'role' => $item['role'],
@@ -96,6 +179,20 @@ PROMPT
             }
         }
 
+        // Ajouter le document s'il existe
+        if (
+            $documentText !== null &&
+            trim($documentText) !== ''
+        ) {
+            $messages[] = [
+                'role' => 'system',
+                'content' =>
+                    "DOCUMENT FOURNI PAR L'UTILISATEUR\n\n"
+                    . $documentText,
+            ];
+        }
+
+        // Message actuel
         $messages[] = [
             'role' => 'user',
             'content' => $message,
@@ -123,7 +220,9 @@ PROMPT
         }
 
         return trim(
-            $response->json('choices.0.message.content') ?? ''
+            $response->json(
+                'choices.0.message.content'
+            ) ?? ''
         );
 
     } catch (\Throwable $e) {

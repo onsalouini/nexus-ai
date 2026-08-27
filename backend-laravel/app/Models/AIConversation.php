@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
-
+use App\Models\AIAttachment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -25,11 +25,8 @@ class AIConversation extends Model
     {
         return $this->hasMany(AIMessage::class, 'conversation_id');
     }
-    public function attachments()
+public function attachments()
 {
-    return $this->hasMany(
-        AIAttachment::class,
-        'conversation_id'
-    );
+    return $this->hasMany(AIAttachment::class, 'conversation_id');
 }
 }
