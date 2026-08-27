@@ -61,4 +61,8 @@ public function teamMembers()
 {
     return $this->hasMany(User::class, 'manager_id');
 }
+public function aiConversations()
+{
+    return $this->hasMany(AIConversation::class);
+}
 }

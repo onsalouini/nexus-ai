@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\FinancialHealthController;
 use App\Http\Controllers\ChefTeamController;
 use App\Http\Controllers\AIChatController;
+use App\Http\Controllers\Api\AIConversationController;
+use App\Http\Controllers\Api\AIConversationMessageController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -65,6 +67,24 @@ Route::post(
 );
 Route::get('/chef/team', [ChefTeamController::class, 'index']);
 Route::post('/ai/chat', [AIChatController::class, 'chat']);
+Route::get(
+    '/ai/conversations',
+    [AIConversationController::class, 'index']
+);
+
+Route::post(
+    '/ai/conversations',
+    [AIConversationController::class, 'store']
+);
+
+Route::get(
+    '/ai/conversations/{conversation}',
+    [AIConversationController::class, 'show']
+);
+Route::post(
+    '/ai/conversations/{conversation}/messages',
+    [AIConversationMessageController::class, 'store']
+);
 
 
 });
