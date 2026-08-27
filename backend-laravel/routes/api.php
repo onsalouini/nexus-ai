@@ -11,6 +11,7 @@ use App\Http\Controllers\ChefTeamController;
 use App\Http\Controllers\AIChatController;
 use App\Http\Controllers\Api\AIConversationController;
 use App\Http\Controllers\Api\AIConversationMessageController;
+use App\Http\Controllers\Api\AIAttachmentController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -84,6 +85,10 @@ Route::get(
 Route::post(
     '/ai/conversations/{conversation}/messages',
     [AIConversationMessageController::class, 'store']
+);
+Route::post(
+    '/ai/conversations/{conversation}/attachments',
+    [AIAttachmentController::class, 'store']
 );
 
 
