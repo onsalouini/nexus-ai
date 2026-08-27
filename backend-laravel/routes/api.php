@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\FinancialHealthController;
 use App\Http\Controllers\ChefTeamController;
+use App\Http\Controllers\AIChatController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -63,6 +64,7 @@ Route::post(
     [FinancialHealthController::class, 'explain']
 );
 Route::get('/chef/team', [ChefTeamController::class, 'index']);
+Route::post('/ai/chat', [AIChatController::class, 'chat']);
 
 
 });
