@@ -240,7 +240,7 @@ function HealthEnginePreview() {
   ];
 
   return (
-    <div className="relative w-full max-w-[480px]">
+    <div ref={ref} className="relative w-full max-w-[480px]">
 
       <div className="absolute -inset-10 rounded-[50px] bg-gradient-to-r from-[#22D3EE]/10 via-[#3B82F6]/10 to-[#8B5CF6]/10 blur-3xl" />
 
