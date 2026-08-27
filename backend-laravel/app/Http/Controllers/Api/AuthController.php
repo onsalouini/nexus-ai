@@ -59,6 +59,7 @@ if (!$codeService->isEmailRecentlyVerified($validated['email'])) {
         'password'   => Hash::make($validated['password']),
         'role'       => $invitation->role ?? 'direction',
         'company_id' => $invitation->company_id ?? null,
+        'manager_id' => $invitation?->invited_by,
         'avatar_path' => $avatarPath,
         'cv_path' => $cvPath,
         'email_verified_at' => now(),

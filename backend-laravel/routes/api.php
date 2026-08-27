@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\FinancialHealthController;
-
+use App\Http\Controllers\ChefTeamController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -62,7 +62,7 @@ Route::post(
     '/financial-health/explain',
     [FinancialHealthController::class, 'explain']
 );
-
+Route::get('/chef/team', [ChefTeamController::class, 'index']);
 
 
 });

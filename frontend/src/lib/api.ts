@@ -15,7 +15,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// si le token expire ou est invalide, on nettoie et on renvoie vers /login
+// si le token expire oau est invalide, on nettoie et on renvoie vers /login
 api.interceptors.response.use(
   (response) => response,
   (error) => {

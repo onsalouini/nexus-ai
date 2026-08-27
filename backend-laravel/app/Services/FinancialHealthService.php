@@ -10,12 +10,12 @@ class FinancialHealthService
     protected string $aiUrl;
 
     public function __construct()
-    {
-        $this->aiUrl = env(
-            'FINANCIAL_AI_URL',
-            'http://127.0.0.1:8002'
-        );
-    }
+{
+    $this->aiUrl = config(
+        'services.financial_ai.url',
+        'http://127.0.0.1:8002'
+    );
+}
 
     public function predict(array $financialData): array
     {
