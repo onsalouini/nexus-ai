@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\FinancialHealthController;
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -51,7 +53,15 @@ Route::middleware('auth:sanctum')->group(function () {
     '/projects/{project}/generate-report',
     [ProjectController::class, 'generateReport']
 );
+Route::post(
+    '/financial-health/predict',
+    [FinancialHealthController::class, 'predict']
+);
 
+Route::post(
+    '/financial-health/explain',
+    [FinancialHealthController::class, 'explain']
+);
 
 
 

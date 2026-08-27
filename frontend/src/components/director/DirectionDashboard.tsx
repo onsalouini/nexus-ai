@@ -8,6 +8,8 @@ import {
   Users,
   Sparkles,
   AlertCircle,
+  ArrowUpRight,
+  CheckCircle2,
 } from "lucide-react";
 
 import {
@@ -51,25 +53,21 @@ export default function DirectionDashboard() {
 
   if (loading) {
     return (
-      <div className="relative min-h-full overflow-hidden bg-[#020817] text-white">
-        {/* Background glow */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
-          <div className="absolute right-0 top-1/3 h-96 w-96 rounded-full bg-violet-600/10 blur-3xl" />
+      <div className="relative min-h-full overflow-hidden bg-[#030712] text-white">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-40 -top-40 h-[420px] w-[420px] rounded-full bg-cyan-500/[0.06] blur-[120px]" />
+          <div className="absolute right-[-160px] top-[20%] h-[420px] w-[420px] rounded-full bg-violet-500/[0.05] blur-[120px]" />
         </div>
 
         <div className="relative flex min-h-[70vh] items-center justify-center">
           <div className="flex flex-col items-center">
-            <div className="relative">
-              <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-cyan-400" />
-
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-cyan-400" />
-              </div>
+            <div className="relative flex h-12 w-12 items-center justify-center">
+              <div className="absolute inset-0 animate-spin rounded-full border border-white/10 border-t-cyan-400" />
+              <Sparkles className="h-4 w-4 text-cyan-400" />
             </div>
 
-            <p className="mt-5 text-sm text-slate-400">
-              Chargement de votre espace NEXUS...
+            <p className="mt-5 text-sm text-slate-500">
+              Initialisation de votre espace NEXUS...
             </p>
           </div>
         </div>
@@ -85,30 +83,29 @@ export default function DirectionDashboard() {
 
   if (error || !data) {
     return (
-      <div className="relative min-h-full overflow-hidden bg-[#020817] text-white">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
-          <div className="absolute right-0 top-1/3 h-96 w-96 rounded-full bg-violet-600/10 blur-3xl" />
+      <div className="relative min-h-full overflow-hidden bg-[#030712] text-white">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-40 -top-40 h-[420px] w-[420px] rounded-full bg-cyan-500/[0.05] blur-[120px]" />
         </div>
 
         <div className="relative flex min-h-[70vh] items-center justify-center px-6">
-          <div className="w-full max-w-md rounded-2xl border border-red-400/10 bg-white/[0.04] p-8 text-center shadow-2xl backdrop-blur-xl">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-400/10">
-              <AlertCircle className="h-7 w-7 text-red-400" />
+          <div className="w-full max-w-md text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-red-400/10 bg-red-400/[0.06]">
+              <AlertCircle className="h-6 w-6 text-red-400" />
             </div>
 
-            <h2 className="mt-5 text-xl font-semibold text-white">
+            <h2 className="mt-5 text-xl font-semibold">
               Impossible de charger le dashboard
             </h2>
 
-            <p className="mt-3 text-sm leading-6 text-slate-400">
+            <p className="mt-3 text-sm leading-6 text-slate-500">
               {error ||
                 "Une erreur est survenue lors de la récupération des données."}
             </p>
 
             <button
               onClick={() => window.location.reload()}
-              className="mt-6 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-2.5 text-sm font-medium text-cyan-300 transition hover:bg-cyan-400/20"
+              className="mt-6 inline-flex items-center rounded-xl border border-cyan-400/20 bg-cyan-400/[0.08] px-5 py-2.5 text-sm font-medium text-cyan-300 transition hover:bg-cyan-400/[0.14]"
             >
               Réessayer
             </button>
@@ -120,234 +117,230 @@ export default function DirectionDashboard() {
 
   const { director, company } = data;
 
-  /*
-   * --------------------------------------------------------------------------
-   * DASHBOARD
-   * --------------------------------------------------------------------------
-   */
+  const initials = `${director.first_name?.charAt(0) ?? ""}${
+    director.last_name?.charAt(0) ?? ""
+  }`;
+
+  const jobTitle =
+    director.job_title ||
+    (director.role === "direction"
+      ? "Direction"
+      : director.role || "Administrateur");
 
   return (
-    <div className="relative min-h-full overflow-hidden bg-[#020817] text-white">
-      {/* ================================================================== */}
-      {/* BACKGROUND                                                          */}
-      {/* ================================================================== */}
+    <div className="relative min-h-full overflow-hidden bg-[#030712] text-white">
+      {/* ------------------------------------------------------------------ */}
+      {/* BACKGROUND                                                         */}
+      {/* ------------------------------------------------------------------ */}
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.07] blur-[120px]" />
+        <div className="absolute -left-48 -top-48 h-[520px] w-[520px] rounded-full bg-cyan-500/[0.055] blur-[140px]" />
 
-        <div className="absolute right-[-180px] top-[15%] h-[500px] w-[500px] rounded-full bg-violet-600/[0.08] blur-[130px]" />
+        <div className="absolute -right-48 top-[20%] h-[520px] w-[520px] rounded-full bg-violet-500/[0.045] blur-[140px]" />
 
-        <div className="absolute bottom-[-200px] left-[35%] h-[450px] w-[450px] rounded-full bg-blue-600/[0.05] blur-[120px]" />
+        <div className="absolute bottom-[-300px] left-[40%] h-[500px] w-[500px] rounded-full bg-blue-500/[0.035] blur-[140px]" />
       </div>
 
-      {/* ================================================================== */}
-      {/* CONTENT                                                             */}
-      {/* ================================================================== */}
-
-      <div className="relative px-5 py-7 sm:px-7 lg:px-10 lg:py-9">
+      <main className="relative px-5 py-7 sm:px-8 lg:px-10 lg:py-10">
         <div className="mx-auto max-w-7xl">
+
           {/* ================================================================ */}
-          {/* HEADER                                                           */}
+          {/* TOP BAR                                                          */}
           {/* ================================================================ */}
 
-          <header className="mb-10">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <header className="border-b border-white/[0.07] pb-8">
+            <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
+
               <div>
-                {/* Eyebrow */}
-                <div className="mb-3 flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+                <div className="mb-4 flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.7)]" />
 
-                  <span className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400">
-                    NEXUS • Espace Direction
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-400/90">
+                    NEXUS / Direction
                   </span>
                 </div>
 
-                {/* Greeting */}
-                <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
                   Bonjour,{" "}
-                  <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-transparent">
                     {director.first_name}
                   </span>
                 </h1>
 
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-                  Bienvenue dans votre espace de pilotage NEXUS. Retrouvez ici
-                  une vision centralisée de votre organisation et de son
-                  environnement professionnel.
+                <p className="mt-3 max-w-xl text-sm leading-6 text-slate-500">
+                  Pilotez votre organisation depuis une vue centralisée de
+                  votre environnement NEXUS.
                 </p>
               </div>
 
-              {/* Director identity */}
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 backdrop-blur-xl">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/20 bg-gradient-to-br from-cyan-400/20 to-violet-500/20">
-                  <span className="text-sm font-semibold text-cyan-300">
-                    {director.first_name?.charAt(0)}
-                    {director.last_name?.charAt(0)}
-                  </span>
-                </div>
+              {/* Director profile */}
 
-                <div>
-                  <p className="text-sm font-medium text-white">
+              <div className="flex items-center gap-3">
+                <div className="hidden text-right sm:block">
+                  <p className="text-sm font-medium text-slate-200">
                     {director.first_name} {director.last_name}
                   </p>
 
-                  <p className="text-xs text-slate-500">
-                    {director.job_title ||
-                      (director.role === "direction"
-                        ? "Direction"
-                        : director.role || "Administrateur")}
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {jobTitle}
                   </p>
+                </div>
+
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/15 bg-cyan-400/[0.07]">
+                  <span className="text-sm font-semibold text-cyan-300">
+                    {initials}
+                  </span>
                 </div>
               </div>
             </div>
           </header>
 
           {/* ================================================================ */}
-          {/* COMPANY SECTION                                                   */}
+          {/* ORGANISATION                                                     */}
           {/* ================================================================ */}
 
-          <section>
-            {/* Section heading */}
-            <div className="mb-5">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">
-                  Votre organisation
-                </span>
+          <section className="pt-9">
 
-                <div className="h-px w-10 bg-gradient-to-r from-cyan-400/50 to-transparent" />
+            <div className="mb-7 flex items-end justify-between gap-6">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Organisation
+                </p>
+
+                <h2 className="mt-2 text-xl font-semibold tracking-tight text-white sm:text-2xl">
+                  Votre entreprise
+                </h2>
               </div>
 
-              <h2 className="mt-2 text-2xl font-semibold text-white">
-                Présentation de votre entreprise
-              </h2>
+              <div className="hidden items-center gap-2 sm:flex">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
 
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
-                Retrouvez les informations essentielles de l'organisation
-                associée à votre espace de direction. Ces données constituent
-                le contexte de référence de votre environnement NEXUS.
-              </p>
+                <span className="text-xs font-medium text-emerald-400">
+                  Organisation active
+                </span>
+              </div>
             </div>
 
-            {/* Company card */}
-            <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] shadow-2xl shadow-black/20 backdrop-blur-2xl">
-              {/* ------------------------------------------------------------ */}
-              {/* Company header                                               */}
-              {/* ------------------------------------------------------------ */}
+            {/* ============================================================ */}
+            {/* COMPANY MAIN                                                  */}
+            {/* ============================================================ */}
 
-              <div className="relative overflow-hidden border-b border-white/10 p-6 sm:p-8">
-                {/* Header glow */}
-                <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
+            <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025]">
 
-                <div className="pointer-events-none absolute -bottom-32 right-1/3 h-64 w-64 rounded-full bg-violet-500/10 blur-3xl" />
+              {/* subtle top accent */}
 
-                <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                  {/* Company identity */}
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
+
+              <div className="p-6 sm:p-8 lg:p-9">
+
+                {/* Company identity */}
+
+                <div className="flex flex-col gap-7 sm:flex-row sm:items-center sm:justify-between">
+
                   <div className="flex items-center gap-4">
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-400/15 via-blue-500/10 to-violet-500/15 shadow-[0_0_35px_rgba(34,211,238,0.08)]">
-                      <Building2 className="h-8 w-8 text-cyan-400" />
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-cyan-400/15 bg-gradient-to-br from-cyan-400/[0.12] to-blue-500/[0.06]">
+                      <Building2 className="h-6 w-6 text-cyan-400" />
                     </div>
 
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-600">
                         Entreprise associée
                       </p>
 
-                      <h3 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                      <h3 className="mt-1 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
                         {company.name}
                       </h3>
-
-                      <p className="mt-1 text-sm text-slate-500">
-                        Organisation connectée à votre espace de direction
-                      </p>
                     </div>
                   </div>
 
-                  {/* Industry */}
                   {company.industry && (
-                    <div className="flex w-fit items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/10 px-4 py-2">
+                    <div className="flex w-fit items-center gap-2 rounded-lg border border-violet-400/10 bg-violet-400/[0.05] px-3 py-2">
                       <BriefcaseBusiness className="h-4 w-4 text-violet-300" />
 
-                      <span className="text-sm font-medium text-violet-200">
+                      <span className="text-xs font-medium text-violet-200">
                         {company.industry}
                       </span>
                     </div>
                   )}
                 </div>
-              </div>
 
-              {/* ------------------------------------------------------------ */}
-              {/* Company information                                          */}
-              {/* ------------------------------------------------------------ */}
+                {/* Divider */}
 
-              <div className="grid gap-px bg-white/10 md:grid-cols-2 lg:grid-cols-3">
-                {/* Email */}
-                <div className="group bg-[#06101f]/90 p-6 transition hover:bg-[#08172b]">
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/10 bg-cyan-400/10 transition group-hover:border-cyan-400/20">
-                    <Mail className="h-5 w-5 text-cyan-400" />
-                  </div>
+                <div className="my-8 h-px bg-white/[0.06]" />
 
-                  <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Email professionnel
-                  </p>
+                {/* Information row */}
 
-                  <p className="mt-2 break-all text-sm font-medium text-slate-200">
-                    {company.email || "Non renseigné"}
-                  </p>
-                </div>
+                <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
 
-                {/* Phone */}
-                <div className="group bg-[#06101f]/90 p-6 transition hover:bg-[#08172b]">
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-blue-400/10 bg-blue-400/10 transition group-hover:border-blue-400/20">
-                    <Phone className="h-5 w-5 text-blue-400" />
-                  </div>
+                  {/* Email */}
 
-                  <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Téléphone
-                  </p>
+                  <div className="min-w-0">
+                    <div className="mb-3 flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-cyan-400/80" />
 
-                  <p className="mt-2 text-sm font-medium text-slate-200">
-                    {company.phone || "Non renseigné"}
-                  </p>
-                </div>
-
-                {/* Employees */}
-                <div className="group bg-[#06101f]/90 p-6 transition hover:bg-[#08172b]">
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-violet-400/10 bg-violet-400/10 transition group-hover:border-violet-400/20">
-                    <Users className="h-5 w-5 text-violet-400" />
-                  </div>
-
-                  <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Effectif
-                  </p>
-
-                  <p className="mt-2 text-sm font-medium text-slate-200">
-                    {company.employees_count !== null &&
-                    company.employees_count !== undefined
-                      ? `${company.employees_count} ${
-                          company.employees_count > 1
-                            ? "collaborateurs"
-                            : "collaborateur"
-                        }`
-                      : "Non renseigné"}
-                  </p>
-                </div>
-
-                {/* Address */}
-                <div className="group bg-[#06101f]/90 p-6 transition hover:bg-[#08172b] md:col-span-2 lg:col-span-3">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-400/10 bg-cyan-400/10">
-                      <MapPin className="h-5 w-5 text-cyan-400" />
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                        Email
+                      </span>
                     </div>
 
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Adresse
-                      </p>
+                    <p className="break-all text-sm font-medium text-slate-300">
+                      {company.email || "Non renseigné"}
+                    </p>
+                  </div>
 
-                      <p className="mt-2 text-sm font-medium text-slate-200">
-                        {company.address || "Non renseignée"}
-                      </p>
+                  {/* Phone */}
+
+                  <div>
+                    <div className="mb-3 flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-blue-400/80" />
+
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                        Téléphone
+                      </span>
                     </div>
+
+                    <p className="text-sm font-medium text-slate-300">
+                      {company.phone || "Non renseigné"}
+                    </p>
+                  </div>
+
+                  {/* Employees */}
+
+                  <div>
+                    <div className="mb-3 flex items-center gap-2">
+                      <Users className="h-4 w-4 text-violet-400/80" />
+
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                        Effectif
+                      </span>
+                    </div>
+
+                    <p className="text-sm font-medium text-slate-300">
+                      {company.employees_count !== null &&
+                      company.employees_count !== undefined
+                        ? `${company.employees_count} ${
+                            company.employees_count > 1
+                              ? "collaborateurs"
+                              : "collaborateur"
+                          }`
+                        : "Non renseigné"}
+                    </p>
+                  </div>
+
+                  {/* Address */}
+
+                  <div>
+                    <div className="mb-3 flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-cyan-400/80" />
+
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                        Localisation
+                      </span>
+                    </div>
+
+                    <p className="text-sm font-medium leading-5 text-slate-300">
+                      {company.address || "Non renseignée"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -355,40 +348,47 @@ export default function DirectionDashboard() {
           </section>
 
           {/* ================================================================ */}
-          {/* NEXUS INTRODUCTION                                                */}
+          {/* NEXUS INTELLIGENCE                                               */}
           {/* ================================================================ */}
 
-          <section className="mt-8">
-            <div className="relative overflow-hidden rounded-3xl border border-cyan-400/10 bg-gradient-to-r from-cyan-400/[0.06] via-blue-500/[0.04] to-violet-500/[0.07] p-6 backdrop-blur-xl sm:p-8">
-              {/* Glow */}
-              <div className="pointer-events-none absolute right-0 top-0 h-48 w-48 rounded-full bg-violet-500/10 blur-3xl" />
+          <section className="mt-10">
+            <div className="relative overflow-hidden rounded-2xl border border-cyan-400/[0.08] bg-gradient-to-r from-cyan-400/[0.045] via-white/[0.02] to-violet-500/[0.045]">
 
-              <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10">
-                  <Sparkles className="h-6 w-6 text-cyan-400" />
+              <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-cyan-400/[0.06] blur-[80px]" />
+
+              <div className="relative flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/15 bg-cyan-400/[0.07]">
+                    <Sparkles className="h-5 w-5 text-cyan-400" />
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-400">
+                      NEXUS Intelligence
+                    </p>
+
+                    <h3 className="mt-1 text-sm font-semibold text-white sm:text-base">
+                      Votre environnement de pilotage intelligent
+                    </h3>
+
+                    <p className="mt-1.5 max-w-2xl text-xs leading-5 text-slate-500 sm:text-sm">
+                      NEXUS centralise progressivement vos données afin de
+                      vous offrir une vision claire de vos équipes, projets et
+                      performances.
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
-                    NEXUS Intelligence
-                  </p>
-
-                  <h3 className="mt-2 text-lg font-semibold text-white">
-                    Votre environnement de pilotage intelligent
-                  </h3>
-
-                  <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
-                    NEXUS centralise les informations de votre organisation
-                    afin de vous offrir progressivement une vision claire de
-                    vos projets, de vos équipes et de la santé globale de votre
-                    entreprise.
-                  </p>
+                <div className="hidden shrink-0 sm:block">
+                  <ArrowUpRight className="h-5 w-5 text-slate-600" />
                 </div>
               </div>
             </div>
           </section>
+
         </div>
-      </div>
+      </main>
     </div>
   );
 }

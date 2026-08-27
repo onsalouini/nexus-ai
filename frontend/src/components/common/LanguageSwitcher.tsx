@@ -14,7 +14,8 @@ export default function LanguageSwitcher() {
   const [coords, setCoords] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const current = LANGUAGES.find((l) => l.code === i18n.language) ?? LANGUAGES[0];
+  const activeLanguage = (i18n.resolvedLanguage ?? i18n.language).split("-")[0];
+  const current = LANGUAGES.find((l) => l.code === activeLanguage) ?? LANGUAGES[0];
 
   function toggleOpen() {
     if (!open && buttonRef.current) {
@@ -29,8 +30,6 @@ export default function LanguageSwitcher() {
 
   function changeLanguage(code: string) {
     i18n.changeLanguage(code);
-    document.documentElement.dir = code === "ar" ? "rtl" : "ltr";
-    document.documentElement.lang = code;
     setOpen(false);
   }
 
@@ -49,6 +48,7 @@ export default function LanguageSwitcher() {
   return (
     <>
       <button
+        type="button"
         ref={buttonRef}
         onClick={toggleOpen}
         className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300 transition hover:border-[#22D3EE]/30 hover:text-white"
@@ -64,13 +64,19 @@ export default function LanguageSwitcher() {
       {open &&
         createPortal(
           <>
-            <div className="fixed inset-0 z-[9998]" onClick={() => setOpen(false)} />
+            <button
+              type="button"
+              aria-label="Fermer le menu des langues"
+              className="fixed inset-0 z-[9998]"
+              onClick={() => setOpen(false)}
+            />
             <div
               className="fixed z-[9999] w-44 rounded-xl border border-white/10 bg-[#070D1C]/95 p-1.5 shadow-xl backdrop-blur-2xl"
               style={{ top: coords.top, right: coords.right }}
             >
               {LANGUAGES.map((lang) => (
                 <button
+                  type="button"
                   key={lang.code}
                   onClick={() => changeLanguage(lang.code)}
                   className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-white/[0.05] ${

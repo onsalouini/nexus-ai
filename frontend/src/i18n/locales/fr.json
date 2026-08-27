@@ -5,18 +5,207 @@
     "settings": "Paramètres du compte",
     "logout": "Déconnexion",
     "login": "Se connecter",
-    "signup": "Créer un compte"
+    "signup": "Créer un compte",
+    "product": "Produit",
+    "ai": "Intelligence IA",
+    "method": "Méthode",
+    "security": "Sécurité"
   },
   "auth": {
-    "welcomeBack": "Content de vous revoir.",
+    "welcomeBack": "Bonjour {{name}}, ravi de vous revoir",
     "email": "Email",
     "password": "Mot de passe",
     "loginButton": "Se connecter",
-    "noAccount": "Pas encore de compte ?"
+    "noAccount": "Pas encore de compte ?",
+    "signup": {
+      "step1": {
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "professionalEmail": "Email professionnel",
+        "fillAllFields": "Merci de remplir tous les champs.",
+        "verifyButton": "Vérifier mon email",
+        "sendCodeError": "Impossible d'envoyer le code de vérification."
+      },
+      "step2": {
+        "codeSentTo": "Un code de vérification à 6 chiffres a été envoyé à :",
+        "codeLabel": "Code de vérification",
+        "editEmail": "← Modifier mon email",
+        "resendCode": "Renvoyer le code",
+        "resendError": "Impossible de renvoyer le code.",
+        "enterSixDigits": "Veuillez saisir le code à 6 chiffres.",
+        "invalidCode": "Code incorrect ou expiré.",
+        "validateButton": "Valider le code"
+      },
+      "step3": {
+        "emailVerified": "✓ Votre adresse email a été vérifiée.",
+        "confirmPassword": "Confirmer le mot de passe",
+        "passwordPlaceholder": "8 caractères minimum",
+        "confirmPlaceholder": "Répétez votre mot de passe",
+        "passwordMismatch": "Les deux mots de passe ne correspondent pas.",
+        "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères.",
+        "createAccountButton": "Créer mon compte",
+        "createAccountError": "Impossible de créer le compte. Vérifie les champs et réessaie."
+      },
+      "pleaseWait": "Veuillez patienter...",
+      "alreadyAccount": "Déjà un compte ?"
+    },
+    "signin": {
+      "emailPlaceholder": "nom@exemple.com",
+      "passwordPlaceholder": "••••••••",
+      "connecting": "Connexion...",
+      "loginError": "Impossible de se connecter. Vérifie ton email et ton mot de passe.",
+      "createCompanyAccount": "Créer le compte de mon entreprise"
+    }
   },
   "dashboard": {
     "myProjects": "Mes projets",
-    "newProject": "+ Projet",
+    "newProject": "Nouveau projet",
     "team": "Équipe"
+  },
+  "landing": {
+    "hero": {
+      "badge": "Enterprise AI Platform",
+      "title1": "Transformez vos données",
+      "title2": "en décisions.",
+      "description": "NEXUS AI connecte les projets, le support client et les finances de votre agence pour créer une vision unique, explicable et actionnable de votre entreprise.",
+      "ctaPrimary": "Découvrir NEXUS AI →",
+      "ctaSecondary": "Comment ça marche ?",
+      "trust": [
+        "IA spécialisée",
+        "SHAP explicable",
+        "Validation humaine",
+        "Audit sécurisé"
+      ]
+    },
+    "healthEngine": {
+      "title": "Enterprise Health Engine",
+      "subtitle": "Vue consolidée de l'entreprise",
+      "live": "LIVE",
+      "score": "HEALTH SCORE",
+      "subscoreRisk": "Risque projet",
+      "subscoreSupport": "Support client",
+      "subscoreFinance": "Finance",
+      "insightTitle": "Analyse principale",
+      "insightText": "Le risque projet est actuellement le facteur dominant. L'analyse SHAP identifie notamment une équipe sous-dimensionnée.",
+      "shapBadge": "SHAP EXPLAINED"
+    },
+    "product": {
+      "eyebrow": "Une plateforme. Une vision.",
+      "title1": "Tous les signaux",
+      "title2": "au même endroit.",
+      "description": "NEXUS AI évite de traiter chaque problème séparément. Les signaux opérationnels, clients et financiers sont reliés pour fournir une lecture globale de l'entreprise.",
+      "statModels": "Modèles IA",
+      "statScore": "Score global",
+      "statSignals": "Signaux connectés",
+      "statExplainable": "Explicable"
+    },
+    "ai": {
+      "eyebrow": "Intelligence artificielle",
+      "title1": "Trois intelligences.",
+      "title2": "Une seule vision.",
+      "description": "Chaque modèle est spécialisé dans une problématique métier, puis leurs résultats sont fusionnés par l'Enterprise Health Engine.",
+      "modules": [
+        {
+          "title": "Risque projet",
+          "subtitle": "Anticiper avant de subir",
+          "description": "NEXUS AI estime l'effort nécessaire d'un projet et identifie les facteurs susceptibles de provoquer un dépassement."
+        },
+        {
+          "title": "Support intelligent",
+          "subtitle": "Prioriser ce qui compte",
+          "description": "Chaque ticket client est automatiquement analysé selon sa catégorie, son urgence et le sentiment exprimé."
+        },
+        {
+          "title": "Santé financière",
+          "subtitle": "Comprendre les signaux faibles",
+          "description": "Les données financières sont transformées en ratios et analysées afin d'identifier les signes de tension."
+        }
+      ],
+      "groqTitle": "Une IA générative, mais jamais pour inventer les chiffres.",
+      "groqText": "Les scores et prédictions sont calculés par les modèles entraînés ou par Laravel. Groq intervient uniquement pour reformuler les résultats en langage naturel."
+    },
+    "method": {
+      "eyebrow": "Méthode d'utilisation",
+      "title1": "De vos données",
+      "title2": "à une décision.",
+      "description": "Un parcours simple : centraliser, analyser, comprendre, puis agir.",
+      "steps": [
+        {
+          "title": "Centralisez",
+          "description": "Projets, tickets et données financières sont réunis dans une plateforme unique."
+        },
+        {
+          "title": "Analysez",
+          "description": "Trois modèles IA spécialisés étudient chaque dimension indépendamment."
+        },
+        {
+          "title": "Comprenez",
+          "description": "Les résultats sont expliqués grâce aux facteurs les plus importants."
+        },
+        {
+          "title": "Décidez",
+          "description": "Le système transforme les analyses en alertes et recommandations."
+        }
+      ]
+    },
+    "roles": {
+      "eyebrow": "Expérience par rôle",
+      "title1": "La bonne information.",
+      "title2": "Au bon utilisateur.",
+      "description": "Chaque rôle dispose d'une expérience adaptée à ses besoins opérationnels.",
+      "items": [
+        {
+          "title": "Direction",
+          "text": "Vision globale de la santé de l'entreprise."
+        },
+        {
+          "title": "Chef de projet",
+          "text": "Suivi des projets et analyse du risque."
+        },
+        {
+          "title": "Support",
+          "text": "Tickets automatiquement priorisés."
+        },
+        {
+          "title": "Client",
+          "text": "Visibilité claire sur l'avancement."
+        }
+      ]
+    },
+    "security": {
+      "eyebrow": "Trust by design",
+      "title1": "Une IA qui explique",
+      "title2": "avant de recommander.",
+      "description": "NEXUS AI assiste la décision humaine. Il ne remplace pas aveuglément le jugement des équipes.",
+      "items": [
+        {
+          "title": "Permissions strictes",
+          "text": "Les comptes sont créés uniquement par invitation."
+        },
+        {
+          "title": "Explicabilité",
+          "text": "Les prédictions sont accompagnées de facteurs explicatifs."
+        },
+        {
+          "title": "Validation humaine",
+          "text": "Les décisions critiques restent sous contrôle humain."
+        },
+        {
+          "title": "Journal d'audit",
+          "text": "Les actions sensibles sont systématiquement journalisées."
+        }
+      ]
+    },
+    "cta": {
+      "eyebrow": "Enterprise Intelligence",
+      "title1": "Vos données parlent déjà.",
+      "title2": "NEXUS les connecte.",
+      "description": "Une plateforme conçue pour transformer les données complexes des agences digitales en décisions compréhensibles.",
+      "primary": "Commencer avec NEXUS AI",
+      "secondary": "Se connecter"
+    },
+    "footer": {
+      "tagline": "Enterprise Intelligence"
+    }
   }
 }

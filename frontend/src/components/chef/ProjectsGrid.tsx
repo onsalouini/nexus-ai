@@ -54,7 +54,7 @@ const STATUS_CONFIG: Record<
   }
 > = {
   planifie: {
-    label: "Planifié",
+    label:"Planifié",
     className: "text-cyan-300 bg-cyan-400/10 border-cyan-400/20",
   },
   en_cours: {
