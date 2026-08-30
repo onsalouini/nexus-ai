@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+
 class Company extends Model
 {
     use HasFactory;
@@ -23,4 +24,8 @@ class Company extends Model
     {
         return $this->hasMany(User::class);
     }
+    public function financialHealthReports(): HasMany
+{
+    return $this->hasMany(FinancialHealthReport::class);
+}
 }

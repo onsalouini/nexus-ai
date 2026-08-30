@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Models;
-use App\Models\AIAttachment;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AIConversation extends Model
 {
@@ -16,17 +17,19 @@ class AIConversation extends Model
         'title',
     ];
 
-    public function user()
+    public function messages(): HasMany
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(
+            AIMessage::class,
+            'conversation_id'
+        );
     }
 
-    public function messages()
+    public function attachments(): HasMany
     {
-        return $this->hasMany(AIMessage::class, 'conversation_id');
+        return $this->hasMany(
+            AIAttachment::class,
+            'conversation_id'
+        );
     }
-public function attachments()
-{
-    return $this->hasMany(AIAttachment::class, 'conversation_id');
-}
 }

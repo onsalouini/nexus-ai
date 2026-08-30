@@ -26,12 +26,12 @@ class AIConversationMessageController extends Controller
             ], 403);
         }
 
-        // Validation
+        // Validation du message
         $validated = $request->validate([
             'content' => 'required|string|max:10000',
         ]);
 
-        // 1. Récupérer l'historique
+        // 1. Récupérer l'historique AVANT le nouveau message
         $history = $conversation->messages()
             ->orderBy('created_at', 'asc')
             ->get()
@@ -43,32 +43,31 @@ class AIConversationMessageController extends Controller
             })
             ->toArray();
 
-        // 2. Récupérer le dernier document attaché
-        $attachment = $conversation->attachments()
-            ->whereNotNull('extracted_text')
-            ->latest()
-            ->first();
-
-        $documentText = null;
-
-        if ($attachment) {
-            $documentText = $attachment->extracted_text;
-        }
-
-        // 3. Sauvegarder le message utilisateur
+        // 2. Sauvegarder le message utilisateur
         $userMessage = $conversation->messages()->create([
             'role' => 'user',
             'content' => $validated['content'],
         ]);
 
-        // 4. Envoyer message + historique + document à Groq
+        // 3. Récupérer le dernier document de la conversation
+        $attachment = $conversation->attachments()
+            ->latest()
+            ->first();
+
+        $documentText = null;
+
+        if ($attachment !== null) {
+            $documentText = $attachment->extracted_text;
+        }
+
+        // 4. Envoyer le message + historique + document à Groq
         $reply = $groqService->chat(
             $validated['content'],
             $history,
             $documentText
         );
 
-        // 5. Vérifier la réponse
+        // 5. Vérifier si Groq répond
         if ($reply === null) {
             return response()->json([
                 'message' => 'NEXUS AI est temporairement indisponible.',
@@ -76,7 +75,7 @@ class AIConversationMessageController extends Controller
             ], 503);
         }
 
-        // 6. Sauvegarder la réponse IA
+        // 6. Sauvegarder la réponse de NEXUS AI
         $assistantMessage = $conversation->messages()->create([
             'role' => 'assistant',
             'content' => $reply,

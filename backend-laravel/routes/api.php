@@ -90,6 +90,19 @@ Route::post(
     '/ai/conversations/{conversation}/attachments',
     [AIAttachmentController::class, 'store']
 );
+Route::post(
+    '/financial-health/store',
+    [FinancialHealthController::class, 'store']
+);
 
+Route::get(
+    '/financial-health/history',
+    [FinancialHealthController::class, 'history']
+);
+
+Route::get(
+    '/financial-health/reports/{report}',
+    [FinancialHealthController::class, 'show']
+);
 
 });
