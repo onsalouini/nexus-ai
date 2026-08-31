@@ -104,5 +104,9 @@ Route::get(
     '/financial-health/reports/{report}',
     [FinancialHealthController::class, 'show']
 );
+Route::get(
+    '/financial-health/reports/{report}/download',
+    [FinancialHealthController::class, 'download']
+);
 
 });

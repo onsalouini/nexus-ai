@@ -6,13 +6,14 @@ import {
   ArrowUp,
   BrainCircuit,
   CheckCircle2,
+  Download,
   Loader2,
   ShieldCheck,
   TrendingUp,
 } from "lucide-react";
 
-import { api } from "../../lib/api";
 import axios from "axios";
+import { api } from "../../lib/api";
 
 type FinancialData = {
   current_ratio: number;
@@ -41,6 +42,10 @@ type Explanation = {
   feature: string;
   shap_value: number;
   impact: "increases_risk" | "decreases_risk";
+};
+
+type StoreReportResponse = {
+  id: number;
 };
 
 const initialData: FinancialData = {
@@ -128,7 +133,8 @@ const fields = [
 ] as const;
 
 export default function FinancialHealthPage() {
-  const [form, setForm] = useState<FinancialData>(initialData);
+  const [form, setForm] =
+    useState<FinancialData>(initialData);
 
   const [result, setResult] =
     useState<PredictionResult | null>(null);
@@ -136,96 +142,174 @@ export default function FinancialHealthPage() {
   const [explanations, setExplanations] =
     useState<Explanation[]>([]);
 
-  const [loading, setLoading] = useState(false);
+  const [reportId, setReportId] =
+    useState<number | null>(null);
+
+  const [loading, setLoading] =
+    useState(false);
+
   const [loadingExplanation, setLoadingExplanation] =
     useState(false);
 
-  const [error, setError] = useState("");
+  const [loadingPdf, setLoadingPdf] =
+    useState(false);
 
+  const [error, setError] =
+    useState("");
+
+  const [successMessage, setSuccessMessage] =
+    useState("");
+
+  /**
+   * ============================================================
+   * MODIFICATION DES CHAMPS
+   * ============================================================
+   */
   const handleChange = (
     key: keyof FinancialData,
     value: string
   ) => {
+    const numericValue =
+      value === "" ? 0 : Number(value);
+
     setForm((previous) => ({
       ...previous,
-      [key]: Number(value),
+      [key]: Number.isFinite(numericValue)
+        ? numericValue
+        : 0,
     }));
   };
 
+  /**
+   * ============================================================
+   * ANALYSE FINANCIÈRE
+   * ============================================================
+   *
+   * 1. Prediction
+   * 2. SHAP
+   * 3. Sauvegarde
+   */
   const handleAnalyze = async () => {
     try {
       setLoading(true);
       setError("");
+      setSuccessMessage("");
+
       setResult(null);
       setExplanations([]);
+      setReportId(null);
 
-      /*
-       * ==========================================================
-       * 1. PRÉDICTION
-       * ==========================================================
-       *
-       * On conserve exactement ton appel existant.
+      /**
+       * --------------------------------------------------------
+       * 1. PRÉDICTION ML
+       * --------------------------------------------------------
        */
-
       const response = await api.post(
         "/financial-health/predict",
         form
       );
 
-      const prediction: PredictionResult =
-        response.data.data;
+      const prediction =
+        response.data?.data as PredictionResult;
+
+      if (!prediction) {
+        throw new Error(
+          "La réponse du service de prédiction est invalide."
+        );
+      }
 
       setResult(prediction);
 
-      /*
-       * ==========================================================
+      /**
+       * --------------------------------------------------------
        * 2. EXPLICATION SHAP
-       * ==========================================================
-       *
-       * On conserve exactement ton fonctionnement actuel.
+       * --------------------------------------------------------
        */
-
       setLoadingExplanation(true);
 
-      const explanationResponse = await api.post(
-        "/financial-health/explain",
-        form
-      );
+      let shapExplanations: Explanation[] = [];
 
-      const shapExplanations: Explanation[] =
-        explanationResponse.data.data.explanations ?? [];
+      try {
+        const explanationResponse =
+          await api.post(
+            "/financial-health/explain",
+            form
+          );
 
-      setExplanations(shapExplanations);
+        shapExplanations =
+          explanationResponse.data?.data
+            ?.explanations ?? [];
 
-      /*
-       * ==========================================================
-       * 3. SAUVEGARDE DU RAPPORT
-       * ==========================================================
-       *
-       * On sauvegarde les résultats déjà calculés.
-       *
-       * Le company_id n'est PAS envoyé :
-       * Laravel le récupère depuis l'utilisateur connecté.
-       */
-
-      await api.post(
-        "/financial-health/store",
-        {
-          financial_data: form,
-
-          prediction: prediction.prediction,
-
-          financial_health:
-            prediction.financial_health,
-
-          bankruptcy_probability:
-            prediction.bankruptcy_probability,
-
-          decision_threshold:
-            prediction.decision_threshold,
-
-          explanations: shapExplanations,
+        if (!Array.isArray(shapExplanations)) {
+          shapExplanations = [];
         }
+
+        setExplanations(shapExplanations);
+      } catch (shapError) {
+        console.error(
+          "SHAP error:",
+          shapError
+        );
+
+        /*
+         * La prédiction reste valide même si
+         * l'explication SHAP échoue.
+         */
+        setExplanations([]);
+      } finally {
+        setLoadingExplanation(false);
+      }
+
+      /**
+       * --------------------------------------------------------
+       * 3. SAUVEGARDE DU RAPPORT
+       * --------------------------------------------------------
+       */
+      const storeResponse =
+        await api.post(
+          "/financial-health/store",
+          {
+            financial_data: form,
+
+            prediction:
+              prediction.prediction,
+
+            financial_health:
+              prediction.financial_health,
+
+            bankruptcy_probability:
+              prediction.bankruptcy_probability,
+
+            decision_threshold:
+              prediction.decision_threshold,
+
+            explanations:
+              shapExplanations,
+          }
+        );
+
+      const savedReport =
+        storeResponse.data?.data as
+          | StoreReportResponse
+          | undefined;
+
+      /**
+       * Vérification importante :
+       * Laravel doit retourner l'ID du rapport.
+       */
+      if (
+        !savedReport ||
+        typeof savedReport.id !== "number"
+      ) {
+        throw new Error(
+          "Le rapport a peut-être été enregistré, mais son identifiant n'a pas été retourné par le serveur."
+        );
+      }
+
+      setReportId(savedReport.id);
+
+      setSuccessMessage(
+        `Analyse terminée et rapport #${savedReport.id} enregistré.`
       );
 
     } catch (err: unknown) {
@@ -235,11 +319,15 @@ export default function FinancialHealthPage() {
       );
 
       if (axios.isAxiosError(err)) {
-        setError(
+        const message =
           err.response?.data?.message ||
-            err.response?.data?.detail ||
-            "Impossible de contacter le service de santé financière."
-        );
+          err.response?.data?.detail ||
+          err.message ||
+          "Impossible de contacter le service de santé financière.";
+
+        setError(message);
+      } else if (err instanceof Error) {
+        setError(err.message);
       } else {
         setError(
           "Une erreur inattendue est survenue pendant l'analyse."
@@ -251,23 +339,164 @@ export default function FinancialHealthPage() {
     }
   };
 
-  /*
+  /**
+   * ============================================================
+   * TÉLÉCHARGEMENT PDF
+   * ============================================================
+   */
+  const handleDownloadPdf = async () => {
+    if (!reportId) {
+      setError(
+        "Aucun rapport disponible pour le téléchargement."
+      );
+
+      return;
+    }
+
+    try {
+      setLoadingPdf(true);
+      setError("");
+
+      const response = await api.get(
+        `/financial-health/reports/${reportId}/download`,
+        {
+          responseType: "blob",
+
+          headers: {
+            Accept: "application/pdf",
+          },
+        }
+      );
+
+      /**
+       * IMPORTANT :
+       *
+       * AxiosHeaders peut retourner :
+       * string | number | boolean | string[] | ...
+       *
+       * Donc on convertit toujours en String
+       * avant d'utiliser includes().
+       */
+      const contentType = String(
+        response.headers["content-type"] ?? ""
+      ).toLowerCase();
+
+      /**
+       * Vérification du type de fichier.
+       */
+      if (
+        !contentType.includes(
+          "application/pdf"
+        )
+      ) {
+        /**
+         * Laravel peut renvoyer une erreur JSON
+         * sous forme de Blob.
+         */
+        let serverMessage =
+          "Le serveur n'a pas retourné un PDF valide.";
+
+        try {
+          const text =
+            await response.data.text();
+
+          if (text) {
+            const json =
+              JSON.parse(text);
+
+            if (json?.message) {
+              serverMessage =
+                json.message;
+            }
+          }
+        } catch {
+          /*
+           * Impossible de parser la réponse.
+           * On garde le message générique.
+           */
+        }
+
+        throw new Error(serverMessage);
+      }
+
+      /**
+       * Création du Blob PDF.
+       */
+      const blob = new Blob(
+        [response.data],
+        {
+          type: "application/pdf",
+        }
+      );
+
+      /**
+       * Création d'une URL temporaire.
+       */
+      const url =
+        window.URL.createObjectURL(blob);
+
+      /**
+       * Création du lien de téléchargement.
+       */
+      const link =
+        document.createElement("a");
+
+      link.href = url;
+
+      link.download =
+        `rapport-sante-financiere-${reportId}.pdf`;
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      /**
+       * Nettoyage.
+       */
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+
+    } catch (err: unknown) {
+      console.error(
+        "PDF download error:",
+        err
+      );
+
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message ||
+            "Impossible de télécharger le rapport PDF."
+        );
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(
+          "Une erreur est survenue pendant le téléchargement du PDF."
+        );
+      }
+    } finally {
+      setLoadingPdf(false);
+    }
+  };
+
+  /**
    * ============================================================
    * CALCUL DU SCORE
    * ============================================================
-   *
-   * On conserve ta logique actuelle.
    */
-
   const probability =
     result?.bankruptcy_probability ?? 0;
 
   const healthScore = result
-    ? Math.round((1 - probability) * 100)
+    ? Math.round(
+        (1 - probability) * 100
+      )
     : null;
 
   const isAtRisk =
-    result?.financial_health === "at_risk";
+    result?.financial_health ===
+    "at_risk";
 
   return (
     <div className="min-h-full text-white">
@@ -277,23 +506,32 @@ export default function FinancialHealthPage() {
       ====================================================== */}
 
       <div className="mb-8">
+
         <div className="flex items-center gap-3">
 
           <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10">
-            <BrainCircuit className="h-5 w-5 text-cyan-300" />
+
+            <BrainCircuit
+              className="h-5 w-5 text-cyan-300"
+            />
+
           </div>
 
           <div>
+
             <h1 className="text-2xl font-bold">
               Santé financière
             </h1>
 
             <p className="mt-1 text-sm text-slate-400">
-              Analyse prédictive de la santé financière de votre entreprise
+              Analyse prédictive de la santé
+              financière de votre entreprise
             </p>
+
           </div>
 
         </div>
+
       </div>
 
       {/* ======================================================
@@ -301,13 +539,39 @@ export default function FinancialHealthPage() {
       ====================================================== */}
 
       {error && (
+
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-300">
 
-          <AlertTriangle className="h-5 w-5 shrink-0" />
+          <AlertTriangle
+            className="h-5 w-5 shrink-0"
+          />
 
-          {error}
+          <span>
+            {error}
+          </span>
 
         </div>
+
+      )}
+
+      {/* ======================================================
+          SUCCESS
+      ====================================================== */}
+
+      {successMessage && (
+
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-300">
+
+          <CheckCircle2
+            className="h-5 w-5 shrink-0"
+          />
+
+          <span>
+            {successMessage}
+          </span>
+
+        </div>
+
       )}
 
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
@@ -322,7 +586,9 @@ export default function FinancialHealthPage() {
 
             <div className="flex items-center gap-2">
 
-              <Activity className="h-5 w-5 text-cyan-300" />
+              <Activity
+                className="h-5 w-5 text-cyan-300"
+              />
 
               <h2 className="text-lg font-semibold">
                 Indicateurs financiers
@@ -331,7 +597,8 @@ export default function FinancialHealthPage() {
             </div>
 
             <p className="mt-1 text-sm text-slate-500">
-              Entrez les indicateurs utilisés par le modèle ML.
+              Entrez les indicateurs utilisés
+              par le modèle ML.
             </p>
 
           </div>
@@ -402,18 +669,79 @@ export default function FinancialHealthPage() {
           >
 
             {loading ? (
+
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2
+                  className="h-4 w-4 animate-spin"
+                />
+
                 Analyse en cours...
               </>
+
             ) : (
+
               <>
-                <BrainCircuit className="h-4 w-4" />
+                <BrainCircuit
+                  className="h-4 w-4"
+                />
+
                 Analyser la santé financière
               </>
+
             )}
 
           </button>
+
+          {/* ==================================================
+              BOUTON PDF
+          ================================================== */}
+
+          {reportId && (
+
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={loadingPdf}
+              className="
+                mt-3 flex w-full items-center
+                justify-center gap-2 rounded-xl
+                border border-white/[0.08]
+                bg-white/[0.04]
+                px-5 py-3.5
+                text-sm font-semibold
+                text-white
+                transition
+                hover:bg-white/[0.08]
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
+            >
+
+              {loadingPdf ? (
+
+                <>
+                  <Loader2
+                    className="h-4 w-4 animate-spin"
+                  />
+
+                  Génération du PDF...
+                </>
+
+              ) : (
+
+                <>
+                  <Download
+                    className="h-4 w-4"
+                  />
+
+                  Télécharger le rapport PDF
+                </>
+
+              )}
+
+            </button>
+
+          )}
 
         </section>
 
@@ -447,11 +775,14 @@ export default function FinancialHealthPage() {
 
                 </div>
 
-                <ShieldCheck className="h-6 w-6 text-cyan-300" />
+                <ShieldCheck
+                  className="h-6 w-6 text-cyan-300"
+                />
 
               </div>
 
               {result ? (
+
                 <>
 
                   <div className="flex items-end gap-2">
@@ -481,7 +812,13 @@ export default function FinancialHealthPage() {
                           : "bg-emerald-400"
                       }`}
                       style={{
-                        width: `${healthScore}%`,
+                        width: `${Math.min(
+                          Math.max(
+                            healthScore ?? 0,
+                            0
+                          ),
+                          100
+                        )}%`,
                       }}
                     />
 
@@ -498,9 +835,17 @@ export default function FinancialHealthPage() {
                     >
 
                       {isAtRisk ? (
-                        <AlertTriangle className="h-3.5 w-3.5" />
+
+                        <AlertTriangle
+                          className="h-3.5 w-3.5"
+                        />
+
                       ) : (
-                        <CheckCircle2 className="h-3.5 w-3.5" />
+
+                        <CheckCircle2
+                          className="h-3.5 w-3.5"
+                        />
+
                       )}
 
                       {isAtRisk
@@ -512,10 +857,14 @@ export default function FinancialHealthPage() {
                   </div>
 
                 </>
+
               ) : (
 
                 <div className="flex h-32 items-center justify-center text-sm text-slate-600">
-                  Lancez une analyse pour obtenir le score.
+
+                  Lancez une analyse pour obtenir
+                  le score.
+
                 </div>
 
               )}
@@ -537,14 +886,25 @@ export default function FinancialHealthPage() {
             <div className="mt-3 flex items-end justify-between">
 
               <span className="text-3xl font-bold text-white">
+
                 {(probability * 100).toFixed(1)}%
+
               </span>
 
               {result && (
+
                 <span className="text-xs text-slate-500">
+
                   Seuil :{" "}
-                  {(result.decision_threshold * 100).toFixed(0)}%
+
+                  {(
+                    result.decision_threshold *
+                    100
+                  ).toFixed(0)}
+                  %
+
                 </span>
+
               )}
 
             </div>
@@ -560,7 +920,10 @@ export default function FinancialHealthPage() {
                 }`}
                 style={{
                   width: `${Math.min(
-                    probability * 100,
+                    Math.max(
+                      probability * 100,
+                      0
+                    ),
                     100
                   )}%`,
                 }}
@@ -578,7 +941,9 @@ export default function FinancialHealthPage() {
 
             <div className="mb-5 flex items-center gap-2">
 
-              <TrendingUp className="h-5 w-5 text-violet-300" />
+              <TrendingUp
+                className="h-5 w-5 text-violet-300"
+              />
 
               <div>
 
@@ -598,7 +963,9 @@ export default function FinancialHealthPage() {
 
               <div className="flex items-center gap-2 text-sm text-slate-500">
 
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2
+                  className="h-4 w-4 animate-spin"
+                />
 
                 Analyse des facteurs...
 
@@ -610,10 +977,10 @@ export default function FinancialHealthPage() {
 
                 {explanations
                   .slice(0, 6)
-                  .map((item) => (
+                  .map((item, index) => (
 
                     <div
-                      key={item.feature}
+                      key={`${item.feature}-${index}`}
                       className="flex items-center justify-between rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-3"
                     >
 
@@ -630,9 +997,17 @@ export default function FinancialHealthPage() {
 
                           {item.impact ===
                           "increases_risk" ? (
-                            <ArrowUp className="h-4 w-4 text-red-400" />
+
+                            <ArrowUp
+                              className="h-4 w-4 text-red-400"
+                            />
+
                           ) : (
-                            <ArrowDown className="h-4 w-4 text-emerald-400" />
+
+                            <ArrowDown
+                              className="h-4 w-4 text-emerald-400"
+                            />
+
                           )}
 
                         </div>
@@ -651,10 +1026,13 @@ export default function FinancialHealthPage() {
                             : "text-emerald-400"
                         }`}
                       >
+
                         {item.shap_value > 0
                           ? "+"
                           : ""}
+
                         {item.shap_value.toFixed(3)}
+
                       </span>
 
                     </div>
@@ -666,8 +1044,10 @@ export default function FinancialHealthPage() {
             ) : (
 
               <p className="text-sm text-slate-600">
-                Les facteurs explicatifs apparaîtront après
-                l'analyse.
+
+                Les facteurs explicatifs
+                apparaîtront après l'analyse.
+
               </p>
 
             )}
@@ -675,7 +1055,9 @@ export default function FinancialHealthPage() {
           </section>
 
         </div>
+
       </div>
+
     </div>
   );
 }
