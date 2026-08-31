@@ -1,31 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+
+import { useState } from "react";
 import {
   Activity,
   AlertTriangle,
   ArrowDown,
   ArrowUp,
-  BarChart3,
-  CalendarDays,
+  BrainCircuit,
   CheckCircle2,
-  
   Download,
-  FileText,
   Loader2,
-  PieChart,
-  RefreshCw,
   ShieldCheck,
-  TrendingDown,
   TrendingUp,
-  X,
 } from "lucide-react";
 
+import axios from "axios";
 import { api } from "../../lib/api";
 
-type FinancialIndicator = {
-  id: number;
-  financial_health_report_id: number;
-
+type FinancialData = {
   current_ratio: number;
   cash_total_assets: number;
   roa_before_interest_depreciation: number;
@@ -41,561 +32,397 @@ type FinancialIndicator = {
   cash_flow_total_assets: number;
 };
 
-type FinancialExplanation = {
-  id: number;
+type PredictionResult = {
+  prediction: number;
+  financial_health: "healthy" | "at_risk";
+  bankruptcy_probability: number;
+  decision_threshold: number;
+};
+
+type Explanation = {
   feature: string;
   shap_value: number;
   impact: "increases_risk" | "decreases_risk";
 };
 
-type FinancialReport = {
+type StoreReportResponse = {
   id: number;
-  company_id: number;
-  user_id: number;
-
-  health_score: number;
-  financial_health: "healthy" | "at_risk";
-  bankruptcy_probability: number;
-  decision_threshold: number;
-
-  ai_analysis?: string | null;
-  ai_recommendations?: string[] | null;
-
-  model_version?: string | null;
-
-  created_at: string;
-  updated_at: string;
-
-  company?: {
-    id: number;
-    name: string;
-  };
-
-  indicators?: FinancialIndicator | null;
-  explanations?: FinancialExplanation[];
 };
 
-type HistoryResponse = {
-  success: boolean;
-  data: FinancialReport[];
+const initialData: FinancialData = {
+  current_ratio: 0,
+  cash_total_assets: 0,
+  roa_before_interest_depreciation: 0,
+  operating_profit_rate: 0,
+  debt_ratio: 0,
+  net_worth_assets: 0,
+  working_capital_total_assets: 0,
+  net_income_total_assets: 0,
+  total_asset_turnover: 0,
+  retained_earnings_total_assets: 0,
+  interest_coverage_ratio: 0,
+  equity_liability: 0,
+  cash_flow_total_assets: 0,
 };
 
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).format(new Date(date));
-}
+const fields = [
+  {
+    key: "current_ratio",
+    label: "Current Ratio",
+    description: "Capacité à couvrir les dettes à court terme",
+  },
+  {
+    key: "cash_total_assets",
+    label: "Cash / Total Assets",
+    description: "Part des actifs détenue sous forme de liquidités",
+  },
+  {
+    key: "roa_before_interest_depreciation",
+    label: "ROA avant intérêts et dépréciation",
+    description: "Rentabilité des actifs",
+  },
+  {
+    key: "operating_profit_rate",
+    label: "Operating Profit Rate",
+    description: "Taux de profit opérationnel",
+  },
+  {
+    key: "debt_ratio",
+    label: "Debt Ratio",
+    description: "Niveau d'endettement",
+  },
+  {
+    key: "net_worth_assets",
+    label: "Net Worth / Assets",
+    description: "Poids des capitaux propres",
+  },
+  {
+    key: "working_capital_total_assets",
+    label: "Working Capital / Assets",
+    description: "Poids du fonds de roulement",
+  },
+  {
+    key: "net_income_total_assets",
+    label: "Net Income / Assets",
+    description: "Rentabilité nette des actifs",
+  },
+  {
+    key: "total_asset_turnover",
+    label: "Total Asset Turnover",
+    description: "Efficacité d'utilisation des actifs",
+  },
+  {
+    key: "retained_earnings_total_assets",
+    label: "Retained Earnings / Assets",
+    description: "Bénéfices conservés par rapport aux actifs",
+  },
+  {
+    key: "interest_coverage_ratio",
+    label: "Interest Coverage Ratio",
+    description: "Capacité à couvrir les intérêts",
+  },
+  {
+    key: "equity_liability",
+    label: "Equity / Liability",
+    description: "Rapport capitaux propres / passifs",
+  },
+  {
+    key: "cash_flow_total_assets",
+    label: "Cash Flow / Assets",
+    description: "Flux de trésorerie généré par les actifs",
+  },
+] as const;
 
-function formatShortDate(date: string) {
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-  }).format(new Date(date));
-}
+export default function FinancialHealthPage() {
+  const [form, setForm] =
+    useState<FinancialData>(initialData);
 
-function clamp(value: number, min = 0, max = 100) {
-  return Math.min(Math.max(value, min), max);
-}
+  const [result, setResult] =
+    useState<PredictionResult | null>(null);
 
-function normalizeScore(value: unknown) {
-  const number = Number(value);
+  const [explanations, setExplanations] =
+    useState<Explanation[]>([]);
 
-  if (!Number.isFinite(number)) {
-    return 0;
-  }
-
-  return clamp(number);
-}
-
-function normalizeProbability(value: unknown) {
-  const number = Number(value);
-
-  if (!Number.isFinite(number)) {
-    return 0;
-  }
-
-  /*
-   * Backend stocke la probabilité entre 0 et 1.
-   */
-  return clamp(number * 100);
-}
-
-/**
- * ============================================================
- * PETITE COURBE SVG
- * ============================================================
- */
-
-function LineChart({
-  reports,
-  type,
-}: {
-  reports: FinancialReport[];
-  type: "score" | "risk";
-}) {
-  if (reports.length === 0) {
-    return (
-      <div className="flex h-[280px] items-center justify-center text-sm text-slate-500">
-        Aucun historique disponible.
-      </div>
-    );
-  }
-
-  const width = 900;
-  const height = 280;
-  const paddingLeft = 55;
-  const paddingRight = 25;
-  const paddingTop = 25;
-  const paddingBottom = 45;
-
-  const chartWidth = width - paddingLeft - paddingRight;
-  const chartHeight = height - paddingTop - paddingBottom;
-
-  const values = reports.map((report) =>
-    type === "score"
-      ? normalizeScore(report.health_score)
-      : normalizeProbability(report.bankruptcy_probability)
-  );
-
-  const points = values.map((value, index) => {
-    const x =
-      reports.length === 1
-        ? width / 2
-        : paddingLeft +
-          (index / (reports.length - 1)) * chartWidth;
-
-    const y =
-      paddingTop +
-      chartHeight -
-      (value / 100) * chartHeight;
-
-    return { x, y, value };
-  });
-
-  const polyline = points
-    .map((point) => `${point.x},${point.y}`)
-    .join(" ");
-
-  const areaPoints = [
-    `${points[0].x},${paddingTop + chartHeight}`,
-    ...points.map((point) => `${point.x},${point.y}`),
-    `${points[points.length - 1].x},${paddingTop + chartHeight}`,
-  ].join(" ");
-
-  return (
-    <div className="w-full overflow-x-auto">
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        className="min-w-[700px] w-full"
-      >
-        {/* Grille */}
-        {[0, 25, 50, 75, 100].map((value) => {
-          const y =
-            paddingTop +
-            chartHeight -
-            (value / 100) * chartHeight;
-
-          return (
-            <g key={value}>
-              <line
-                x1={paddingLeft}
-                x2={width - paddingRight}
-                y1={y}
-                y2={y}
-                stroke="rgba(148,163,184,0.12)"
-                strokeDasharray="5 5"
-              />
-
-              <text
-                x={paddingLeft - 10}
-                y={y + 4}
-                textAnchor="end"
-                fontSize="11"
-                fill="#64748b"
-              >
-                {value}
-              </text>
-            </g>
-          );
-        })}
-
-        {/* Zone */}
-        <polygon
-          points={areaPoints}
-          fill={
-            type === "score"
-              ? "rgba(34,211,238,0.08)"
-              : "rgba(248,113,113,0.08)"
-          }
-        />
-
-        {/* Ligne */}
-        <polyline
-          points={polyline}
-          fill="none"
-          stroke={
-            type === "score"
-              ? "#22d3ee"
-              : "#fb7185"
-          }
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* Points */}
-        {points.map((point, index) => (
-          <g key={`${point.x}-${index}`}>
-            <circle
-              cx={point.x}
-              cy={point.y}
-              r="6"
-              fill="#020617"
-              stroke={
-                type === "score"
-                  ? "#22d3ee"
-                  : "#fb7185"
-              }
-              strokeWidth="3"
-            />
-
-            <text
-              x={point.x}
-              y={point.y - 13}
-              textAnchor="middle"
-              fontSize="11"
-              fontWeight="600"
-              fill="#e2e8f0"
-            >
-              {point.value.toFixed(1)}%
-            </text>
-
-            <text
-              x={point.x}
-              y={height - 15}
-              textAnchor="middle"
-              fontSize="10"
-              fill="#64748b"
-            >
-              {formatShortDate(reports[index].created_at)}
-            </text>
-          </g>
-        ))}
-      </svg>
-    </div>
-  );
-}
-
-/**
- * ============================================================
- * BAR CHART
- * ============================================================
- */
-
-function ComparisonBars({
-  reports,
-}: {
-  reports: FinancialReport[];
-}) {
-  if (reports.length === 0) {
-    return (
-      <div className="flex h-[300px] items-center justify-center text-sm text-slate-500">
-        Aucun rapport enregistré.
-      </div>
-    );
-  }
-
-  const displayedReports = reports.slice(-8);
-
-  return (
-    <div className="flex h-[300px] items-end gap-4 overflow-x-auto px-2 pb-8 pt-8">
-      {displayedReports.map((report) => {
-        const score = normalizeScore(report.health_score);
-        const risk = normalizeProbability(
-          report.bankruptcy_probability
-        );
-
-        return (
-          <div
-            key={report.id}
-            className="group flex min-w-[70px] flex-1 flex-col items-center justify-end"
-          >
-            <div className="mb-2 flex h-[210px] items-end gap-1.5">
-              {/* Score */}
-              <div
-                className="relative w-7 rounded-t-lg bg-cyan-400/80 transition-all duration-500 group-hover:bg-cyan-300"
-                style={{
-                  height: `${Math.max(score * 2.05, 4)}px`,
-                }}
-                title={`Score : ${score.toFixed(1)}`}
-              >
-                <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] text-cyan-300">
-                  {score.toFixed(0)}
-                </span>
-              </div>
-
-              {/* Risk */}
-              <div
-                className="relative w-7 rounded-t-lg bg-rose-400/80 transition-all duration-500 group-hover:bg-rose-300"
-                style={{
-                  height: `${Math.max(risk * 2.05, 4)}px`,
-                }}
-                title={`Risque : ${risk.toFixed(1)}%`}
-              >
-                <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] text-rose-300">
-                  {risk.toFixed(0)}
-                </span>
-              </div>
-            </div>
-
-            <div className="text-center text-[10px] text-slate-500">
-              {formatShortDate(report.created_at)}
-            </div>
-
-            <div className="mt-1 text-[9px] text-slate-700">
-              #{report.id}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/**
- * ============================================================
- * DONUT
- * ============================================================
- */
-
-function HealthDonut({
-  healthy,
-  atRisk,
-}: {
-  healthy: number;
-  atRisk: number;
-}) {
-  const total = healthy + atRisk;
-
-  const healthyPercent =
-    total > 0 ? (healthy / total) * 100 : 0;
-
-  return (
-    <div className="flex items-center gap-8">
-      <div
-        className="relative h-36 w-36 shrink-0 rounded-full"
-        style={{
-          background: `conic-gradient(
-            #34d399 0 ${healthyPercent}%,
-            #fb7185 ${healthyPercent}% 100%
-          )`,
-        }}
-      >
-        <div className="absolute inset-[12px] flex flex-col items-center justify-center rounded-full bg-[#07111f]">
-          <span className="text-2xl font-bold text-white">
-            {total}
-          </span>
-
-          <span className="text-[10px] text-slate-500">
-            rapports
-          </span>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-            <span className="text-sm text-slate-300">
-              Saines
-            </span>
-          </div>
-
-          <p className="mt-1 text-xl font-bold text-emerald-400">
-            {healthy}
-          </p>
-        </div>
-
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
-            <span className="text-sm text-slate-300">
-              À risque
-            </span>
-          </div>
-
-          <p className="mt-1 text-xl font-bold text-rose-400">
-            {atRisk}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * ============================================================
- * PAGE
- * ============================================================
- */
-
-export default function MonitoringPage() {
-  const [reports, setReports] = useState<FinancialReport[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState("");
-
-  const [showHistory, setShowHistory] =
-    useState(false);
-
-  const [downloadingId, setDownloadingId] =
+  const [reportId, setReportId] =
     useState<number | null>(null);
 
-  const loadHistory = async (
-    showLoader = true
+  const [loading, setLoading] =
+    useState(false);
+
+  const [loadingExplanation, setLoadingExplanation] =
+    useState(false);
+
+  const [loadingPdf, setLoadingPdf] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [successMessage, setSuccessMessage] =
+    useState("");
+
+  /**
+   * ============================================================
+   * MODIFICATION DES CHAMPS
+   * ============================================================
+   */
+  const handleChange = (
+    key: keyof FinancialData,
+    value: string
   ) => {
+    const numericValue =
+      value === "" ? 0 : Number(value);
+
+    setForm((previous) => ({
+      ...previous,
+      [key]: Number.isFinite(numericValue)
+        ? numericValue
+        : 0,
+    }));
+  };
+
+  /**
+   * ============================================================
+   * ANALYSE FINANCIÈRE
+   * ============================================================
+   *
+   * 1. Prediction
+   * 2. SHAP
+   * 3. Sauvegarde
+   */
+  const handleAnalyze = async () => {
     try {
-      if (showLoader) {
-        setLoading(true);
-      } else {
-        setRefreshing(true);
-      }
-
+      setLoading(true);
       setError("");
+      setSuccessMessage("");
 
-      const response =
-        await api.get<HistoryResponse>(
-          "/financial-health/history"
-        );
+      setResult(null);
+      setExplanations([]);
+      setReportId(null);
 
-      const data = response.data.data ?? [];
-
-      /*
-       * Le backend renvoie latest().
-       * Pour les graphiques, on remet les rapports
-       * dans l'ordre chronologique.
+      /**
+       * --------------------------------------------------------
+       * 1. PRÉDICTION ML
+       * --------------------------------------------------------
        */
-      const sorted = [...data].sort(
-        (a, b) =>
-          new Date(a.created_at).getTime() -
-          new Date(b.created_at).getTime()
+      const response = await api.post(
+        "/financial-health/predict",
+        form
       );
 
-      setReports(sorted);
+      const prediction =
+        response.data?.data as PredictionResult;
+
+      if (!prediction) {
+        throw new Error(
+          "La réponse du service de prédiction est invalide."
+        );
+      }
+
+      setResult(prediction);
+
+      /**
+       * --------------------------------------------------------
+       * 2. EXPLICATION SHAP
+       * --------------------------------------------------------
+       */
+      setLoadingExplanation(true);
+
+      let shapExplanations: Explanation[] = [];
+
+      try {
+        const explanationResponse =
+          await api.post(
+            "/financial-health/explain",
+            form
+          );
+
+        shapExplanations =
+          explanationResponse.data?.data
+            ?.explanations ?? [];
+
+        if (!Array.isArray(shapExplanations)) {
+          shapExplanations = [];
+        }
+
+        setExplanations(shapExplanations);
+      } catch (shapError) {
+        console.error(
+          "SHAP error:",
+          shapError
+        );
+
+        /*
+         * La prédiction reste valide même si
+         * l'explication SHAP échoue.
+         */
+        setExplanations([]);
+      } finally {
+        setLoadingExplanation(false);
+      }
+
+      /**
+       * --------------------------------------------------------
+       * 3. SAUVEGARDE DU RAPPORT
+       * --------------------------------------------------------
+       */
+      const storeResponse =
+        await api.post(
+          "/financial-health/store",
+          {
+            financial_data: form,
+
+            prediction:
+              prediction.prediction,
+
+            financial_health:
+              prediction.financial_health,
+
+            bankruptcy_probability:
+              prediction.bankruptcy_probability,
+
+            decision_threshold:
+              prediction.decision_threshold,
+
+            explanations:
+              shapExplanations,
+          }
+        );
+
+      const savedReport =
+        storeResponse.data?.data as
+          | StoreReportResponse
+          | undefined;
+
+      /**
+       * Vérification importante :
+       * Laravel doit retourner l'ID du rapport.
+       */
+      if (
+        !savedReport ||
+        typeof savedReport.id !== "number"
+      ) {
+        throw new Error(
+          "Le rapport a peut-être été enregistré, mais son identifiant n'a pas été retourné par le serveur."
+        );
+      }
+
+      setReportId(savedReport.id);
+
+      setSuccessMessage(
+        `Analyse terminée et rapport #${savedReport.id} enregistré.`
+      );
+
     } catch (err: unknown) {
       console.error(
-        "Monitoring history error:",
+        "Financial health error:",
         err
       );
 
       if (axios.isAxiosError(err)) {
-        setError(
+        const message =
           err.response?.data?.message ||
-            "Impossible de récupérer l'historique financier."
-        );
+          err.response?.data?.detail ||
+          err.message ||
+          "Impossible de contacter le service de santé financière.";
+
+        setError(message);
+      } else if (err instanceof Error) {
+        setError(err.message);
       } else {
         setError(
-          "Impossible de récupérer l'historique financier."
+          "Une erreur inattendue est survenue pendant l'analyse."
         );
       }
     } finally {
       setLoading(false);
-      setRefreshing(false);
+      setLoadingExplanation(false);
     }
   };
 
-  useEffect(() => {
-    loadHistory();
-  }, []);
-
   /**
-   * ==========================================================
-   * STATISTIQUES
-   * ==========================================================
+   * ============================================================
+   * TÉLÉCHARGEMENT PDF
+   * ============================================================
    */
+  const handleDownloadPdf = async () => {
+    if (!reportId) {
+      setError(
+        "Aucun rapport disponible pour le téléchargement."
+      );
 
-  const statistics = useMemo(() => {
-    if (reports.length === 0) {
-      return {
-        averageScore: 0,
-        averageRisk: 0,
-        healthyCount: 0,
-        atRiskCount: 0,
-        healthyPercent: 0,
-        trend: 0,
-        latestScore: 0,
-        latestRisk: 0,
-      };
+      return;
     }
 
-    const scores = reports.map((report) =>
-      normalizeScore(report.health_score)
-    );
-
-    const risks = reports.map((report) =>
-      normalizeProbability(
-        report.bankruptcy_probability
-      )
-    );
-
-    const averageScore =
-      scores.reduce((sum, value) => sum + value, 0) /
-      scores.length;
-
-    const averageRisk =
-      risks.reduce((sum, value) => sum + value, 0) /
-      risks.length;
-
-    const healthyCount = reports.filter(
-      (report) =>
-        report.financial_health === "healthy"
-    ).length;
-
-    const atRiskCount =
-      reports.length - healthyCount;
-
-    const healthyPercent =
-      (healthyCount / reports.length) * 100;
-
-    const firstScore = scores[0];
-    const lastScore = scores[scores.length - 1];
-
-    return {
-      averageScore,
-      averageRisk,
-      healthyCount,
-      atRiskCount,
-      healthyPercent,
-      trend: lastScore - firstScore,
-      latestScore: lastScore,
-      latestRisk: risks[risks.length - 1],
-    };
-  }, [reports]);
-
-  /**
-   * ==========================================================
-   * TÉLÉCHARGEMENT PDF
-   * ==========================================================
-   */
-
-  const downloadReport = async (
-    report: FinancialReport
-  ) => {
     try {
-      setDownloadingId(report.id);
+      setLoadingPdf(true);
+      setError("");
 
       const response = await api.get(
-        `/financial-health/reports/${report.id}/download`,
+        `/financial-health/reports/${reportId}/download`,
         {
           responseType: "blob",
+
+          headers: {
+            Accept: "application/pdf",
+          },
         }
       );
 
+      /**
+       * IMPORTANT :
+       *
+       * AxiosHeaders peut retourner :
+       * string | number | boolean | string[] | ...
+       *
+       * Donc on convertit toujours en String
+       * avant d'utiliser includes().
+       */
+      const contentType = String(
+        response.headers["content-type"] ?? ""
+      ).toLowerCase();
+
+      /**
+       * Vérification du type de fichier.
+       */
+      if (
+        !contentType.includes(
+          "application/pdf"
+        )
+      ) {
+        /**
+         * Laravel peut renvoyer une erreur JSON
+         * sous forme de Blob.
+         */
+        let serverMessage =
+          "Le serveur n'a pas retourné un PDF valide.";
+
+        try {
+          const text =
+            await response.data.text();
+
+          if (text) {
+            const json =
+              JSON.parse(text);
+
+            if (json?.message) {
+              serverMessage =
+                json.message;
+            }
+          }
+        } catch {
+          /*
+           * Impossible de parser la réponse.
+           * On garde le message générique.
+           */
+        }
+
+        throw new Error(serverMessage);
+      }
+
+      /**
+       * Création du Blob PDF.
+       */
       const blob = new Blob(
         [response.data],
         {
@@ -603,148 +430,109 @@ export default function MonitoringPage() {
         }
       );
 
+      /**
+       * Création d'une URL temporaire.
+       */
       const url =
         window.URL.createObjectURL(blob);
 
+      /**
+       * Création du lien de téléchargement.
+       */
       const link =
         document.createElement("a");
 
       link.href = url;
 
       link.download =
-        `rapport-sante-financiere-${report.id}.pdf`;
+        `rapport-sante-financiere-${reportId}.pdf`;
 
       document.body.appendChild(link);
 
       link.click();
 
+      /**
+       * Nettoyage.
+       */
       link.remove();
 
       window.URL.revokeObjectURL(url);
-    } catch (err) {
+
+    } catch (err: unknown) {
       console.error(
         "PDF download error:",
         err
       );
 
-      setError(
-        "Impossible de télécharger le rapport PDF."
-      );
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message ||
+            "Impossible de télécharger le rapport PDF."
+        );
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(
+          "Une erreur est survenue pendant le téléchargement du PDF."
+        );
+      }
     } finally {
-      setDownloadingId(null);
+      setLoadingPdf(false);
     }
   };
 
-  const latestReport =
-    reports.length > 0
-      ? reports[reports.length - 1]
-      : null;
-
-  const previousReport =
-    reports.length > 1
-      ? reports[reports.length - 2]
-      : null;
-
-  const scoreVariation =
-    latestReport && previousReport
-      ? normalizeScore(
-          latestReport.health_score
-        ) -
-        normalizeScore(
-          previousReport.health_score
-        )
-      : 0;
-
-  const riskVariation =
-    latestReport && previousReport
-      ? normalizeProbability(
-          latestReport.bankruptcy_probability
-        ) -
-        normalizeProbability(
-          previousReport.bankruptcy_probability
-        )
-      : 0;
-
   /**
-   * ==========================================================
-   * LOADING
-   * ==========================================================
+   * ============================================================
+   * CALCUL DU SCORE
+   * ============================================================
    */
+  const probability =
+    result?.bankruptcy_probability ?? 0;
 
-  if (loading) {
-    return (
-      <div className="flex min-h-[70vh] items-center justify-center text-white">
-        <div className="flex flex-col items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10">
-            <Loader2 className="h-6 w-6 animate-spin text-cyan-300" />
-          </div>
+  const healthScore = result
+    ? Math.round(
+        (1 - probability) * 100
+      )
+    : null;
 
-          <p className="text-sm text-slate-400">
-            Chargement du monitoring financier...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const isAtRisk =
+    result?.financial_health ===
+    "at_risk";
 
   return (
-    <div className="min-h-full space-y-7 pb-10 text-white">
+    <div className="min-h-full text-white">
 
       {/* ======================================================
           HEADER
       ====================================================== */}
 
-      <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
+      <div className="mb-8">
 
-        <div>
-          <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
 
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10">
-              <Activity className="h-6 w-6 text-cyan-300" />
-            </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10">
 
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                Monitoring financier
-              </h1>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Évolution de la santé financière de votre entreprise
-              </p>
-            </div>
-
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-
-          <button
-            type="button"
-            onClick={() => setShowHistory(true)}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
-          >
-            <FileText className="h-4 w-4 text-cyan-300" />
-            Historique des rapports
-          </button>
-
-          <button
-            type="button"
-            onClick={() => loadHistory(false)}
-            disabled={refreshing}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06] disabled:opacity-50"
-          >
-            <RefreshCw
-              className={`h-4 w-4 ${
-                refreshing
-                  ? "animate-spin"
-                  : ""
-              }`}
+            <BrainCircuit
+              className="h-5 w-5 text-cyan-300"
             />
 
-            Actualiser
-          </button>
+          </div>
+
+          <div>
+
+            <h1 className="text-2xl font-bold">
+              Santé financière
+            </h1>
+
+            <p className="mt-1 text-sm text-slate-400">
+              Analyse prédictive de la santé
+              financière de votre entreprise
+            </p>
+
+          </div>
 
         </div>
+
       </div>
 
       {/* ======================================================
@@ -752,763 +540,525 @@ export default function MonitoringPage() {
       ====================================================== */}
 
       {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-rose-400/20 bg-rose-500/10 p-4 text-sm text-rose-300">
-          <AlertTriangle className="h-5 w-5 shrink-0" />
-          {error}
+
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-300">
+
+          <AlertTriangle
+            className="h-5 w-5 shrink-0"
+          />
+
+          <span>
+            {error}
+          </span>
+
         </div>
+
       )}
 
       {/* ======================================================
-          EMPTY
+          SUCCESS
       ====================================================== */}
 
-      {reports.length === 0 ? (
-        <section className="flex min-h-[420px] flex-col items-center justify-center rounded-3xl border border-white/[0.08] bg-white/[0.025] p-10 text-center">
+      {successMessage && (
 
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-400/10">
-            <BarChart3 className="h-8 w-8 text-cyan-300" />
-          </div>
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-300">
 
-          <h2 className="mt-5 text-xl font-semibold">
-            Aucun bilan financier enregistré
-          </h2>
+          <CheckCircle2
+            className="h-5 w-5 shrink-0"
+          />
 
-          <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-            Lancez votre première analyse financière
-            pour commencer à construire l'historique
-            et visualiser l'évolution de votre entreprise.
-          </p>
+          <span>
+            {successMessage}
+          </span>
 
-        </section>
-      ) : (
-        <>
-          {/* ==================================================
-              KPI
-          ================================================== */}
+        </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
-            {/* Score */}
-            <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
-
-              <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-cyan-400/10 blur-3xl" />
-
-              <div className="relative">
-
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-slate-500">
-                    Score actuel
-                  </span>
-
-                  <ShieldCheck className="h-5 w-5 text-cyan-300" />
-                </div>
-
-                <div className="mt-4 flex items-end gap-2">
-                  <span className="text-4xl font-bold">
-                    {statistics.latestScore.toFixed(1)}
-                  </span>
-
-                  <span className="mb-1 text-sm text-slate-600">
-                    /100
-                  </span>
-                </div>
-
-                <div className="mt-4 flex items-center gap-2 text-xs">
-                  {scoreVariation >= 0 ? (
-                    <ArrowUp className="h-3.5 w-3.5 text-emerald-400" />
-                  ) : (
-                    <ArrowDown className="h-3.5 w-3.5 text-rose-400" />
-                  )}
-
-                  <span
-                    className={
-                      scoreVariation >= 0
-                        ? "text-emerald-400"
-                        : "text-rose-400"
-                    }
-                  >
-                    {Math.abs(scoreVariation).toFixed(1)}
-                  </span>
-
-                  <span className="text-slate-600">
-                    vs bilan précédent
-                  </span>
-                </div>
-
-              </div>
-            </section>
-
-            {/* Risque */}
-            <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
-
-              <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-rose-400/10 blur-3xl" />
-
-              <div className="relative">
-
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-slate-500">
-                    Risque de faillite
-                  </span>
-
-                  <AlertTriangle className="h-5 w-5 text-rose-300" />
-                </div>
-
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">
-                    {statistics.latestRisk.toFixed(1)}%
-                  </span>
-                </div>
-
-                <div className="mt-4 flex items-center gap-2 text-xs">
-
-                  {riskVariation <= 0 ? (
-                    <TrendingDown className="h-3.5 w-3.5 text-emerald-400" />
-                  ) : (
-                    <TrendingUp className="h-3.5 w-3.5 text-rose-400" />
-                  )}
-
-                  <span
-                    className={
-                      riskVariation <= 0
-                        ? "text-emerald-400"
-                        : "text-rose-400"
-                    }
-                  >
-                    {Math.abs(riskVariation).toFixed(1)}%
-                  </span>
-
-                  <span className="text-slate-600">
-                    vs précédent
-                  </span>
-
-                </div>
-
-              </div>
-            </section>
-
-            {/* Moyenne */}
-            <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
-
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">
-                  Score moyen
-                </span>
-
-                <BarChart3 className="h-5 w-5 text-violet-300" />
-              </div>
-
-              <div className="mt-4">
-                <span className="text-4xl font-bold">
-                  {statistics.averageScore.toFixed(1)}
-                </span>
-
-                <span className="ml-1 text-sm text-slate-600">
-                  /100
-                </span>
-              </div>
-
-              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-                <div
-                  className="h-full rounded-full bg-violet-400"
-                  style={{
-                    width: `${statistics.averageScore}%`,
-                  }}
-                />
-              </div>
-
-            </section>
-
-            {/* Rapports */}
-            <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
-
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">
-                  Bilans analysés
-                </span>
-
-                <FileText className="h-5 w-5 text-blue-300" />
-              </div>
-
-              <div className="mt-4">
-                <span className="text-4xl font-bold">
-                  {reports.length}
-                </span>
-              </div>
-
-              <p className="mt-4 text-xs text-slate-600">
-                {statistics.healthyPercent.toFixed(0)}%
-                des bilans sont sains
-              </p>
-
-            </section>
-
-          </div>
-
-          {/* ==================================================
-              COURBES
-          ================================================== */}
-
-          <div className="grid gap-6 xl:grid-cols-2">
-
-            {/* Score */}
-            <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6">
-
-              <div className="mb-5 flex items-center justify-between">
-
-                <div>
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-cyan-300" />
-
-                    <h2 className="font-semibold">
-                      Évolution du score
-                    </h2>
-                  </div>
-
-                  <p className="mt-1 text-xs text-slate-600">
-                    Score de santé financière sur les différents bilans
-                  </p>
-                </div>
-
-                <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-xs text-cyan-300">
-                  /100
-                </span>
-
-              </div>
-
-              <LineChart
-                reports={reports}
-                type="score"
-              />
-
-            </section>
-
-            {/* Risque */}
-            <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6">
-
-              <div className="mb-5 flex items-center justify-between">
-
-                <div>
-                  <div className="flex items-center gap-2">
-                    <TrendingDown className="h-5 w-5 text-rose-300" />
-
-                    <h2 className="font-semibold">
-                      Évolution du risque
-                    </h2>
-                  </div>
-
-                  <p className="mt-1 text-xs text-slate-600">
-                    Probabilité de faillite détectée par le modèle
-                  </p>
-                </div>
-
-                <span className="rounded-full bg-rose-400/10 px-3 py-1 text-xs text-rose-300">
-                  %
-                </span>
-
-              </div>
-
-              <LineChart
-                reports={reports}
-                type="risk"
-              />
-
-            </section>
-
-          </div>
-
-          {/* ==================================================
-              BAR CHART + DONUT
-          ================================================== */}
-
-          <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-
-            {/* Bars */}
-            <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6">
-
-              <div className="mb-4">
-
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-blue-300" />
-
-                  <h2 className="font-semibold">
-                    Comparaison des bilans
-                  </h2>
-                </div>
-
-                <p className="mt-1 text-xs text-slate-600">
-                  Score de santé vs probabilité de faillite
-                </p>
-
-              </div>
-
-              <ComparisonBars
-                reports={reports}
-              />
-
-              <div className="mt-3 flex justify-center gap-6 text-xs">
-
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-sm bg-cyan-400" />
-                  <span className="text-slate-500">
-                    Score santé
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-sm bg-rose-400" />
-                  <span className="text-slate-500">
-                    Risque faillite
-                  </span>
-                </div>
-
-              </div>
-
-            </section>
-
-            {/* Donut */}
-            <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6">
-
-              <div className="mb-7">
-
-                <div className="flex items-center gap-2">
-                  <PieChart className="h-5 w-5 text-violet-300" />
-
-                  <h2 className="font-semibold">
-                    État financier
-                  </h2>
-                </div>
-
-                <p className="mt-1 text-xs text-slate-600">
-                  Répartition des bilans enregistrés
-                </p>
-
-              </div>
-
-              <HealthDonut
-                healthy={
-                  statistics.healthyCount
-                }
-                atRisk={
-                  statistics.atRiskCount
-                }
-              />
-
-            </section>
-
-          </div>
-
-          {/* ==================================================
-              DERNIER RAPPORT
-          ================================================== */}
-
-          {latestReport && (
-            <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6">
-
-              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-
-                <div>
-
-                  <div className="flex items-center gap-3">
-
-                    {latestReport.financial_health ===
-                    "healthy" ? (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-400/10">
-                        <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                      </div>
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-400/10">
-                        <AlertTriangle className="h-5 w-5 text-rose-400" />
-                      </div>
-                    )}
-
-                    <div>
-
-                      <h2 className="font-semibold">
-                        Dernier bilan financier
-                      </h2>
-
-                      <p className="mt-1 text-xs text-slate-600">
-                        Généré le{" "}
-                        {formatDate(
-                          latestReport.created_at
-                        )}
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-                <div className="flex items-center gap-5">
-
-                  <div className="text-right">
-
-                    <p className="text-xs text-slate-600">
-                      Score
-                    </p>
-
-                    <p className="text-xl font-bold text-cyan-300">
-                      {normalizeScore(
-                        latestReport.health_score
-                      ).toFixed(1)}
-                    </p>
-
-                  </div>
-
-                  <div className="h-10 w-px bg-white/[0.08]" />
-
-                  <div className="text-right">
-
-                    <p className="text-xs text-slate-600">
-                      Faillite
-                    </p>
-
-                    <p className="text-xl font-bold text-rose-300">
-                      {normalizeProbability(
-                        latestReport.bankruptcy_probability
-                      ).toFixed(1)}
-                      %
-                    </p>
-
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      downloadReport(
-                        latestReport
-                      )
-                    }
-                    disabled={
-                      downloadingId ===
-                      latestReport.id
-                    }
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 px-4 py-2.5 text-sm font-semibold transition hover:scale-[1.02] disabled:opacity-50"
-                  >
-                    {downloadingId ===
-                    latestReport.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="h-4 w-4" />
-                    )}
-
-                    PDF
-                  </button>
-
-                </div>
-
-              </div>
-
-            </section>
-          )}
-        </>
       )}
 
-      {/* ======================================================
-          MODAL HISTORIQUE
-      ====================================================== */}
+      <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
 
-      {showHistory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+        {/* ====================================================
+            FORMULAIRE
+        ==================================================== */}
 
-          <div className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-[#07111f] shadow-2xl">
+        <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6">
 
-            {/* Modal header */}
+          <div className="mb-6">
 
-            <div className="flex items-center justify-between border-b border-white/[0.08] px-6 py-5">
+            <div className="flex items-center gap-2">
 
-              <div>
-                <div className="flex items-center gap-3">
+              <Activity
+                className="h-5 w-5 text-cyan-300"
+              />
 
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-400/10">
-                    <FileText className="h-5 w-5 text-cyan-300" />
-                  </div>
-
-                  <div>
-                    <h2 className="text-lg font-semibold">
-                      Historique des rapports
-                    </h2>
-
-                    <p className="text-xs text-slate-500">
-                      Tous les bilans financiers enregistrés
-                    </p>
-                  </div>
-
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setShowHistory(false)
-                }
-                className="rounded-xl p-2 text-slate-500 transition hover:bg-white/[0.05] hover:text-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <h2 className="text-lg font-semibold">
+                Indicateurs financiers
+              </h2>
 
             </div>
 
-            {/* Modal content */}
+            <p className="mt-1 text-sm text-slate-500">
+              Entrez les indicateurs utilisés
+              par le modèle ML.
+            </p>
 
-            <div className="overflow-y-auto p-6">
+          </div>
 
-              {reports.length === 0 ? (
-                <div className="py-16 text-center text-sm text-slate-500">
-                  Aucun rapport disponible.
-                </div>
+          <div className="grid gap-4 md:grid-cols-2">
+
+            {fields.map((field) => (
+
+              <div key={field.key}>
+
+                <label className="mb-1.5 block text-sm font-medium text-slate-300">
+                  {field.label}
+                </label>
+
+                <input
+                  type="number"
+                  step="any"
+                  value={form[field.key]}
+                  onChange={(e) =>
+                    handleChange(
+                      field.key,
+                      e.target.value
+                    )
+                  }
+                  className="
+                    w-full rounded-xl
+                    border border-white/[0.08]
+                    bg-[#020817]
+                    px-4 py-3
+                    text-sm text-white
+                    outline-none
+                    transition
+                    focus:border-cyan-400/40
+                    focus:ring-2
+                    focus:ring-cyan-400/10
+                  "
+                />
+
+                <p className="mt-1 text-[11px] text-slate-600">
+                  {field.description}
+                </p>
+
+              </div>
+
+            ))}
+
+          </div>
+
+          <button
+            type="button"
+            onClick={handleAnalyze}
+            disabled={loading}
+            className="
+              mt-7 flex w-full items-center
+              justify-center gap-2 rounded-xl
+              bg-gradient-to-r
+              from-cyan-400
+              via-blue-500
+              to-violet-500
+              px-5 py-3.5
+              text-sm font-semibold text-white
+              shadow-lg shadow-cyan-500/10
+              transition
+              hover:scale-[1.01]
+              disabled:cursor-not-allowed
+              disabled:opacity-50
+            "
+          >
+
+            {loading ? (
+
+              <>
+                <Loader2
+                  className="h-4 w-4 animate-spin"
+                />
+
+                Analyse en cours...
+              </>
+
+            ) : (
+
+              <>
+                <BrainCircuit
+                  className="h-4 w-4"
+                />
+
+                Analyser la santé financière
+              </>
+
+            )}
+
+          </button>
+
+          {/* ==================================================
+              BOUTON PDF
+          ================================================== */}
+
+          {reportId && (
+
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={loadingPdf}
+              className="
+                mt-3 flex w-full items-center
+                justify-center gap-2 rounded-xl
+                border border-white/[0.08]
+                bg-white/[0.04]
+                px-5 py-3.5
+                text-sm font-semibold
+                text-white
+                transition
+                hover:bg-white/[0.08]
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
+            >
+
+              {loadingPdf ? (
+
+                <>
+                  <Loader2
+                    className="h-4 w-4 animate-spin"
+                  />
+
+                  Génération du PDF...
+                </>
+
               ) : (
-                <div className="space-y-3">
 
-                  {[...reports]
-                    .reverse()
-                    .map((report) => {
+                <>
+                  <Download
+                    className="h-4 w-4"
+                  />
 
-                      const score =
-                        normalizeScore(
-                          report.health_score
-                        );
+                  Télécharger le rapport PDF
+                </>
 
-                      const risk =
-                        normalizeProbability(
-                          report.bankruptcy_probability
-                        );
+              )}
 
-                      const isHealthy =
-                        report.financial_health ===
-                        "healthy";
+            </button>
 
-                      return (
-                        <div
-                          key={report.id}
-                          className="group rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 transition hover:border-cyan-400/20 hover:bg-white/[0.035]"
-                        >
+          )}
 
-                          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        </section>
 
-                            {/* Identity */}
+        {/* ====================================================
+            RESULTAT
+        ==================================================== */}
 
-                            <div className="flex min-w-0 items-center gap-4">
+        <div className="space-y-6">
 
-                              <div
-                                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
-                                  isHealthy
-                                    ? "bg-emerald-400/10"
-                                    : "bg-rose-400/10"
-                                }`}
-                              >
-                                {isHealthy ? (
-                                  <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                                ) : (
-                                  <AlertTriangle className="h-5 w-5 text-rose-400" />
-                                )}
-                              </div>
+          {/* ==================================================
+              SCORE
+          ================================================== */}
 
-                              <div className="min-w-0">
+          <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6">
 
-                                <div className="flex flex-wrap items-center gap-2">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-cyan-500/10 blur-3xl" />
 
-                                  <span className="font-semibold text-slate-200">
-                                    Rapport #{report.id}
-                                  </span>
+            <div className="relative">
 
-                                  <span
-                                    className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${
-                                      isHealthy
-                                        ? "bg-emerald-400/10 text-emerald-300"
-                                        : "bg-rose-400/10 text-rose-300"
-                                    }`}
-                                  >
-                                    {isHealthy
-                                      ? "Saine"
-                                      : "À risque"}
-                                  </span>
+              <div className="mb-5 flex items-center justify-between">
 
-                                </div>
+                <div>
 
-                                <div className="mt-1 flex items-center gap-2 text-xs text-slate-600">
-                                  <CalendarDays className="h-3.5 w-3.5" />
+                  <p className="text-sm text-slate-400">
+                    Score de santé
+                  </p>
 
-                                  {formatDate(
-                                    report.created_at
-                                  )}
-                                </div>
-
-                              </div>
-
-                            </div>
-
-                            {/* Stats */}
-
-                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-
-                              <div className="min-w-[90px] rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
-                                <p className="text-[9px] uppercase tracking-wider text-slate-600">
-                                  Score
-                                </p>
-
-                                <p className="mt-1 font-bold text-cyan-300">
-                                  {score.toFixed(1)}
-                                </p>
-                              </div>
-
-                              <div className="min-w-[90px] rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
-                                <p className="text-[9px] uppercase tracking-wider text-slate-600">
-                                  Faillite
-                                </p>
-
-                                <p className="mt-1 font-bold text-rose-300">
-                                  {risk.toFixed(1)}%
-                                </p>
-                              </div>
-
-                              <div className="min-w-[90px] rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
-                                <p className="text-[9px] uppercase tracking-wider text-slate-600">
-                                  Seuil
-                                </p>
-
-                                <p className="mt-1 font-bold text-violet-300">
-                                  {(
-                                    Number(
-                                      report.decision_threshold
-                                    ) * 100
-                                  ).toFixed(0)}
-                                  %
-                                </p>
-                              </div>
-
-                              <div className="min-w-[90px] rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
-                                <p className="text-[9px] uppercase tracking-wider text-slate-600">
-                                  Modèle
-                                </p>
-
-                                <p className="mt-1 font-bold text-slate-300">
-                                  {report.model_version ||
-                                    "1.0.0"}
-                                </p>
-                              </div>
-
-                            </div>
-
-                            {/* Download */}
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                downloadReport(
-                                  report
-                                )
-                              }
-                              disabled={
-                                downloadingId ===
-                                report.id
-                              }
-                              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-2.5 text-sm font-medium text-cyan-300 transition hover:bg-cyan-400/15 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              {downloadingId ===
-                              report.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Download className="h-4 w-4" />
-                              )}
-
-                              Télécharger PDF
-                            </button>
-
-                          </div>
-
-                          {/* Progress bars */}
-
-                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-
-                            <div>
-                              <div className="mb-1 flex justify-between text-[10px]">
-                                <span className="text-slate-600">
-                                  Santé financière
-                                </span>
-
-                                <span className="text-cyan-300">
-                                  {score.toFixed(1)}
-                                </span>
-                              </div>
-
-                              <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-                                <div
-                                  className="h-full rounded-full bg-cyan-400"
-                                  style={{
-                                    width: `${score}%`,
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                            <div>
-                              <div className="mb-1 flex justify-between text-[10px]">
-                                <span className="text-slate-600">
-                                  Risque de faillite
-                                </span>
-
-                                <span className="text-rose-300">
-                                  {risk.toFixed(1)}%
-                                </span>
-                              </div>
-
-                              <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-                                <div
-                                  className="h-full rounded-full bg-rose-400"
-                                  style={{
-                                    width: `${risk}%`,
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                          </div>
-
-                        </div>
-                      );
-                    })}
+                  <p className="mt-1 text-xs text-slate-600">
+                    Calculé par le modèle IA
+                  </p>
 
                 </div>
+
+                <ShieldCheck
+                  className="h-6 w-6 text-cyan-300"
+                />
+
+              </div>
+
+              {result ? (
+
+                <>
+
+                  <div className="flex items-end gap-2">
+
+                    <span
+                      className={`text-5xl font-bold ${
+                        isAtRisk
+                          ? "text-red-400"
+                          : "text-emerald-400"
+                      }`}
+                    >
+                      {healthScore}
+                    </span>
+
+                    <span className="mb-2 text-lg text-slate-500">
+                      / 100
+                    </span>
+
+                  </div>
+
+                  <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        isAtRisk
+                          ? "bg-red-400"
+                          : "bg-emerald-400"
+                      }`}
+                      style={{
+                        width: `${Math.min(
+                          Math.max(
+                            healthScore ?? 0,
+                            0
+                          ),
+                          100
+                        )}%`,
+                      }}
+                    />
+
+                  </div>
+
+                  <div className="mt-4">
+
+                    <span
+                      className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${
+                        isAtRisk
+                          ? "bg-red-400/10 text-red-300"
+                          : "bg-emerald-400/10 text-emerald-300"
+                      }`}
+                    >
+
+                      {isAtRisk ? (
+
+                        <AlertTriangle
+                          className="h-3.5 w-3.5"
+                        />
+
+                      ) : (
+
+                        <CheckCircle2
+                          className="h-3.5 w-3.5"
+                        />
+
+                      )}
+
+                      {isAtRisk
+                        ? "Entreprise à risque"
+                        : "Situation financière saine"}
+
+                    </span>
+
+                  </div>
+
+                </>
+
+              ) : (
+
+                <div className="flex h-32 items-center justify-center text-sm text-slate-600">
+
+                  Lancez une analyse pour obtenir
+                  le score.
+
+                </div>
+
               )}
 
             </div>
 
-            {/* Footer */}
+          </section>
 
-            <div className="border-t border-white/[0.08] px-6 py-4">
+          {/* ==================================================
+              PROBABILITE
+          ================================================== */}
 
-              <div className="flex items-center justify-between text-xs text-slate-600">
+          <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6">
 
-                <span>
-                  {reports.length} rapport
-                  {reports.length > 1
-                    ? "s"
-                    : ""}{" "}
-                  enregistré
-                  {reports.length > 1
-                    ? "s"
-                    : ""}
+            <p className="text-sm text-slate-400">
+              Probabilité de faillite
+            </p>
+
+            <div className="mt-3 flex items-end justify-between">
+
+              <span className="text-3xl font-bold text-white">
+
+                {(probability * 100).toFixed(1)}%
+
+              </span>
+
+              {result && (
+
+                <span className="text-xs text-slate-500">
+
+                  Seuil :{" "}
+
+                  {(
+                    result.decision_threshold *
+                    100
+                  ).toFixed(0)}
+                  %
+
                 </span>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowHistory(false)
-                  }
-                  className="rounded-xl border border-white/[0.08] px-4 py-2 text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
-                >
-                  Fermer
-                </button>
+              )}
+
+            </div>
+
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+
+              <div
+                className={`h-full rounded-full transition-all ${
+                  probability >=
+                  (result?.decision_threshold ?? 1)
+                    ? "bg-red-400"
+                    : "bg-cyan-400"
+                }`}
+                style={{
+                  width: `${Math.min(
+                    Math.max(
+                      probability * 100,
+                      0
+                    ),
+                    100
+                  )}%`,
+                }}
+              />
+
+            </div>
+
+          </section>
+
+          {/* ==================================================
+              SHAP
+          ================================================== */}
+
+          <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6">
+
+            <div className="mb-5 flex items-center gap-2">
+
+              <TrendingUp
+                className="h-5 w-5 text-violet-300"
+              />
+
+              <div>
+
+                <h2 className="text-base font-semibold">
+                  Facteurs explicatifs
+                </h2>
+
+                <p className="text-xs text-slate-500">
+                  Analyse SHAP du modèle
+                </p>
 
               </div>
 
             </div>
 
-          </div>
+            {loadingExplanation ? (
+
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+
+                <Loader2
+                  className="h-4 w-4 animate-spin"
+                />
+
+                Analyse des facteurs...
+
+              </div>
+
+            ) : explanations.length > 0 ? (
+
+              <div className="space-y-3">
+
+                {explanations
+                  .slice(0, 6)
+                  .map((item, index) => (
+
+                    <div
+                      key={`${item.feature}-${index}`}
+                      className="flex items-center justify-between rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-3"
+                    >
+
+                      <div className="flex min-w-0 items-center gap-3">
+
+                        <div
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                            item.impact ===
+                            "increases_risk"
+                              ? "bg-red-400/10"
+                              : "bg-emerald-400/10"
+                          }`}
+                        >
+
+                          {item.impact ===
+                          "increases_risk" ? (
+
+                            <ArrowUp
+                              className="h-4 w-4 text-red-400"
+                            />
+
+                          ) : (
+
+                            <ArrowDown
+                              className="h-4 w-4 text-emerald-400"
+                            />
+
+                          )}
+
+                        </div>
+
+                        <span className="truncate text-xs text-slate-300">
+                          {item.feature}
+                        </span>
+
+                      </div>
+
+                      <span
+                        className={`ml-3 text-xs font-semibold ${
+                          item.impact ===
+                          "increases_risk"
+                            ? "text-red-400"
+                            : "text-emerald-400"
+                        }`}
+                      >
+
+                        {item.shap_value > 0
+                          ? "+"
+                          : ""}
+
+                        {item.shap_value.toFixed(3)}
+
+                      </span>
+
+                    </div>
+
+                  ))}
+
+              </div>
+
+            ) : (
+
+              <p className="text-sm text-slate-600">
+
+                Les facteurs explicatifs
+                apparaîtront après l'analyse.
+
+              </p>
+
+            )}
+
+          </section>
+
         </div>
-      )}
+
+      </div>
+
     </div>
   );
 }
