@@ -18,7 +18,7 @@ import ChefLayout from "../components/chef/ChefLayout";
 import TeamMembersPage from "../pages/Chef/TeamMembersPage";
 import TasksPage from "../pages/Chef/TasksPage";
 import RiskModelsPage from "../pages/Chef/RiskModelsPage";
-
+import MonitoringPage from "../pages/Direction/MonitoringPage";
 import DirectionDashboard from "../components/director/DirectionDashboard";
 import DirectorLayout from "../components/director/DirectorLayout";
 import ProjectsPage from "../components/director/ProjectsPage";
@@ -96,13 +96,9 @@ export default function AppRoutes() {
         />
 
         <Route
-          path="/dashboard/direction/monitoring"
-          element={
-            <div className="text-white">
-              Monitoring
-            </div>
-          }
-        />
+  path="/dashboard/direction/monitoring"
+  element={<MonitoringPage />}
+/>
 
        <Route
   path="/dashboard/direction/analytics"
