@@ -17,6 +17,45 @@ class ProjectController extends Controller
         return response()->json($projects);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Test du modèle IA sans créer de projet
+    |--------------------------------------------------------------------------
+    */
+
+    public function testPrediction(Request $request, RiskPredictionService $riskPredictionService)
+    {
+        $validated = $request->validate([
+            'team_exp' => 'required|numeric|min:0',
+            'manager_exp' => 'required|numeric|min:0',
+            'length' => 'required|numeric|min:1',
+            'transactions' => 'required|numeric|min:0',
+            'entities' => 'required|numeric|min:0',
+            'points_non_adjust' => 'required|numeric|min:0',
+            'adjustment' => 'nullable|numeric|min:0.5|max:1.5',
+            'language' => 'required|integer',
+            'planned_effort' => 'required|numeric|min:1',
+        ]);
+
+        $adjustment = $validated['adjustment'] ?? 1;
+
+        $prediction = $riskPredictionService->predict([
+            ...$validated,
+            'adjustment' => $adjustment,
+        ]);
+
+        if (!$prediction) {
+            return response()->json([
+                'message' => 'Le service de prédiction est indisponible.',
+            ], 502);
+        }
+
+        return response()->json([
+            'input' => [...$validated, 'adjustment' => $adjustment],
+            'prediction' => $prediction,
+        ]);
+    }
+
     public function store(Request $request, RiskPredictionService $riskPredictionService)
 {
     $validated = $request->validate([
@@ -96,6 +135,10 @@ class ProjectController extends Controller
 
             'risk_level' =>
                 $prediction['risk_level'] ?? null,
+
+            'risk_score' => isset($prediction['gap_percent'])
+                ? (int) round($prediction['gap_percent'])
+                : null,
         ]);
     }
 
@@ -116,6 +159,39 @@ class ProjectController extends Controller
         abort_if($project->chef_de_projet_id !== $request->user()->id, 403);
         return response()->json($project);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Liste des prédictions de risque (pour la page dédiée du sidebar)
+    |--------------------------------------------------------------------------
+    */
+
+    public function riskPredictions(Request $request)
+    {
+        $projects = Project::where('chef_de_projet_id', $request->user()->id)
+            ->whereNotNull('predicted_effort')
+            ->latest()
+            ->get([
+                'id',
+                'name',
+                'planned_effort',
+                'predicted_effort',
+                'risk_level',
+                'risk_score',
+                'created_at',
+            ]);
+
+        return response()->json($projects->map(fn ($project) => [
+            'id' => $project->id,
+            'name' => $project->name,
+            'planned_effort' => $project->planned_effort,
+            'predicted_effort' => $project->predicted_effort,
+            'risk_level' => $project->risk_level,
+            'gap_percent' => $project->risk_score,
+            'created_at' => $project->created_at,
+        ]));
+    }
+
     public function generateReport(
     Request $request,
     Project $project,
@@ -132,16 +208,11 @@ class ProjectController extends Controller
         ], 422);
     }
 
-    if (is_null($project->planned_effort) || $project->planned_effort <= 0) {
+    if (is_null($project->risk_score)) {
         return response()->json([
-            'message' => 'L’effort planifié du projet est invalide.'
+            'message' => 'L’écart de risque n’est pas disponible pour ce projet.'
         ], 422);
     }
-
-    $gapPercent = (
-        ($project->predicted_effort - $project->planned_effort)
-        / $project->planned_effort
-    ) * 100;
 
     $report = $aiReportService->generate([
         'name' => $project->name,
@@ -159,7 +230,7 @@ class ProjectController extends Controller
         'planned_effort' => $project->planned_effort,
         'predicted_effort' => $project->predicted_effort,
         'risk_level' => $project->risk_level,
-        'gap_percent' => round($gapPercent, 2),
+        'gap_percent' => $project->risk_score,
     ]);
 
    if (!$report) {

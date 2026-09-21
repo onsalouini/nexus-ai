@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
         '/director/projects',
         [DirectorProjectController::class, 'index']
     );
+    Route::get('/projects/risk-predictions', [ProjectController::class, 'riskPredictions']);
 
     Route::get(
         '/director/projects/{project}',
@@ -108,5 +109,5 @@ Route::get(
     '/financial-health/reports/{report}/download',
     [FinancialHealthController::class, 'download']
 );
-
+Route::post('/risk-predictions/test', [ProjectController::class, 'testPrediction']);
 });

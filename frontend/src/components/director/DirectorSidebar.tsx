@@ -56,8 +56,8 @@ const navigation: NavigationItem[] = [
   },
   {
     label: "NEXUS AI",
-    path: "/dashboard/direction/ai",
-    icon: BrainCircuit,
+    path: "/dashboard/chef/models",
+        icon: BrainCircuit,
   },
   {
     label: "Paramètres",

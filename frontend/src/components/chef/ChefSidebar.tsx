@@ -7,6 +7,7 @@ import {
   Menu,
   Users,
   X,
+  AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -37,10 +38,16 @@ const navigation: NavigationItem[] = [
     icon: CheckSquare,
   },
   {
+    label: "Prédiction de risque", // 👈 nouveau bouton
+    path: "/dashboard/chef/risk-predictions",
+    icon: AlertTriangle,
+  },
+  {
     label: "Modèles IA",
     path: "/dashboard/chef/models",
     icon: BrainCircuit,
   },
+
 ];
 
 export default function ChefSidebar() {

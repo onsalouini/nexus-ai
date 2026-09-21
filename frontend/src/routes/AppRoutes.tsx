@@ -8,7 +8,7 @@ import Landing from "../pages/Landing";
 import CompanyForm from "../pages/Onboarding/CompanyForm";
 
 import DirectorInvitations from "../pages/DirectorInvitations";
-
+import RiskPredictionsPage from "../pages/Chef/RiskPredictionsPage"; // 👈 nouveau
 import PrivateRoute from "../components/PrivateRoute";
 import InvitationWelcome from "../pages/AuthPages/InvitationWelcome";
 import SignUpComplete from "../pages/AuthPages/SignUpComplete";
@@ -157,7 +157,10 @@ export default function AppRoutes() {
           path="/dashboard/chef"
           element={<ChefDashboard />}
         />
-
+<Route
+    path="/dashboard/chef/risk-predictions" // 👈 nouveau
+    element={<RiskPredictionsPage />}
+  />
         <Route
           path="/dashboard/chef/team"
           element={<TeamMembersPage />}
