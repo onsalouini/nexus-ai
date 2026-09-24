@@ -14,7 +14,7 @@ const FEATURES = [
   { key: "Transactions", label: "Transactions", desc: "Nombre de transactions du système" },
   { key: "Entities", label: "Entités", desc: "Nombre d'entités de données" },
   { key: "PointsNonAdjust", label: "Points de fonction bruts", desc: "Complexité fonctionnelle brute" },
-  { key: "Adjustment", label: "Facteur d'ajustement", desc: "Facteur technique d'ajustement (0.5 à 1.5)" },
+  { key: "Adjustment", label: "Facteur d'ajustement", desc: "Facteur technique d'ajustement (0.5 à 1.5), converti en degré d'influence 0–70 pour le modèle" },
   { key: "Language", label: "Langage", desc: "Technologie utilisée, code numérique" },
   { key: "Density", label: "Densité (dérivée)", desc: "Points bruts / (transactions + entités + 1)" },
   { key: "ExpWeightedComplexity", label: "Complexité pondérée (dérivée)", desc: "Points bruts / (expérience équipe + manager + 1)" },

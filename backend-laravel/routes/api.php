@@ -110,4 +110,5 @@ Route::get(
     [FinancialHealthController::class, 'download']
 );
 Route::post('/risk-predictions/test', [ProjectController::class, 'testPrediction']);
+Route::get('/ai/model-status', [ProjectController::class, 'modelStatus']);
 });

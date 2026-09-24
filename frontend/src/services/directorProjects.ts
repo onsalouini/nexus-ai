@@ -1,4 +1,8 @@
 import { api } from "../lib/api";
+import type {
+  AIReportData,
+  RiskExplanationData,
+} from "../types/projectRisk";
 
 export type ProjectMember = {
   id: number;
@@ -43,6 +47,11 @@ export type DirectorProject = {
 
   risk_score: number | null;
   risk_level: string | null;
+
+  // Explication du modèle + bilan Groq (enregistrés en base)
+  risk_explanation: RiskExplanationData | null;
+  ai_report: AIReportData | null;
+  ai_report_generated_at: string | null;
 
   // ─────────────────────────────
   // Relations Laravel

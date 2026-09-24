@@ -1,6 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { api } from "../../lib/api";
+import RiskExplanation from "../project/RiskExplanation";
+import type { RiskExplanationData } from "../../types/projectRisk";
 
 type AIReport = {
   summary: string;
@@ -14,6 +16,9 @@ type AIReport = {
   recommendations: string[];
   effort_analysis: string;
   final_verdict: string;
+  model_explanation?: string;
+  key_factors?: { factor: string; influence: string; explanation: string }[];
+  confidence_note?: string;
 };
 
 type ProjectItem = {
@@ -36,6 +41,8 @@ type ProjectItem = {
 
   risk_score?: number | null;
   risk_level: string | null;
+
+  risk_explanation?: RiskExplanationData | null;
 
   ai_report?: AIReport | null;
   ai_report_generated_at?: string | null;
@@ -238,6 +245,12 @@ export default function ProjectsGrid({
       const report = response.data.report as AIReport;
 
       setAiReport(report);
+
+      setSelectedProject((prev) =>
+        prev
+          ? { ...prev, ...(response.data.project as Partial<ProjectItem>) }
+          : prev
+      );
 
       if (onRefresh) {
         onRefresh();
@@ -896,6 +909,12 @@ export default function ProjectsGrid({
                       </div>
                     </div>
                   </section>
+
+                  {/* EXPLICATION DU MODÈLE */}
+                  <RiskExplanation
+                    explanation={selectedProject.risk_explanation}
+                    report={aiReport}
+                  />
 
                   {/* VERDICT */}
                   <section className="border-t border-white/[0.06] pt-7">

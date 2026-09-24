@@ -18,6 +18,7 @@ import ChefLayout from "../components/chef/ChefLayout";
 import TeamMembersPage from "../pages/Chef/TeamMembersPage";
 import TasksPage from "../pages/Chef/TasksPage";
 import RiskModelsPage from "../pages/Chef/RiskModelsPage";
+import AssistantPage from "../pages/Chef/AssistantPage";
 import MonitoringPage from "../pages/Direction/MonitoringPage";
 import DirectionDashboard from "../components/director/DirectionDashboard";
 import DirectorLayout from "../components/director/DirectorLayout";
@@ -107,11 +108,7 @@ export default function AppRoutes() {
 
         <Route
           path="/dashboard/direction/ai"
-          element={
-            <div className="text-white">
-              NEXUS AI
-            </div>
-          }
+          element={<AssistantPage />}
         />
 
         <Route
@@ -125,11 +122,7 @@ export default function AppRoutes() {
 
         <Route
           path="/dashboard/direction/model"
-          element={
-            <div className="text-white">
-              Modèle IA
-            </div>
-          }
+          element={<AssistantPage />}
         />
 
         <Route
@@ -174,6 +167,11 @@ export default function AppRoutes() {
         <Route
           path="/dashboard/chef/models"
           element={<RiskModelsPage />}
+        />
+
+        <Route
+          path="/dashboard/chef/assistant"
+          element={<AssistantPage />}
         />
       </Route>
 

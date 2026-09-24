@@ -16,6 +16,7 @@ import {
   getDirectorProject,
   type DirectorProject,
 } from "../../services/directorProjects";
+import ProjectRiskSection from "../project/ProjectRiskSection";
 
 export default function ProjectDetailsPage() {
   const { id } = useParams();
@@ -327,6 +328,14 @@ export default function ProjectDetailsPage() {
               />
             </div>
           </section>
+
+          {/* Résultat du modèle + bilan explicable */}
+          <ProjectRiskSection
+            project={project}
+            onChange={(patch) =>
+              setProject((prev) => (prev ? { ...prev, ...patch } : prev))
+            }
+          />
         </div>
       </div>
     </div>

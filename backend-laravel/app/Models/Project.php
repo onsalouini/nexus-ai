@@ -25,6 +25,7 @@ class Project extends Model
         'predicted_effort',
         'risk_score',
         'risk_level',
+        'risk_explanation',
         'ai_report',
         'ai_report_generated_at',
     ];
@@ -42,6 +43,7 @@ class Project extends Model
         'predicted_effort' => 'float',
         'risk_score' => 'float',
 
+        'risk_explanation' => 'array',
         'ai_report' => 'array',
         'ai_report_generated_at' => 'datetime',
     ];

@@ -8,6 +8,7 @@ import {
   Users,
   X,
   AlertTriangle,
+  MessageSquare,
   type LucideIcon,
 } from "lucide-react";
 
@@ -46,6 +47,11 @@ const navigation: NavigationItem[] = [
     label: "Modèles IA",
     path: "/dashboard/chef/models",
     icon: BrainCircuit,
+  },
+  {
+    label: "Assistant IA",
+    path: "/dashboard/chef/assistant",
+    icon: MessageSquare,
   },
 
 ];
