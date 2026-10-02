@@ -9,6 +9,8 @@ import {
   X,
   AlertTriangle,
   MessageSquare,
+  Activity,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 
@@ -34,6 +36,11 @@ const navigation: NavigationItem[] = [
     icon: Users,
   },
   {
+    label: "Suivi",
+    path: "/dashboard/chef/tracking",
+    icon: Activity,
+  },
+  {
     label: "Tâches",
     path: "/dashboard/chef/tasks",
     icon: CheckSquare,
@@ -53,7 +60,11 @@ const navigation: NavigationItem[] = [
     path: "/dashboard/chef/assistant",
     icon: MessageSquare,
   },
-
+  {
+    label: "Paramètres",
+    path: "/dashboard/chef/settings",
+    icon: Settings,
+  },
 ];
 
 export default function ChefSidebar() {

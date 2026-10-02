@@ -1,6 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
 import { api } from "../../lib/api";
+import { useNavigate } from "react-router";
+import EditProjectModal from "./EditProjectModal";
+import { chefApi } from "../../services/chefApi";
 import RiskExplanation from "../project/RiskExplanation";
 import type { RiskExplanationData } from "../../types/projectRisk";
 
@@ -46,6 +49,10 @@ type ProjectItem = {
 
   ai_report?: AIReport | null;
   ai_report_generated_at?: string | null;
+
+  progress?: number;
+  start_date?: string | null;
+  deadline?: string | null;
 };
 
 type Props = {
@@ -205,6 +212,24 @@ export default function ProjectsGrid({
   projects,
   onRefresh,
 }: Props) {
+  const navigate = useNavigate();
+  const [editing, setEditing] = useState<ProjectItem | null>(null);
+
+  async function deleteProject(project: ProjectItem) {
+    if (
+      !window.confirm(
+        `Supprimer définitivement « ${project.name} » et toutes ses tâches ?`
+      )
+    )
+      return;
+    try {
+      await chefApi.deleteProject(project.id);
+      onRefresh?.();
+    } catch {
+      window.alert("Suppression impossible.");
+    }
+  }
+
   const [selectedProject, setSelectedProject] =
     useState<ProjectItem | null>(null);
 
@@ -357,6 +382,40 @@ export default function ProjectsGrid({
                   >
                     {status.label}
                   </span>
+                </div>
+
+                {/* PROGRESS + ACTIONS */}
+                <div className="relative mt-4">
+                  <div className="mb-1.5 flex justify-between text-xs text-slate-400">
+                    <span>Avancement{project.deadline ? ` · échéance ${project.deadline}` : ""}</span>
+                    <span className="font-semibold text-white">{project.progress ?? 0}%</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all"
+                      style={{ width: `${project.progress ?? 0}%` }}
+                    />
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => navigate("/dashboard/chef/tracking")}
+                      className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/[0.06]"
+                    >
+                      Suivi
+                    </button>
+                    <button
+                      onClick={() => setEditing(project)}
+                      className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/[0.06]"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      onClick={() => deleteProject(project)}
+                      className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
                 </div>
 
                 {/* SEPARATOR */}
@@ -945,6 +1004,13 @@ export default function ProjectsGrid({
             </div>
           </div>
         </div>
+      )}
+      {editing && (
+        <EditProjectModal
+          project={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => onRefresh?.()}
+        />
       )}
     </>
   );

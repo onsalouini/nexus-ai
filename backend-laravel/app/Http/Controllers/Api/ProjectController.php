@@ -169,6 +169,62 @@ class ProjectController extends Controller
     ], 201);
 }
 
+    public function update(Request $request, Project $project, RiskPredictionService $riskPredictionService)
+    {
+        abort_if($project->chef_de_projet_id !== $request->user()->id, 403);
+
+        $data = $request->validate([
+            'name' => 'sometimes|required|string|max:150',
+            'description' => 'nullable|string',
+            'status' => 'sometimes|in:planifie,en_cours,termine,suspendu',
+            'start_date' => 'nullable|date',
+            'deadline' => 'nullable|date|after_or_equal:start_date',
+            'team_exp' => 'sometimes|numeric|min:0',
+            'manager_exp' => 'sometimes|numeric|min:0',
+            'length' => 'sometimes|numeric|min:1',
+            'transactions' => 'sometimes|numeric|min:0',
+            'entities' => 'sometimes|numeric|min:0',
+            'points_non_adjust' => 'sometimes|numeric|min:0',
+            'adjustment' => 'nullable|numeric|min:0.5|max:1.5',
+            'language' => 'sometimes|integer',
+            'planned_effort' => 'sometimes|numeric|min:1',
+        ]);
+
+        $modelInputs = ['team_exp','manager_exp','length','transactions','entities','points_non_adjust','adjustment','language','planned_effort'];
+        $needsRecompute = count(array_intersect($modelInputs, array_keys($data))) > 0;
+
+        $project->update($data);
+
+        if ($needsRecompute) {
+            $project->update(['points_adjust' => $project->points_non_adjust * ($project->adjustment ?: 1)]);
+            $prediction = $riskPredictionService->predict(collect($project->only($modelInputs))->all());
+            if ($prediction) {
+                $project->update([
+                    'predicted_effort' => $prediction['predicted_effort_hours'] ?? null,
+                    'risk_level' => $prediction['risk_level'] ?? null,
+                    'risk_score' => isset($prediction['gap_percent']) ? (int) round($prediction['gap_percent']) : null,
+                    'risk_explanation' => $prediction['explanation'] ?? null,
+                ]);
+            }
+        }
+
+        \App\Models\ProjectActivity::create([
+            'project_id' => $project->id,
+            'user_id' => $request->user()->id,
+            'type' => 'project_updated',
+            'message' => 'Projet mis à jour',
+        ]);
+
+        return response()->json($project->fresh());
+    }
+
+    public function destroy(Request $request, Project $project)
+    {
+        abort_if($project->chef_de_projet_id !== $request->user()->id, 403);
+        $project->delete();
+        return response()->json(['message' => 'Projet supprimé.']);
+    }
+
     public function show(Request $request, Project $project)
     {
         abort_if($project->chef_de_projet_id !== $request->user()->id, 403);

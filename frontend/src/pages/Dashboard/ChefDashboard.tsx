@@ -220,7 +220,7 @@ export default function ChefDashboard() {
       ========================================================== */}
 
       {!loading && !error && (
-        <ProjectsGrid projects={projects} />
+        <ProjectsGrid projects={projects} onRefresh={loadProjects} />
       )}
     </section>
   );

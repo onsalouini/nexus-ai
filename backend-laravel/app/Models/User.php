@@ -22,6 +22,9 @@ class User extends Authenticatable
     'avatar_path',
     'cv_path',
     'job_title',
+    'phone',
+    'bio',
+    'weekly_capacity',
 ];
 
     protected $hidden = [
@@ -64,5 +67,14 @@ public function teamMembers()
 public function aiConversations()
 {
     return $this->hasMany(AIConversation::class);
+}
+
+public function tasks()
+{
+    return $this->hasMany(Task::class, 'assigned_to');
+}
+public function teams()
+{
+    return $this->belongsToMany(Team::class, 'team_user')->withTimestamps();
 }
 }
