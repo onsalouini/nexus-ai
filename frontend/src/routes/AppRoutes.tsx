@@ -17,6 +17,8 @@ import ChefDashboard from "../pages/Dashboard/ChefDashboard";
 import ChefLayout from "../components/chef/ChefLayout";
 import TeamMembersPage from "../pages/Chef/TeamMembersPage";
 import TasksPage from "../pages/Chef/TasksPage";
+import TrackingPage from "../pages/Chef/TrackingPage";
+import SettingsPage from "../pages/Settings/SettingsPage";
 import RiskModelsPage from "../pages/Chef/RiskModelsPage";
 import AssistantPage from "../pages/Chef/AssistantPage";
 import MonitoringPage from "../pages/Direction/MonitoringPage";
@@ -113,11 +115,7 @@ export default function AppRoutes() {
 
         <Route
           path="/dashboard/direction/settings"
-          element={
-            <div className="text-white">
-              Settings
-            </div>
-          }
+          element={<SettingsPage />}
         />
 
         <Route
@@ -162,6 +160,16 @@ export default function AppRoutes() {
         <Route
           path="/dashboard/chef/tasks"
           element={<TasksPage />}
+        />
+
+        <Route
+          path="/dashboard/chef/tracking"
+          element={<TrackingPage />}
+        />
+
+        <Route
+          path="/dashboard/chef/settings"
+          element={<SettingsPage />}
         />
 
         <Route
