@@ -50,7 +50,7 @@ class AIConversationController extends Controller
         // un utilisateur ne peut consulter que ses propres conversations.
         if ($conversation->user_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Accès non autorisé.'
+                'message' => __('Accès non autorisé.')
             ], 403);
         }
 

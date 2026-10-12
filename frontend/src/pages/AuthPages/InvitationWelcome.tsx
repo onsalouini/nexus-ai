@@ -1,29 +1,18 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import { api } from "../../lib/api";
+import LanguageSwitcher from "../../components/common/LanguageSwitcher";
 
-const ROLE_CONTENT: Record<string, { title: string; points: string[] }> = {
-  chef_de_projet: {
-    title: "Bienvenue, futur Chef de projet",
-    points: [
-      "Créez vos projets et suivez leur risque de dérive, prédit et expliqué par IA",
-      "Constituez votre équipe et assignez qui fait quoi sur chaque projet",
-      "Invitez vos clients à suivre l'avancement de leur projet",
-      "Recevez des alertes avant qu'un problème ne devienne critique",
-    ],
-  },
-
-  agent_support: {
-    title: "Bienvenue, futur Agent Support",
-    points: [
-      "Traitez une file de tickets déjà triée par urgence et sentiment",
-      "Corrigez les classifications si besoin — vos retours améliorent le modèle",
-      "Suivez vos statistiques de résolution",
-    ],
-  },
+// Nombre de points de présentation par rôle (textes : authFlow.invitation.roles.<rôle>.points.<i>)
+const ROLE_POINTS: Record<string, number> = {
+  chef_de_projet: 4,
+  agent_support: 3,
+  membre_equipe: 3,
 };
 
 export default function InvitationWelcome() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") ?? "";
 
@@ -72,7 +61,7 @@ export default function InvitationWelcome() {
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22D3EE] shadow-[0_0_10px_#22D3EE]" />
 
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-              Initialisation NEXUS AI
+              {t("authFlow.invitation.initializing")}
             </span>
           </div>
         </div>
@@ -89,8 +78,8 @@ export default function InvitationWelcome() {
       <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#030712] px-4 text-white">
         {/* Background */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-[#22D3EE]/[0.05] blur-[120px]" />
-          <div className="absolute -bottom-40 -right-40 h-[500px] w-[500px] rounded-full bg-[#8B5CF6]/[0.06] blur-[120px]" />
+          <div className="absolute -start-40 -top-40 h-[500px] w-[500px] rounded-full bg-[#22D3EE]/[0.05] blur-[120px]" />
+          <div className="absolute -bottom-40 -end-40 h-[500px] w-[500px] rounded-full bg-[#8B5CF6]/[0.06] blur-[120px]" />
 
           <div
             className="absolute inset-0 opacity-[0.025]"
@@ -119,17 +108,16 @@ export default function InvitationWelcome() {
               <span className="h-1.5 w-1.5 rounded-full bg-[#F2497A] shadow-[0_0_8px_#F2497A]" />
 
               <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#FB7185]">
-                Access denied
+                {t("authFlow.invitation.accessDenied")}
               </span>
             </div>
 
             <h1 className="mt-5 font-['Space_Grotesk',sans-serif] text-2xl font-bold tracking-tight text-white">
-              Invitation invalide
+              {t("authFlow.invitation.invalidTitle")}
             </h1>
 
             <p className="mt-3 text-sm leading-6 text-slate-500">
-              Cette invitation est invalide ou a expiré. Demandez un nouveau
-              lien à la personne qui vous a invité.
+              {t("authFlow.invitation.invalidText")}
             </p>
 
             <div className="mt-7 flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-[0.15em] text-slate-600">
@@ -143,9 +131,14 @@ export default function InvitationWelcome() {
     );
   }
 
-  const content = ROLE_CONTENT[role] ?? {
-    title: "Bienvenue",
-    points: [],
+  const pointCount = ROLE_POINTS[role] ?? 0;
+  const content = {
+    title: pointCount
+      ? t("authFlow.invitation.roles." + role + ".title")
+      : t("authFlow.invitation.welcome"),
+    points: Array.from({ length: pointCount }, (_, i) =>
+      t("authFlow.invitation.roles." + role + ".points." + i)
+    ),
   };
 
   /* =========================================================
@@ -160,10 +153,10 @@ export default function InvitationWelcome() {
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* Cyan glow */}
-        <div className="absolute -left-40 -top-40 h-[600px] w-[600px] rounded-full bg-[#22D3EE]/[0.06] blur-[140px]" />
+        <div className="absolute -start-40 -top-40 h-[600px] w-[600px] rounded-full bg-[#22D3EE]/[0.06] blur-[140px]" />
 
         {/* Violet glow */}
-        <div className="absolute -bottom-40 -right-40 h-[600px] w-[600px] rounded-full bg-[#8B5CF6]/[0.07] blur-[140px]" />
+        <div className="absolute -bottom-40 -end-40 h-[600px] w-[600px] rounded-full bg-[#8B5CF6]/[0.07] blur-[140px]" />
 
         {/* Center subtle glow */}
         <div className="absolute left-1/2 top-1/2 h-[450px] w-[450px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#22D3EE]/[0.025] blur-[120px]" />
@@ -179,7 +172,7 @@ export default function InvitationWelcome() {
         />
 
         {/* Top line */}
-        <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-[#22D3EE]/40 to-transparent" />
+        <div className="absolute start-0 end-0 top-0 h-px bg-gradient-to-r from-transparent via-[#22D3EE]/40 to-transparent" />
       </div>
 
       {/* =====================================================
@@ -212,18 +205,21 @@ export default function InvitationWelcome() {
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
 
                 <span className="font-mono text-[8px] uppercase tracking-[0.16em] text-slate-600">
-                  Intelligent workspace
+                  {t("authFlow.invitation.workspace")}
                 </span>
               </div>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.025] px-3 py-1.5 sm:flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
 
-          <div className="hidden items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.025] px-3 py-1.5 sm:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
+              <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
+                {t("authFlow.invitation.secure")}
+              </span>
+            </div>
 
-            <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
-              Secure invitation
-            </span>
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
@@ -240,7 +236,7 @@ export default function InvitationWelcome() {
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22D3EE] shadow-[0_0_10px_#22D3EE]" />
 
               <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-[#67E8F9]">
-                Access granted
+                {t("authFlow.invitation.accessGranted")}
               </span>
             </div>
           </div>
@@ -248,12 +244,12 @@ export default function InvitationWelcome() {
           {/* Main glass card */}
           <div className="relative overflow-hidden rounded-[28px] border border-white/[0.09] bg-[#071021]/70 shadow-[0_25px_100px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
             {/* Card glow */}
-            <div className="pointer-events-none absolute -right-32 -top-32 h-72 w-72 rounded-full bg-[#22D3EE]/[0.07] blur-[90px]" />
+            <div className="pointer-events-none absolute -end-32 -top-32 h-72 w-72 rounded-full bg-[#22D3EE]/[0.07] blur-[90px]" />
 
-            <div className="pointer-events-none absolute -bottom-32 -left-32 h-72 w-72 rounded-full bg-[#8B5CF6]/[0.06] blur-[90px]" />
+            <div className="pointer-events-none absolute -bottom-32 -start-32 h-72 w-72 rounded-full bg-[#8B5CF6]/[0.06] blur-[90px]" />
 
             {/* Top gradient line */}
-            <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-[#22D3EE]/60 to-transparent" />
+            <div className="absolute start-0 end-0 top-0 h-px bg-gradient-to-r from-transparent via-[#22D3EE]/60 to-transparent" />
 
             <div className="relative p-7 sm:p-10">
               {/* Logo */}
@@ -272,7 +268,7 @@ export default function InvitationWelcome() {
               {/* Role */}
               <div className="mt-8 text-center">
                 <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-[#22D3EE]">
-                  Votre espace NEXUS
+                  {t("authFlow.invitation.yourSpace")}
                 </p>
 
                 <h1 className="mx-auto mt-3 max-w-xl font-['Space_Grotesk',sans-serif] text-3xl font-bold tracking-tight text-white sm:text-4xl">
@@ -280,8 +276,7 @@ export default function InvitationWelcome() {
                 </h1>
 
                 <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-slate-500">
-                  Votre environnement intelligent est prêt. Découvrez les
-                  fonctionnalités disponibles selon votre rôle.
+                  {t("authFlow.invitation.ready")}
                 </p>
               </div>
 
@@ -290,7 +285,8 @@ export default function InvitationWelcome() {
                 <div className="h-px flex-1 bg-white/[0.07]" />
 
                 <span className="font-mono text-[8px] uppercase tracking-[0.18em] text-slate-700">
-                  capabilities
+                  {t("authFlow.invitation.capabilities")}
+
                 </span>
 
                 <div className="h-px flex-1 bg-white/[0.07]" />
@@ -341,7 +337,7 @@ export default function InvitationWelcome() {
                 className="group relative mt-8 w-full overflow-hidden rounded-2xl bg-gradient-to-r from-[#22D3EE] to-[#8B5CF6] p-[1px] shadow-[0_0_30px_rgba(34,211,238,0.12)] transition duration-300 hover:shadow-[0_0_40px_rgba(34,211,238,0.22)]"
               >
                 <span className="flex h-12 items-center justify-center gap-2 rounded-[15px] bg-[#071021] text-sm font-semibold text-white transition group-hover:bg-transparent">
-                  Continuer vers mon espace
+                  {t("authFlow.invitation.continue")}
 
                   <svg
                     width="16"
@@ -374,7 +370,7 @@ export default function InvitationWelcome() {
                 </svg>
 
                 <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-slate-600">
-                  Invitation sécurisée · NEXUS AI
+                  {t("authFlow.invitation.footer")}
                 </span>
               </div>
             </div>
@@ -383,7 +379,7 @@ export default function InvitationWelcome() {
           {/* Footer */}
           <div className="mt-6 text-center">
             <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-slate-700">
-              Project intelligence · predictive analytics · AI
+              {t("authFlow.invitation.tagline")}
             </span>
           </div>
         </div>

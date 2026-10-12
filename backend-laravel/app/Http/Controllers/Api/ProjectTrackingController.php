@@ -198,47 +198,10 @@ class ProjectTrackingController extends Controller
         ];
     }
 
-    /** Score de santé 0-100 : avancement vs temps écoulé, retards, risque IA. */
+    /** Score de santé 0-100 (logique partagée dans ProjectHealthService). */
     private function healthScore(Project $project, $tasks): array
     {
-        $score = 100;
-        $reasons = [];
-
-        if ($project->deadline && $project->start_date) {
-            $span = max($project->start_date->diffInDays($project->deadline), 1);
-            $expected = min(100, (int) round($project->start_date->diffInDays(Carbon::today(), false) / $span * 100));
-            $gap = $expected - $project->progress;
-            if ($gap > 10) {
-                $score -= min(30, $gap);
-                $reasons[] = "Avancement en retard de {$gap} points sur le planning";
-            }
-        }
-
-        $late = $tasks->filter(fn ($t) => $t->status !== 'done' && $t->due_date && $t->due_date->isPast())->count();
-        if ($late > 0) {
-            $score -= min(30, $late * 8);
-            $reasons[] = "{$late} tâche(s) en retard";
-        }
-
-        $unassigned = $tasks->where('status', '!=', 'done')->whereNull('assigned_to')->count();
-        if ($unassigned > 0) {
-            $score -= min(15, $unassigned * 3);
-            $reasons[] = "{$unassigned} tâche(s) non assignée(s)";
-        }
-
-        $riskPenalty = ['faible' => 0, 'moyen' => 8, 'modere' => 8, 'eleve' => 18, 'critique' => 25];
-        $riskKey = $project->risk_level ? str_replace(['é', 'è'], 'e', mb_strtolower($project->risk_level)) : null;
-        if ($riskKey && isset($riskPenalty[$riskKey])) {
-            $score -= $riskPenalty[$riskKey];
-            if ($riskPenalty[$riskKey] > 0) $reasons[] = "Risque IA : {$project->risk_level}";
-        }
-
-        $score = max(0, $score);
-        return [
-            'score' => $score,
-            'label' => $score >= 80 ? 'Bonne' : ($score >= 60 ? 'Moyenne' : ($score >= 40 ? 'Préoccupante' : 'Critique')),
-            'reasons' => $reasons,
-        ];
+        return app(\App\Services\ProjectHealthService::class)->score($project, $tasks);
     }
 
     /* ---------------- Gestion de l'équipe projet ---------------- */
@@ -252,7 +215,7 @@ class ProjectTrackingController extends Controller
         $project->team()->syncWithoutDetaching([$member->id]);
         $this->log($project, $request, 'member_added', "{$member->first_name} {$member->last_name} ajouté(e) au projet");
 
-        return response()->json(['message' => 'Membre ajouté.']);
+        return response()->json(['message' => __('Membre ajouté.')]);
     }
 
     public function removeMember(Request $request, Project $project, User $user)
@@ -262,7 +225,7 @@ class ProjectTrackingController extends Controller
         Task::where('project_id', $project->id)->where('assigned_to', $user->id)->update(['assigned_to' => null]);
         $this->log($project, $request, 'member_removed', "{$user->first_name} {$user->last_name} retiré(e) du projet");
 
-        return response()->json(['message' => 'Membre retiré.']);
+        return response()->json(['message' => __('Membre retiré.')]);
     }
 
     /** Affecte toute une équipe nommée au projet. */
@@ -280,7 +243,7 @@ class ProjectTrackingController extends Controller
             $project->update(['team_id' => null]);
         }
 
-        return response()->json(['message' => 'Équipe mise à jour.']);
+        return response()->json(['message' => __('Équipe mise à jour.')]);
     }
 
     /* ---------------- Fonctionnalités avancées ---------------- */
@@ -357,7 +320,7 @@ class ProjectTrackingController extends Controller
             $response = Http::withToken($key)->timeout(15)->post('https://api.groq.com/openai/v1/chat/completions', [
                 'model' => config('services.groq.model'),
                 'messages' => [
-                    ['role' => 'system', 'content' => 'Tu es un chef de projet logiciel. Réponds UNIQUEMENT par un tableau JSON valide, sans texte autour.'],
+                    ['role' => 'system', 'content' => 'Tu es un chef de projet logiciel. Réponds UNIQUEMENT par un tableau JSON valide, sans texte autour. Rédige title et description selon cette consigne : ' . \App\Support\AiLanguage::instruction()],
                     ['role' => 'user', 'content' => "Découpe ce projet en {$count} tâches concrètes. Format: [{\"title\":\"...\",\"description\":\"...\",\"priority\":\"low|medium|high|critical\",\"estimated_hours\":number}]. "
                         . "Projet: {$project->name}. Description: " . ($project->description ?? 'non précisée')
                         . ". Effort prévu total: {$project->planned_effort} h."],

@@ -24,13 +24,13 @@ export default function ChefLayout() {
 
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         {/* Cyan */}
-        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.045] blur-[140px]" />
+        <div className="absolute -start-40 -top-40 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.045] blur-[140px]" />
 
         {/* Violet */}
-        <div className="absolute -right-40 top-20 h-[500px] w-[500px] rounded-full bg-violet-600/[0.045] blur-[140px]" />
+        <div className="absolute -end-40 top-20 h-[500px] w-[500px] rounded-full bg-violet-600/[0.045] blur-[140px]" />
 
         {/* Blue */}
-        <div className="absolute bottom-[-250px] left-1/3 h-[500px] w-[500px] rounded-full bg-blue-600/[0.035] blur-[140px]" />
+        <div className="absolute bottom-[-250px] start-1/3 h-[500px] w-[500px] rounded-full bg-blue-600/[0.035] blur-[140px]" />
 
         {/* Subtle grid */}
         <div
@@ -57,11 +57,11 @@ export default function ChefLayout() {
 
       {/*
         IMPORTANT :
-        Sidebar = left-4 + 260px
+        Sidebar = start-4 + 260px
         donc contenu commence après environ 292px.
       */}
 
-      <div className="min-h-screen lg:pl-[292px]">
+      <div className="min-h-screen lg:ps-[292px]">
         {/* =======================================================
             TOPBAR
         ======================================================== */}

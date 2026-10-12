@@ -1,0 +1,13 @@
+{
+  "title": "Planning",
+  "subtitle": "Échéances des tâches et calendrier des projets, en vue mensuelle ou en diagramme de Gantt.",
+  "calendar": "Calendrier",
+  "gantt": "Gantt",
+  "today": "Aujourd'hui",
+  "month": "Mois",
+  "list": "Liste",
+  "noDates": "Aucun projet n'a encore de dates. Renseignez un début et une échéance pour l'afficher sur le Gantt.",
+  "legendProject": "Période du projet (avancement)",
+  "legendTask": "Échéance d'une tâche",
+  "loadError": "Impossible de charger le planning."
+}

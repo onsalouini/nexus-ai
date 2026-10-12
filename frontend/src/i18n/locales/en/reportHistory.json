@@ -1,0 +1,16 @@
+{
+  "title_zero": "Report history",
+  "title_one": "Report history ({{count}})",
+  "title_two": "Report history ({{count}})",
+  "title_few": "Report history ({{count}})",
+  "title_many": "Report history ({{count}})",
+  "title_other": "Report history ({{count}})",
+  "hint": "Select two reports to compare them. A report is regenerated automatically when the project data changes.",
+  "compare": "Comparison",
+  "generated": "Generated on",
+  "trigger": "Trigger",
+  "triggers": {
+    "manual": "Manual",
+    "auto": "Automatic"
+  }
+}

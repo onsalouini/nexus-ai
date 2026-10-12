@@ -14,6 +14,12 @@ import InvitationWelcome from "../pages/AuthPages/InvitationWelcome";
 import SignUpComplete from "../pages/AuthPages/SignUpComplete";
 
 import ChefDashboard from "../pages/Dashboard/ChefDashboard";
+import EmployeeLayout from "../components/employee/EmployeeLayout";
+import MyTasksPage from "../pages/Employee/MyTasksPage";
+import MyProjectsPage from "../pages/Employee/MyProjectsPage";
+import TicketsPage from "../pages/Support/TicketsPage";
+import PlanningPage from "../pages/Planning/PlanningPage";
+import AuditLogPage from "../pages/Direction/AuditLogPage";
 import ChefLayout from "../components/chef/ChefLayout";
 import TeamMembersPage from "../pages/Chef/TeamMembersPage";
 import TasksPage from "../pages/Chef/TasksPage";
@@ -68,7 +74,7 @@ export default function AppRoutes() {
 
       <Route
         element={
-          <PrivateRoute>
+          <PrivateRoute roles={["direction"]}>
             <DirectorLayout />
           </PrivateRoute>
         }
@@ -118,6 +124,10 @@ export default function AppRoutes() {
           element={<SettingsPage />}
         />
 
+        <Route path="/dashboard/direction/planning" element={<PlanningPage />} />
+        <Route path="/dashboard/direction/support" element={<TicketsPage />} />
+        <Route path="/dashboard/direction/audit" element={<AuditLogPage />} />
+
         <Route
           path="/dashboard/direction/model"
           element={<AssistantPage />}
@@ -139,7 +149,7 @@ export default function AppRoutes() {
 
       <Route
         element={
-          <PrivateRoute>
+          <PrivateRoute roles={["chef_de_projet"]}>
             <ChefLayout />
           </PrivateRoute>
         }
@@ -172,6 +182,8 @@ export default function AppRoutes() {
           element={<SettingsPage />}
         />
 
+        <Route path="/dashboard/chef/planning" element={<PlanningPage />} />
+
         <Route
           path="/dashboard/chef/models"
           element={<RiskModelsPage />}
@@ -181,6 +193,39 @@ export default function AppRoutes() {
           path="/dashboard/chef/assistant"
           element={<AssistantPage />}
         />
+      </Route>
+
+      {/* =========================
+          EMPLOYÉS
+      ========================= */}
+
+      {/* Agent support : file de tickets en page d'accueil */}
+      <Route
+        element={
+          <PrivateRoute roles={["agent_support"]}>
+            <EmployeeLayout />
+          </PrivateRoute>
+        }
+      >
+        <Route path="/dashboard/support" element={<TicketsPage />} />
+        <Route path="/dashboard/support/tasks" element={<MyTasksPage />} />
+        <Route path="/dashboard/support/projects" element={<MyProjectsPage />} />
+        <Route path="/dashboard/support/planning" element={<PlanningPage />} />
+        <Route path="/dashboard/support/settings" element={<SettingsPage />} />
+      </Route>
+
+      {/* Membre d'équipe : ses tâches en page d'accueil */}
+      <Route
+        element={
+          <PrivateRoute roles={["membre_equipe"]}>
+            <EmployeeLayout />
+          </PrivateRoute>
+        }
+      >
+        <Route path="/dashboard/membre" element={<MyTasksPage />} />
+        <Route path="/dashboard/membre/projects" element={<MyProjectsPage />} />
+        <Route path="/dashboard/membre/planning" element={<PlanningPage />} />
+        <Route path="/dashboard/membre/settings" element={<SettingsPage />} />
       </Route>
 
       {/* =========================

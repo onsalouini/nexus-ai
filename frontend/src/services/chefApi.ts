@@ -67,7 +67,13 @@ export type Tracking = {
     velocity_per_day: number; remaining_hours: number; eta: string | null;
     deadline: string | null; days_late: number | null; on_track: boolean | null;
   };
-  health: { score: number; label: string; reasons: string[] };
+  health: {
+    score: number;
+    label: string;
+    reasons: string[];
+    // codes traduisibles : progress_behind | late_tasks | unassigned_tasks | ai_risk
+    signals?: { code: string; value: number | string }[];
+  };
   activities: { id: number; type: string; message: string; user: string | null; created_at: string }[];
 };
 

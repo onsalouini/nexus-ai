@@ -1,7 +1,21 @@
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 import SignInForm from "../../components/auth/SignInForm";
 
 export default function SignIn() {
+  const { t } = useTranslation();
+
+  const steps = [
+    { number: "01", color: "#22D3EE" },
+    { number: "02", color: "#3B82F6" },
+    { number: "03", color: "#6366F1" },
+    { number: "04", color: "#8B5CF6" },
+  ].map((step, i) => ({
+    ...step,
+    title: t(`authFlow.signin.guide.steps.${i}.title`),
+    text: t(`authFlow.signin.guide.steps.${i}.text`),
+  }));
+
   return (
     <div className="min-h-screen overflow-hidden bg-[#030712] font-['Inter',sans-serif] text-white">
 
@@ -13,7 +27,7 @@ export default function SignIn() {
 
         {/* signup / signin image — droite */}
         <div
-          className="absolute right-0 top-0 h-full w-[48%] bg-cover bg-center bg-no-repeat"
+          className="absolute end-0 top-0 h-full w-[48%] bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: "url('/signup.jpg')",
             filter: "brightness(.72) saturate(.9)",
@@ -21,19 +35,19 @@ export default function SignIn() {
         />
 
         {/* dark gradient over image */}
-        <div className="absolute right-0 top-0 h-full w-[55%] bg-gradient-to-r from-[#030712] via-[#030712]/55 to-transparent" />
+        <div className="absolute end-0 top-0 h-full w-[55%] bg-gradient-to-r from-[#030712] via-[#030712]/55 to-transparent" />
 
        
         <div className="absolute inset-0 bg-[#030712]/20" />
 
         {/* cyan glow */}
-        <div className="absolute -left-40 top-[20%] h-[500px] w-[500px] rounded-full bg-[#22D3EE]/10 blur-[150px]" />
+        <div className="absolute -start-40 top-[20%] h-[500px] w-[500px] rounded-full bg-[#22D3EE]/10 blur-[150px]" />
 
         {/* violet glow */}
-        <div className="absolute right-[15%] top-[20%] h-[500px] w-[500px] rounded-full bg-[#8B5CF6]/10 blur-[160px]" />
+        <div className="absolute end-[15%] top-[20%] h-[500px] w-[500px] rounded-full bg-[#8B5CF6]/10 blur-[160px]" />
 
         {/* blue glow */}
-        <div className="absolute bottom-[-200px] left-[30%] h-[500px] w-[500px] rounded-full bg-[#3B82F6]/10 blur-[150px]" />
+        <div className="absolute bottom-[-200px] start-[30%] h-[500px] w-[500px] rounded-full bg-[#3B82F6]/10 blur-[150px]" />
 
         {/* subtle grid */}
         <div
@@ -64,7 +78,7 @@ export default function SignIn() {
         <section className="relative flex w-full items-center justify-center px-5 py-8 sm:px-8 lg:w-[54%] lg:px-14 xl:w-[52%]">
 
           {/* subtle divider */}
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-white/[0.10] to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 end-0 w-px bg-gradient-to-b from-transparent via-white/[0.10] to-transparent" />
 
 
           <div className="w-full max-w-[510px]">
@@ -113,7 +127,7 @@ export default function SignIn() {
                   </div>
 
                   <div className="mt-0.5 font-mono text-[7px] uppercase tracking-[0.22em] text-slate-600">
-                    Enterprise Intelligence
+                    {t("common.brandTagline")}
                   </div>
 
                 </div>
@@ -128,10 +142,10 @@ export default function SignIn() {
                 className="hidden rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-2 text-[11px] font-medium text-slate-400 backdrop-blur-xl transition hover:border-[#22D3EE]/20 hover:bg-white/[0.05] hover:text-white sm:block"
               >
 
-                Pas encore membre ?
+                {t("authFlow.signin.notMember")}
 
-                <span className="ml-1.5 text-[#67E8F9]">
-                  Créer un compte
+                <span className="ms-1.5 text-[#67E8F9]">
+                  {t("authFlow.signin.createAccount")}
                 </span>
 
               </Link>
@@ -153,7 +167,7 @@ export default function SignIn() {
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22D3EE] shadow-[0_0_10px_#22D3EE]" />
 
                 <span className="font-mono text-[8px] font-semibold uppercase tracking-[0.18em] text-[#67E8F9]">
-                  Accès sécurisé
+                  {t("authFlow.signin.badge")}
                 </span>
 
               </div>
@@ -161,20 +175,19 @@ export default function SignIn() {
 
               <h1 className="font-['Space_Grotesk',sans-serif] text-[34px] font-bold leading-[1.08] tracking-[-0.035em] text-white sm:text-[40px]">
 
-                Content de vous
+                {t("authFlow.signin.title1")}
 
                 <br />
 
                 <span className="bg-gradient-to-r from-[#22D3EE] via-[#3B82F6] to-[#8B5CF6] bg-clip-text text-transparent">
-                  revoir.
+                  {t("authFlow.signin.title2")}
                 </span>
 
               </h1>
 
 
               <p className="mt-4 max-w-[470px] text-[13px] leading-7 text-slate-500">
-                Connectez-vous pour accéder à votre espace Direction,
-                vos projets et toute l'intelligence de NEXUS AI.
+                {t("authFlow.signin.subtitle")}
               </p>
 
             </div>
@@ -199,7 +212,7 @@ export default function SignIn() {
 
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
 
-                <div className="pointer-events-none absolute left-[15%] right-[15%] top-0 h-16 bg-white/[0.035] blur-2xl" />
+                <div className="pointer-events-none absolute start-[15%] end-[15%] top-0 h-16 bg-white/[0.035] blur-2xl" />
 
 
                 {/* form title */}
@@ -210,11 +223,11 @@ export default function SignIn() {
                   <div>
 
                     <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#22D3EE]">
-                      Authentification
+                      {t("authFlow.signin.cardEyebrow")}
                     </p>
 
                     <h2 className="mt-1 text-[15px] font-semibold text-white">
-                      Informations de connexion
+                      {t("authFlow.signin.cardTitle")}
                     </h2>
 
                   </div>
@@ -263,8 +276,7 @@ export default function SignIn() {
               </span>
 
               <p className="text-[9px] leading-5 text-slate-600">
-                Votre connexion est sécurisée et protégée
-                par NEXUS AI.
+                {t("authFlow.signin.secureNote")}
               </p>
 
             </div>
@@ -279,10 +291,10 @@ export default function SignIn() {
                 className="text-[10px] text-slate-500 transition hover:text-white"
               >
 
-                Pas encore membre ?
+                {t("authFlow.signin.notMember")}
 
-                <span className="ml-1 text-[#67E8F9]">
-                  Créer un compte
+                <span className="ms-1 text-[#67E8F9]">
+                  {t("authFlow.signin.createAccount")}
                 </span>
 
               </Link>
@@ -306,10 +318,10 @@ export default function SignIn() {
           <div className="absolute inset-0 bg-gradient-to-br from-[#030712]/20 via-transparent to-[#030712]/50" />
 
           {/* cyan radial light */}
-          <div className="absolute left-[15%] top-[20%] h-[350px] w-[350px] rounded-full bg-[#22D3EE]/10 blur-[120px]" />
+          <div className="absolute start-[15%] top-[20%] h-[350px] w-[350px] rounded-full bg-[#22D3EE]/10 blur-[120px]" />
 
           {/* violet radial light */}
-          <div className="absolute bottom-[15%] right-[10%] h-[400px] w-[400px] rounded-full bg-[#8B5CF6]/10 blur-[140px]" />
+          <div className="absolute bottom-[15%] end-[10%] h-[400px] w-[400px] rounded-full bg-[#8B5CF6]/10 blur-[140px]" />
 
           {/* =================================================
               VISUAL CONTENT
@@ -328,7 +340,7 @@ export default function SignIn() {
           → visible au hover
       ========================================================= */}
 
-      <div className="group fixed bottom-6 right-6 z-50">
+      <div className="group fixed bottom-6 end-6 z-50">
 
 
         {/* =======================================================
@@ -340,7 +352,7 @@ export default function SignIn() {
             pointer-events-none
             absolute
             bottom-16
-            right-0
+            end-0
             w-[285px]
             translate-y-3
             scale-95
@@ -369,7 +381,7 @@ export default function SignIn() {
 
             <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-white/45 to-transparent" />
 
-            <div className="pointer-events-none absolute left-[15%] right-[15%] top-0 h-12 bg-white/[0.035] blur-xl" />
+            <div className="pointer-events-none absolute start-[15%] end-[15%] top-0 h-12 bg-white/[0.035] blur-xl" />
 
 
             {/* Header */}
@@ -388,18 +400,17 @@ export default function SignIn() {
                 <div className="flex items-center justify-between gap-2">
 
                   <p className="text-[10px] font-semibold text-white">
-                    Comment fonctionne NEXUS ?
+                    {t("authFlow.signin.guide.title")}
                   </p>
 
                   <span className="rounded-full border border-[#22D3EE]/10 bg-[#22D3EE]/[0.04] px-2 py-0.5 font-mono text-[6px] text-[#67E8F9]">
-                    GUIDE
+                    {t("authFlow.signin.guide.badge")}
                   </span>
 
                 </div>
 
                 <p className="mt-1 text-[8px] leading-5 text-slate-500">
-                  Suivez simplement ces étapes pour accéder
-                  à votre environnement NEXUS AI.
+                  {t("authFlow.signin.guide.subtitle")}
                 </p>
 
               </div>
@@ -415,37 +426,12 @@ export default function SignIn() {
 
               {/* connector */}
 
-              <div className="absolute bottom-3 left-[9px] top-3 w-px bg-gradient-to-b from-[#22D3EE]/40 via-[#3B82F6]/25 to-[#8B5CF6]/30" />
+              <div className="absolute bottom-3 start-[9px] top-3 w-px bg-gradient-to-b from-[#22D3EE]/40 via-[#3B82F6]/25 to-[#8B5CF6]/30" />
 
 
               <div className="space-y-3">
 
-                {[
-                  {
-                    number: "01",
-                    title: "Ouvrir votre session",
-                    text: "Connectez-vous à votre espace.",
-                    color: "#22D3EE",
-                  },
-                  {
-                    number: "02",
-                    title: "Accéder au dashboard",
-                    text: "Retrouvez vos données et projets.",
-                    color: "#3B82F6",
-                  },
-                  {
-                    number: "03",
-                    title: "Explorer NEXUS AI",
-                    text: "Analysez vos signaux intelligents.",
-                    color: "#6366F1",
-                  },
-                  {
-                    number: "04",
-                    title: "Piloter votre entreprise",
-                    text: "Prenez de meilleures décisions.",
-                    color: "#8B5CF6",
-                  },
-                ].map((step) => (
+                {steps.map((step) => (
 
                   <div
                     key={step.number}
@@ -500,10 +486,10 @@ export default function SignIn() {
 
                 <p className="text-[7px] leading-4 text-slate-500">
 
-                  Vous êtes actuellement à l'étape
+                  {t("authFlow.signin.guide.currentStep")}
 
-                  <span className="ml-1 font-semibold text-[#67E8F9]">
-                    Connexion
+                  <span className="ms-1 font-semibold text-[#67E8F9]">
+                    {t("authFlow.signin.guide.currentStepName")}
                   </span>
 
                 </p>
@@ -523,7 +509,7 @@ export default function SignIn() {
 
         <button
           type="button"
-          aria-label="Afficher le guide NEXUS AI"
+          aria-label={t("authFlow.signin.guide.open")}
           className="
             relative
             flex
@@ -566,7 +552,7 @@ export default function SignIn() {
 
           {/* notification dot */}
 
-          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
+          <span className="absolute end-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
 
         </button>
 

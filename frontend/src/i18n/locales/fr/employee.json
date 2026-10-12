@@ -1,0 +1,32 @@
+{
+  "nav": {
+    "tickets": "Tickets",
+    "tasks": "Mes tâches",
+    "projects": "Mes projets",
+    "planning": "Planning"
+  },
+  "tasks": {
+    "title": "Mes tâches",
+    "subtitle": "Mettez à jour l'avancement de vos tâches : votre chef de projet le voit en temps réel.",
+    "open": "En cours",
+    "late": "En retard",
+    "done": "Terminées",
+    "filters": {
+      "open": "À faire",
+      "late": "En retard",
+      "done": "Terminées",
+      "all": "Toutes"
+    },
+    "empty": "Aucune tâche dans cette vue.",
+    "due": "échéance {{date}}",
+    "saved": "Tâche mise à jour.",
+    "loadError": "Impossible de charger vos tâches."
+  },
+  "projects": {
+    "title": "Mes projets",
+    "subtitle": "Les projets auxquels vous participez.",
+    "empty": "Vous n'êtes affecté à aucun projet pour le moment.",
+    "myTasks": "Mes tâches : {{open}} en cours · {{done}} terminée(s)",
+    "loadError": "Impossible de charger vos projets."
+  }
+}

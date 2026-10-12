@@ -1,0 +1,63 @@
+{
+  "title": "دعم العملاء",
+  "subtitle": "قائمة تذاكر مرتبة تلقائيًا حسب الأولوية والمشاعر.",
+  "new": "تذكرة جديدة",
+  "loadError": "تعذّر تحميل التذاكر.",
+  "required": "العنوان والوصف مطلوبان.",
+  "created": "تم إنشاء التذكرة — مصنفة «{{category}}»، أولوية {{urgency}}.",
+  "empty": "لا توجد تذاكر في هذا العرض.",
+  "anonymous": "عميل مجهول",
+  "unassigned": "غير مسند",
+  "classification": "الفرز التلقائي",
+  "corrected": "صحّحه وكيل",
+  "correctionHint": "تُحفظ تصحيحاتك لتحسين الفرز التلقائي.",
+  "autoTriage": "يتم اكتشاف الفئة والأولوية والمشاعر تلقائيًا عند الإنشاء.",
+  "take": "تولّي التذكرة",
+  "taken": "تم إسناد التذكرة إليك.",
+  "statusSaved": "تم تحديث الحالة.",
+  "stats": {
+    "open": "مفتوحة",
+    "inProgress": "قيد المعالجة",
+    "critical": "حرجة مفتوحة",
+    "resolved": "محلولة"
+  },
+  "filters": {
+    "queue": "قائمة الانتظار",
+    "mine": "تذاكري",
+    "resolved": "محلولة"
+  },
+  "fields": {
+    "title": "العنوان",
+    "description": "رسالة العميل",
+    "customerName": "اسم العميل",
+    "customerEmail": "بريد العميل",
+    "category": "الفئة",
+    "urgency": "الأولوية",
+    "sentiment": "المشاعر",
+    "status": "الحالة"
+  },
+  "category": {
+    "bug": "خلل",
+    "billing": "الفوترة",
+    "feature": "طلب ميزة",
+    "account": "الحساب / الوصول",
+    "other": "أخرى"
+  },
+  "urgency": {
+    "critical": "حرجة",
+    "high": "عالية",
+    "medium": "متوسطة",
+    "low": "منخفضة"
+  },
+  "sentiment": {
+    "negative": "سلبي",
+    "neutral": "محايد",
+    "positive": "إيجابي"
+  },
+  "status": {
+    "open": "مفتوحة",
+    "in_progress": "قيد المعالجة",
+    "resolved": "محلولة",
+    "closed": "مغلقة"
+  }
+}

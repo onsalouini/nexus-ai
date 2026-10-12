@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
+import { roleLabel } from "../../i18n/labels";
+import TwoFactorSection from "../../components/account/TwoFactorSection";
+import { SUPPORTED_LANGUAGES, normalizeLanguage } from "../../i18n";
 import { Field, PageHeader, btnPrimary, cardCls, errMsg, inputCls } from "../../components/ui-nexus/kit";
 
 type Account = {
@@ -22,7 +26,10 @@ function Banner({ msg }: { msg: Msg }) {
 }
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { t } = useTranslation();
+  const { user, changeLanguage } = useAuth();
+  const { i18n } = useTranslation();
+  const activeLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
   const [acc, setAcc] = useState<Account | null>(null);
   const [profileMsg, setProfileMsg] = useState<Msg>(null);
   const [pwdMsg, setPwdMsg] = useState<Msg>(null);
@@ -34,7 +41,7 @@ export default function SettingsPage() {
     api.get<{ user: Account }>("/account").then((r) => setAcc(r.data.user)).catch((e) => setProfileMsg({ type: "err", text: errMsg(e) }));
   }, []);
 
-  if (!acc) return <div className={`${cardCls} p-8 text-center text-sm text-slate-400`}>Chargement…</div>;
+  if (!acc) return <div className={`${cardCls} p-8 text-center text-sm text-slate-400`}>{t("common.loading")}</div>;
 
   const set = <K extends keyof Account>(k: K, v: Account[K]) => setAcc({ ...acc, [k]: v });
   const isDirection = acc.role === "direction";
@@ -49,7 +56,7 @@ export default function SettingsPage() {
         weekly_capacity: acc!.weekly_capacity || null,
       });
       setAcc(r.data.user);
-      setProfileMsg({ type: "ok", text: "Profil mis à jour." });
+      setProfileMsg({ type: "ok", text: t("settings.profileSaved") });
     } catch (e) {
       setProfileMsg({ type: "err", text: errMsg(e) });
     } finally {
@@ -63,7 +70,7 @@ export default function SettingsPage() {
     try {
       const r = await api.post<{ user: Account }>("/account/avatar", fd);
       setAcc(r.data.user);
-      setProfileMsg({ type: "ok", text: "Photo mise à jour." });
+      setProfileMsg({ type: "ok", text: t("settings.photoSaved") });
     } catch (e) {
       setProfileMsg({ type: "err", text: errMsg(e) });
     }
@@ -73,7 +80,7 @@ export default function SettingsPage() {
     try {
       await api.put("/account/password", pwd);
       setPwd({ current_password: "", password: "", password_confirmation: "" });
-      setPwdMsg({ type: "ok", text: "Mot de passe mis à jour." });
+      setPwdMsg({ type: "ok", text: t("settings.passwordSaved") });
     } catch (e) {
       setPwdMsg({ type: "err", text: errMsg(e) });
     }
@@ -84,7 +91,7 @@ export default function SettingsPage() {
     try {
       const r = await api.put<{ user: Account }>("/account/company", acc.company);
       setAcc(r.data.user);
-      setCompanyMsg({ type: "ok", text: "Entreprise mise à jour." });
+      setCompanyMsg({ type: "ok", text: t("settings.companySaved") });
     } catch (e) {
       setCompanyMsg({ type: "err", text: errMsg(e) });
     }
@@ -92,58 +99,83 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <PageHeader title="Paramètres du compte" subtitle={`Connecté en tant que ${user?.role === "direction" ? "Direction" : "Chef de projet"}`} />
+      <PageHeader title={t("nav.settings")} subtitle={t("settings.connectedAs", { role: roleLabel(user?.role) })} />
 
       <section className={`${cardCls} space-y-4 p-6`}>
-        <h2 className="text-base font-semibold text-white">Profil</h2>
+        <div>
+          <h2 className="text-base font-semibold text-white">{t("settings.language")}</h2>
+          <p className="mt-1 text-sm text-slate-400">{t("settings.languageHint")}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {SUPPORTED_LANGUAGES.map((code) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => changeLanguage(code)}
+              className={`rounded-xl border px-4 py-2 text-sm transition ${
+                activeLanguage === code
+                  ? "border-cyan-400/40 bg-cyan-400/10 text-white"
+                  : "border-white/[0.1] bg-white/[0.03] text-slate-300 hover:bg-white/[0.07]"
+              }`}
+            >
+              {t(`settings.languages.${code}`)}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className={`${cardCls} space-y-4 p-6`}>
+        <h2 className="text-base font-semibold text-white">{t("settings.profile")}</h2>
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 text-lg font-bold text-white">
             {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : `${acc.first_name[0] ?? ""}${acc.last_name[0] ?? ""}`}
           </div>
           <label className="cursor-pointer text-sm text-cyan-300 hover:underline">
-            Changer la photo
+            {t("settings.changePhoto")}
             <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
           </label>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Prénom"><input className={inputCls} value={acc.first_name} onChange={(e) => set("first_name", e.target.value)} /></Field>
-          <Field label="Nom"><input className={inputCls} value={acc.last_name} onChange={(e) => set("last_name", e.target.value)} /></Field>
-          <Field label="Email"><input type="email" className={inputCls} value={acc.email} onChange={(e) => set("email", e.target.value)} /></Field>
-          <Field label="Téléphone"><input className={inputCls} value={acc.phone ?? ""} onChange={(e) => set("phone", e.target.value)} /></Field>
-          <Field label="Poste"><input className={inputCls} value={acc.job_title ?? ""} onChange={(e) => set("job_title", e.target.value)} /></Field>
+          <Field label={t("auth.signup.step1.firstName")}><input className={inputCls} value={acc.first_name} onChange={(e) => set("first_name", e.target.value)} /></Field>
+          <Field label={t("chef.editProject.name")}><input className={inputCls} value={acc.last_name} onChange={(e) => set("last_name", e.target.value)} /></Field>
+          <Field label={t("auth.email")}><input type="email" className={inputCls} value={acc.email} onChange={(e) => set("email", e.target.value)} /></Field>
+          <Field label={t("onboarding.phone")}><input className={inputCls} value={acc.phone ?? ""} onChange={(e) => set("phone", e.target.value)} /></Field>
+          <Field label={t("chef.members.job")}><input className={inputCls} value={acc.job_title ?? ""} onChange={(e) => set("job_title", e.target.value)} /></Field>
           {!isDirection && (
-            <Field label="Capacité hebdo (h)"><input type="number" className={inputCls} value={acc.weekly_capacity ?? 40} onChange={(e) => set("weekly_capacity", Number(e.target.value))} /></Field>
+            <Field label={t("settings.capacity")}><input type="number" className={inputCls} value={acc.weekly_capacity ?? 40} onChange={(e) => set("weekly_capacity", Number(e.target.value))} /></Field>
           )}
         </div>
-        <Field label="Bio"><textarea rows={3} className={inputCls} value={acc.bio ?? ""} onChange={(e) => set("bio", e.target.value)} /></Field>
+        <Field label={t("settings.bio")}><textarea rows={3} className={inputCls} value={acc.bio ?? ""} onChange={(e) => set("bio", e.target.value)} /></Field>
         <Banner msg={profileMsg} />
-        <button className={btnPrimary} onClick={saveProfile} disabled={saving}>Enregistrer le profil</button>
+        <button className={btnPrimary} onClick={saveProfile} disabled={saving}>{t("settings.saveProfile")}</button>
       </section>
 
       <section className={`${cardCls} space-y-4 p-6`}>
-        <h2 className="text-base font-semibold text-white">Sécurité</h2>
-        <Field label="Mot de passe actuel"><input type="password" className={inputCls} value={pwd.current_password} onChange={(e) => setPwd({ ...pwd, current_password: e.target.value })} /></Field>
+        <h2 className="text-base font-semibold text-white">{t("settings.security")}</h2>
+        <Field label={t("settings.currentPassword")}><input type="password" className={inputCls} value={pwd.current_password} onChange={(e) => setPwd({ ...pwd, current_password: e.target.value })} /></Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Nouveau mot de passe"><input type="password" className={inputCls} value={pwd.password} onChange={(e) => setPwd({ ...pwd, password: e.target.value })} /></Field>
-          <Field label="Confirmation"><input type="password" className={inputCls} value={pwd.password_confirmation} onChange={(e) => setPwd({ ...pwd, password_confirmation: e.target.value })} /></Field>
+          <Field label={t("settings.newPassword")}><input type="password" className={inputCls} value={pwd.password} onChange={(e) => setPwd({ ...pwd, password: e.target.value })} /></Field>
+          <Field label={t("settings.confirmation")}><input type="password" className={inputCls} value={pwd.password_confirmation} onChange={(e) => setPwd({ ...pwd, password_confirmation: e.target.value })} /></Field>
         </div>
         <Banner msg={pwdMsg} />
-        <button className={btnPrimary} onClick={savePassword} disabled={!pwd.current_password || pwd.password.length < 8}>Changer le mot de passe</button>
+        <button className={btnPrimary} onClick={savePassword} disabled={!pwd.current_password || pwd.password.length < 8}>{t("settings.changePassword")}</button>
       </section>
+
+      <TwoFactorSection />
 
       {isDirection && acc.company && (
         <section className={`${cardCls} space-y-4 p-6`}>
-          <h2 className="text-base font-semibold text-white">Entreprise</h2>
+          <h2 className="text-base font-semibold text-white">{t("settings.company")}</h2>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Nom"><input className={inputCls} value={acc.company.name} onChange={(e) => set("company", { ...acc.company!, name: e.target.value })} /></Field>
-            <Field label="Secteur"><input className={inputCls} value={acc.company.industry ?? ""} onChange={(e) => set("company", { ...acc.company!, industry: e.target.value })} /></Field>
-            <Field label="Email"><input type="email" className={inputCls} value={acc.company.email ?? ""} onChange={(e) => set("company", { ...acc.company!, email: e.target.value })} /></Field>
-            <Field label="Téléphone"><input className={inputCls} value={acc.company.phone ?? ""} onChange={(e) => set("company", { ...acc.company!, phone: e.target.value })} /></Field>
-            <Field label="Adresse"><input className={inputCls} value={acc.company.address ?? ""} onChange={(e) => set("company", { ...acc.company!, address: e.target.value })} /></Field>
-            <Field label="Effectif"><input type="number" className={inputCls} value={acc.company.employees_count ?? ""} onChange={(e) => set("company", { ...acc.company!, employees_count: e.target.value === "" ? null : Number(e.target.value) })} /></Field>
+            <Field label={t("chef.editProject.name")}><input className={inputCls} value={acc.company.name} onChange={(e) => set("company", { ...acc.company!, name: e.target.value })} /></Field>
+            <Field label={t("onboarding.industry")}><input className={inputCls} value={acc.company.industry ?? ""} onChange={(e) => set("company", { ...acc.company!, industry: e.target.value })} /></Field>
+            <Field label={t("auth.email")}><input type="email" className={inputCls} value={acc.company.email ?? ""} onChange={(e) => set("company", { ...acc.company!, email: e.target.value })} /></Field>
+            <Field label={t("onboarding.phone")}><input className={inputCls} value={acc.company.phone ?? ""} onChange={(e) => set("company", { ...acc.company!, phone: e.target.value })} /></Field>
+            <Field label={t("onboarding.address")}><input className={inputCls} value={acc.company.address ?? ""} onChange={(e) => set("company", { ...acc.company!, address: e.target.value })} /></Field>
+            <Field label={t("onboarding.employees")}><input type="number" className={inputCls} value={acc.company.employees_count ?? ""} onChange={(e) => set("company", { ...acc.company!, employees_count: e.target.value === "" ? null : Number(e.target.value) })} /></Field>
           </div>
           <Banner msg={companyMsg} />
-          <button className={btnPrimary} onClick={saveCompany}>Enregistrer l'entreprise</button>
+          <button className={btnPrimary} onClick={saveCompany}>{t("settings.saveCompany")}</button>
         </section>
       )}
     </div>

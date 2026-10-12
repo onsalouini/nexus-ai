@@ -22,7 +22,7 @@ class AIConversationMessageController extends Controller
         // à l'utilisateur connecté.
         if ($conversation->user_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Accès non autorisé.'
+                'message' => __('Accès non autorisé.')
             ], 403);
         }
 
@@ -70,7 +70,7 @@ class AIConversationMessageController extends Controller
         // 5. Vérifier si Groq répond
         if ($reply === null) {
             return response()->json([
-                'message' => 'NEXUS AI est temporairement indisponible.',
+                'message' => __('NEXUS AI est temporairement indisponible.'),
                 'user_message' => $userMessage,
             ], 503);
         }

@@ -1,11 +1,16 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { api } from "../../lib/api";
 import { useNavigate } from "react-router";
 import EditProjectModal from "./EditProjectModal";
 import { chefApi } from "../../services/chefApi";
 import RiskExplanation from "../project/RiskExplanation";
+import ReportHistory from "../project/ReportHistory";
 import type { RiskExplanationData } from "../../types/projectRisk";
+import { statusLabel } from "../ui-nexus/kit";
+import { healthLabel, riskLabel } from "../../i18n/labels";
+import { formatDateTime, formatNumber as formatLocaleNumber, formatDate } from "../../i18n/format";
 
 type AIReport = {
   summary: string;
@@ -68,20 +73,20 @@ const STATUS_CONFIG: Record<
   }
 > = {
   planifie: {
-    label:"Planifié",
+    label: "planifie",
     className: "text-cyan-300 bg-cyan-400/10 border-cyan-400/20",
   },
   en_cours: {
-    label: "En cours",
+    label: "en_cours",
     className: "text-blue-300 bg-blue-400/10 border-blue-400/20",
   },
   termine: {
-    label: "Terminé",
+    label: "termine",
     className: "text-emerald-300 bg-emerald-400/10 border-emerald-400/20",
   },
   
   suspendu: {
-    label: "Suspendu",
+    label: "suspendu",
     className: "text-amber-300 bg-amber-400/10 border-amber-400/20",
   },
 };
@@ -145,11 +150,7 @@ function calculateGap(
 function formatNumber(value?: number | null): string {
   if (value == null || Number.isNaN(value)) {
     return "—";
-  }
-
-  return new Intl.NumberFormat("fr-FR", {
-    maximumFractionDigits: 1,
-  }).format(value);
+  }  return formatLocaleNumber(value, { maximumFractionDigits: 1 });
 }
 
 function getGapClass(gap: number | null): string {
@@ -212,13 +213,14 @@ export default function ProjectsGrid({
   projects,
   onRefresh,
 }: Props) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [editing, setEditing] = useState<ProjectItem | null>(null);
 
   async function deleteProject(project: ProjectItem) {
     if (
       !window.confirm(
-        `Supprimer définitivement « ${project.name} » et toutes ses tâches ?`
+        t("chef.projects.confirmDelete", { name: project.name })
       )
     )
       return;
@@ -226,7 +228,7 @@ export default function ProjectsGrid({
       await chefApi.deleteProject(project.id);
       onRefresh?.();
     } catch {
-      window.alert("Suppression impossible.");
+      window.alert(t("chef.projects.deleteError"));
     }
   }
 
@@ -286,12 +288,9 @@ export default function ProjectsGrid({
       if (axios.isAxiosError(error)) {
         setReportError(
           error.response?.data?.message ||
-            "Impossible de générer le bilan AI."
+            t("chef.projects.reportError")
         );
-      } else {
-        setReportError(
-          "Impossible de générer le bilan AI."
-        );
+      } else {        setReportError(t("chef.projects.reportError"));
       }
     } finally {
       setGeneratingReport(false);
@@ -323,11 +322,12 @@ export default function ProjectsGrid({
           </div>
 
           <h3 className="text-base font-semibold text-white">
-            Aucun projet
+            {t("chef.projects.empty")}
+
           </h3>
 
           <p className="mt-1 text-sm text-slate-400">
-            Les projets de votre équipe apparaîtront ici.
+            {t("chef.projects.emptyHint")}
           </p>
         </div>
       ) : (
@@ -355,7 +355,7 @@ export default function ProjectsGrid({
                 className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0B1628]/80 p-5 transition-all duration-300 hover:border-cyan-400/20 hover:bg-[#0D1B30]"
               >
                 {/* subtle glow */}
-                <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-cyan-400/[0.05] blur-3xl transition-opacity duration-300 group-hover:bg-cyan-400/[0.08]" />
+                <div className="pointer-events-none absolute -end-20 -top-20 h-40 w-40 rounded-full bg-cyan-400/[0.05] blur-3xl transition-opacity duration-300 group-hover:bg-cyan-400/[0.08]" />
 
                 {/* HEADER */}
                 <div className="relative flex items-start justify-between gap-4">
@@ -380,14 +380,14 @@ export default function ProjectsGrid({
                   <span
                     className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-medium ${status.className}`}
                   >
-                    {status.label}
+                    {statusLabel(status.label)}
                   </span>
                 </div>
 
                 {/* PROGRESS + ACTIONS */}
                 <div className="relative mt-4">
                   <div className="mb-1.5 flex justify-between text-xs text-slate-400">
-                    <span>Avancement{project.deadline ? ` · échéance ${project.deadline}` : ""}</span>
+                    <span>{t("chef.projects.progress")}{project.deadline ? ` · ${t("chef.projects.deadline", { date: formatDate(project.deadline) })}` : ""}</span>
                     <span className="font-semibold text-white">{project.progress ?? 0}%</span>
                   </div>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
@@ -401,19 +401,22 @@ export default function ProjectsGrid({
                       onClick={() => navigate("/dashboard/chef/tracking")}
                       className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/[0.06]"
                     >
-                      Suivi
+                      {t("chef.projects.tracking")}
+
                     </button>
                     <button
                       onClick={() => setEditing(project)}
                       className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/[0.06]"
                     >
-                      Modifier
+                      {t("common.edit")}
+
                     </button>
                     <button
                       onClick={() => deleteProject(project)}
                       className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10"
                     >
-                      Supprimer
+                      {t("common.delete")}
+
                     </button>
                   </div>
                 </div>
@@ -425,12 +428,13 @@ export default function ProjectsGrid({
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <p className="text-[11px] uppercase tracking-wider text-slate-500">
-                      Planifié
+                      {t("chef.projects.planned")}
+
                     </p>
 
                     <p className="mt-1.5 text-lg font-semibold text-white">
                       {formatNumber(project.planned_effort)}
-                      <span className="ml-1 text-xs font-normal text-slate-500">
+                      <span className="ms-1 text-xs font-normal text-slate-500">
                         h
                       </span>
                     </p>
@@ -438,12 +442,12 @@ export default function ProjectsGrid({
 
                   <div>
                     <p className="text-[11px] uppercase tracking-wider text-slate-500">
-                      Estimé IA
+                      {t("chef.projects.aiEstimate")}
                     </p>
 
                     <p className="mt-1.5 text-lg font-semibold text-cyan-300">
                       {formatNumber(project.predicted_effort)}
-                      <span className="ml-1 text-xs font-normal text-slate-500">
+                      <span className="ms-1 text-xs font-normal text-slate-500">
                         h
                       </span>
                     </p>
@@ -451,7 +455,8 @@ export default function ProjectsGrid({
 
                   <div>
                     <p className="text-[11px] uppercase tracking-wider text-slate-500">
-                      Écart
+                      {t("chef.projects.gap")}
+
                     </p>
 
                     <p
@@ -470,7 +475,7 @@ export default function ProjectsGrid({
                 <div className="mt-5 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-slate-500">
-                      Risque IA
+                      {t("chef.projects.aiRisk")}
                     </span>
 
                     {hasAnalysis ? (
@@ -483,11 +488,11 @@ export default function ProjectsGrid({
                           {getRiskIcon(project.risk_level)}
                         </span>
 
-                        {project.risk_level || "Non défini"}
+                        {riskLabel(project.risk_level, t("common.notDefined"))}
                       </span>
                     ) : (
                       <span className="text-xs text-slate-500">
-                        Analyse indisponible
+                        {t("chef.projects.noAnalysis")}
                       </span>
                     )}
                   </div>
@@ -497,7 +502,7 @@ export default function ProjectsGrid({
                     onClick={() => onViewRisk(project)}
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-300 transition hover:text-cyan-200"
                   >
-                    Voir l'analyse
+                    {t("chef.projects.viewAnalysis")}
                     <svg
                       className="h-3.5 w-3.5"
                       fill="none"
@@ -547,7 +552,7 @@ export default function ProjectsGrid({
                   <span className="text-slate-700">/</span>
 
                   <span className="text-[10px] uppercase tracking-[0.15em] text-slate-500">
-                    Project Intelligence
+                    {t("chef.projects.intelligence")}
                   </span>
                 </div>
 
@@ -556,7 +561,7 @@ export default function ProjectsGrid({
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-400">
-                  Analyse quantitative et bilan intelligent du projet
+                  {t("chef.projects.modalSubtitle")}
                 </p>
               </div>
 
@@ -591,14 +596,14 @@ export default function ProjectsGrid({
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 <div>
                   <p className="text-[10px] uppercase tracking-wider text-slate-500">
-                    Effort planifié
+                    {t("chef.projects.plannedEffort")}
                   </p>
 
                   <p className="mt-1 text-xl font-semibold text-white">
                     {formatNumber(
                       selectedProject.planned_effort
                     )}
-                    <span className="ml-1 text-xs text-slate-500">
+                    <span className="ms-1 text-xs text-slate-500">
                       h
                     </span>
                   </p>
@@ -606,14 +611,14 @@ export default function ProjectsGrid({
 
                 <div>
                   <p className="text-[10px] uppercase tracking-wider text-slate-500">
-                    Effort estimé
+                    {t("chef.projects.estimatedEffort")}
                   </p>
 
                   <p className="mt-1 text-xl font-semibold text-cyan-300">
                     {formatNumber(
                       selectedProject.predicted_effort
                     )}
-                    <span className="ml-1 text-xs text-slate-500">
+                    <span className="ms-1 text-xs text-slate-500">
                       h
                     </span>
                   </p>
@@ -621,7 +626,8 @@ export default function ProjectsGrid({
 
                 <div>
                   <p className="text-[10px] uppercase tracking-wider text-slate-500">
-                    Écart
+                      {t("chef.projects.gap")}
+
                   </p>
 
                   <p
@@ -653,11 +659,12 @@ export default function ProjectsGrid({
 
                 <div>
                   <p className="text-[10px] uppercase tracking-wider text-slate-500">
-                    Risque
+                    {t("chef.projects.risk")}
+
                   </p>
 
                   <p className="mt-1 text-xl font-semibold text-white">
-                    {selectedProject.risk_level || "—"}
+                    {riskLabel(selectedProject.risk_level)}
                   </p>
                 </div>
               </div>
@@ -674,12 +681,11 @@ export default function ProjectsGrid({
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                       <h3 className="text-sm font-semibold text-white">
-                        Bilan intelligent
+                        {t("chef.projects.smartReport")}
                       </h3>
 
                       <p className="mt-1 max-w-xl text-sm leading-6 text-slate-400">
-                        Générez une analyse complète avec synthèse,
-                        risques, recommandations et verdict final.
+                        {t("chef.projects.smartReportHint")}
                       </p>
                     </div>
 
@@ -707,7 +713,7 @@ export default function ProjectsGrid({
                         />
                       </svg>
 
-                      Générer le bilan AI
+                      {t("chef.projects.generate")}
                     </button>
                   </div>
                 </div>
@@ -724,11 +730,11 @@ export default function ProjectsGrid({
                   </div>
 
                   <h3 className="text-sm font-semibold text-white">
-                    Analyse du projet en cours
+                    {t("chef.projects.analyzing")}
                   </h3>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    NEXUS AI prépare votre bilan...
+                    {t("chef.projects.preparing")}
                   </p>
                 </div>
               )}
@@ -746,7 +752,7 @@ export default function ProjectsGrid({
 
                     <div>
                       <p className="text-sm font-medium text-rose-200">
-                        Génération impossible
+                        {t("chef.projects.generationFailed")}
                       </p>
 
                       <p className="mt-1 text-sm leading-6 text-rose-200/60">
@@ -767,7 +773,7 @@ export default function ProjectsGrid({
                   <section>
                     <div className="mb-3 flex items-center justify-between">
                       <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                        Project Health
+                        {t("chef.projects.health")}
                       </span>
 
                       <span
@@ -781,13 +787,13 @@ export default function ProjectsGrid({
                           }`}
                         />
 
-                        {aiReport.health}
+                        {healthLabel(aiReport.health)}
                       </span>
                     </div>
 
                     <div>
                       <h3 className="text-lg font-semibold text-white">
-                        État global du projet
+                        {t("chef.projects.globalState")}
                       </h3>
 
                       <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-400">
@@ -803,7 +809,7 @@ export default function ProjectsGrid({
                         <span className="h-px w-5 bg-cyan-400/60" />
 
                         <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                          Points forts
+                          {t("chef.projects.strengths")}
                         </h3>
                       </div>
 
@@ -835,7 +841,7 @@ export default function ProjectsGrid({
                         <span className="h-px w-5 bg-violet-400/60" />
 
                         <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                          Risques identifiés
+                          {t("chef.projects.risks")}
                         </h3>
                       </div>
 
@@ -866,7 +872,7 @@ export default function ProjectsGrid({
                                       ]
                                     }`}
                                   >
-                                    {risk.severity}
+                                    {riskLabel(risk.severity)}
                                   </span>
                                 </div>
 
@@ -888,7 +894,8 @@ export default function ProjectsGrid({
                         <span className="h-px w-5 bg-cyan-400/60" />
 
                         <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                          Recommandations
+                          {t("chef.projects.recommendations")}
+
                         </h3>
                       </div>
 
@@ -922,7 +929,7 @@ export default function ProjectsGrid({
                       <span className="h-px w-5 bg-blue-400/60" />
 
                       <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                        Effort Analysis
+                        {t("chef.projects.effortAnalysis")}
                       </h3>
                     </div>
 
@@ -930,14 +937,15 @@ export default function ProjectsGrid({
                       <div className="flex items-end gap-4">
                         <div>
                           <p className="text-[10px] uppercase tracking-wider text-slate-500">
-                            Prévu
+                            {t("chef.projects.planned")}
+
                           </p>
 
                           <p className="mt-1 text-2xl font-semibold text-white">
                             {formatNumber(
                               selectedProject.planned_effort
                             )}
-                            <span className="ml-1 text-xs text-slate-500">
+                            <span className="ms-1 text-xs text-slate-500">
                               h
                             </span>
                           </p>
@@ -949,21 +957,22 @@ export default function ProjectsGrid({
 
                         <div>
                           <p className="text-[10px] uppercase tracking-wider text-slate-500">
-                            Estimé
+                            {t("chef.projects.estimated")}
+
                           </p>
 
                           <p className="mt-1 text-2xl font-semibold text-cyan-300">
                             {formatNumber(
                               selectedProject.predicted_effort
                             )}
-                            <span className="ml-1 text-xs text-slate-500">
+                            <span className="ms-1 text-xs text-slate-500">
                               h
                             </span>
                           </p>
                         </div>
                       </div>
 
-                      <div className="max-w-xl text-sm leading-6 text-slate-400 md:text-right">
+                      <div className="max-w-xl text-sm leading-6 text-slate-400 md:text-end">
                         {aiReport.effort_analysis}
                       </div>
                     </div>
@@ -981,7 +990,7 @@ export default function ProjectsGrid({
                       <span className="h-px w-5 bg-violet-400/60" />
 
                       <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                        Final Verdict
+                        {t("chef.projects.verdict")}
                       </h3>
                     </div>
 
@@ -993,12 +1002,14 @@ export default function ProjectsGrid({
                   {/* GENERATED DATE */}
                   {selectedProject.ai_report_generated_at && (
                     <div className="border-t border-white/[0.05] pt-4 text-xs text-slate-600">
-                      Bilan généré le{" "}
-                      {new Date(
-                        selectedProject.ai_report_generated_at
-                      ).toLocaleString("fr-FR")}
+                      {t("chef.projects.generatedAt", { date: formatDateTime(selectedProject.ai_report_generated_at) })}
                     </div>
                   )}
+
+                  <ReportHistory
+                    projectId={selectedProject.id}
+                    refreshKey={selectedProject.ai_report_generated_at ? Date.parse(selectedProject.ai_report_generated_at) : 0}
+                  />
                 </div>
               )}
             </div>

@@ -1,0 +1,37 @@
+{
+  "explanation": {
+    "enteredValue": "entered value: {{value}}",
+    "behavior": {
+      "increasing": "Effort ↑ when value ↑",
+      "decreasing": "Effort ↓ when value ↑",
+      "nonLinear": "Irregular response",
+      "negligible": "Negligible impact"
+    },
+    "influence": {
+      "increases": "Increases effort",
+      "reduces": "Reduces effort",
+      "irregular": "Irregular impact",
+      "low": "Low impact"
+    },
+    "why": "Why this estimate?",
+    "keyFactors": "Key factors",
+    "sensitivity": "Model sensitivity (effort in hours)",
+    "sensitivityHint": "For this project, each variable is increased or decreased by 20% (others stay fixed) and the estimated effort is recalculated. Bars show the difference in hours from the estimate.",
+    "importance": "Global variable importance",
+    "limits": "Estimate limitations"
+  },
+  "section": {
+    "title": "Risk model result",
+    "subtitle": "Effort estimate computed by the ML model",
+    "riskBadge": "{{level}} risk",
+    "noPrediction": "No prediction recorded for this project.",
+    "modelEffort": "Effort estimated by the model",
+    "report": "Explainable report",
+    "reportHint": "Full analysis written by NEXUS AI from the model",
+    "regenerate": "Regenerate report",
+    "generate": "Generate report",
+    "noReport": "No report has been generated for this project yet. The report explains why the model estimates this effort, which factors weigh most, the risks and recommendations.",
+    "healthBadge": "Project health: {{health}}",
+    "effortGap": "Effort gap analysis"
+  }
+}

@@ -1,9 +1,11 @@
 // Explication du modèle de risque : lecture Groq + preuves chiffrées du modèle
+import { useTranslation } from "react-i18next";
 import type {
   AIReportData,
   RiskExplanationData,
   RiskSensitivityItem,
 } from "../../types/projectRisk";
+import i18n from "../../i18n";
 
 type Props = {
   explanation?: RiskExplanationData | null;
@@ -20,17 +22,30 @@ const INFLUENCE_STYLE: Record<string, string> = {
   "Impact faible": "text-slate-300 bg-white/[0.04] border-white/[0.08]",
 };
 
-const BEHAVIOR_LABEL: Record<string, string> = {
-  croissant: "Effort ↑ quand la valeur ↑",
-  décroissant: "Effort ↓ quand la valeur ↑",
-  "non linéaire": "Réponse irrégulière",
-  négligeable: "Impact négligeable",
+// Valeurs renvoyées par le service IA -> clés de traduction
+const BEHAVIOR_KEY: Record<string, string> = {
+  croissant: "increasing",
+  décroissant: "decreasing",
+  "non linéaire": "nonLinear",
+  négligeable: "negligible",
 };
+
+const INFLUENCE_KEY: Record<string, string> = {
+  "Augmente l'effort": "increases",
+  "Réduit l'effort": "reduces",
+  "Impact irrégulier": "irregular",
+  "Impact faible": "low",
+};
+
+// Libellé de variable traduit à partir de sa clé technique (TeamExp, Length...)
+function featureLabel(feature: string, fallback: string): string {
+  return i18n.t(`chef.models.features.${feature}.label`, { defaultValue: fallback });
+}
 
 function signed(value?: number): string {
   if (value == null || Number.isNaN(value)) return "—";
   const rounded = Math.round(value);
-  return `${rounded > 0 ? "+" : ""}${rounded} h`;
+  return `${rounded > 0 ? "+" : ""}${rounded} ${i18n.t("common.hoursShort")}`;
 }
 
 function SectionTitle({
@@ -57,6 +72,7 @@ function SensitivityRow({
   item: RiskSensitivityItem;
   scale: number;
 }) {
+  const { t } = useTranslation();
   const minus = item.delta_minus_20 ?? 0;
   const plus = item.delta_plus_20 ?? 0;
 
@@ -68,7 +84,7 @@ function SensitivityRow({
         className={`absolute top-0 h-full rounded-full ${color}`}
         style={{
           width: `${Math.min(50, (Math.abs(delta) / scale) * 50)}%`,
-          ...(delta >= 0 ? { left: "50%" } : { right: "50%" }),
+          ...(delta >= 0 ? { insetInlineStart: "50%" } : { insetInlineEnd: "50%" }),
         }}
       />
     </div>
@@ -78,15 +94,15 @@ function SensitivityRow({
     <div className="rounded-xl border border-white/[0.06] bg-black/10 p-3.5">
       <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-medium text-slate-200">
-          {item.label}
-          <span className="ml-2 text-xs font-normal text-slate-500">
-            valeur saisie : {item.value}
+          {featureLabel(item.feature, item.label)}
+          <span className="ms-2 text-xs font-normal text-slate-500">
+            {t("risk.explanation.enteredValue", { value: item.value })}
           </span>
         </p>
 
         {item.behavior && (
           <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 py-0.5 text-[10px] text-slate-400">
-            {BEHAVIOR_LABEL[item.behavior] ?? item.behavior}
+            {BEHAVIOR_KEY[item.behavior] ? t(`risk.explanation.behavior.${BEHAVIOR_KEY[item.behavior]}`) : item.behavior}
           </span>
         )}
       </div>
@@ -95,7 +111,7 @@ function SensitivityRow({
         <div className="flex items-center gap-3">
           <span className="w-14 shrink-0 text-[10px] text-slate-500">−20 %</span>
           {bar(minus, "bg-violet-400/70")}
-          <span className="w-16 shrink-0 text-right text-xs tabular-nums text-slate-300">
+          <span className="w-16 shrink-0 text-end text-xs tabular-nums text-slate-300">
             {signed(minus)}
           </span>
         </div>
@@ -103,7 +119,7 @@ function SensitivityRow({
         <div className="flex items-center gap-3">
           <span className="w-14 shrink-0 text-[10px] text-slate-500">+20 %</span>
           {bar(plus, "bg-cyan-400/70")}
-          <span className="w-16 shrink-0 text-right text-xs tabular-nums text-slate-300">
+          <span className="w-16 shrink-0 text-end text-xs tabular-nums text-slate-300">
             {signed(plus)}
           </span>
         </div>
@@ -113,6 +129,7 @@ function SensitivityRow({
 }
 
 export default function RiskExplanation({ explanation, report }: Props) {
+  const { t } = useTranslation();
   const sensitivity = explanation?.sensitivity ?? [];
   const importance = explanation?.global_importance ?? [];
   const factors = report?.key_factors ?? [];
@@ -140,7 +157,7 @@ export default function RiskExplanation({ explanation, report }: Props) {
       {report?.model_explanation && (
         <section>
           <SectionTitle accent="bg-violet-400/60">
-            Pourquoi cette estimation ?
+            {t("risk.explanation.why")}
           </SectionTitle>
 
           <p className="max-w-3xl text-sm leading-7 text-slate-300">
@@ -151,7 +168,7 @@ export default function RiskExplanation({ explanation, report }: Props) {
 
       {factors.length > 0 && (
         <section>
-          <SectionTitle>Facteurs clés</SectionTitle>
+          <SectionTitle>{t("risk.explanation.keyFactors")}</SectionTitle>
 
           <div className="grid gap-3 md:grid-cols-2">
             {factors.map((f, i) => (
@@ -167,7 +184,7 @@ export default function RiskExplanation({ explanation, report }: Props) {
                       INFLUENCE_STYLE[f.influence] ?? INFLUENCE_STYLE["Impact faible"]
                     }`}
                   >
-                    {f.influence}
+                    {INFLUENCE_KEY[f.influence] ? t(`risk.explanation.influence.${INFLUENCE_KEY[f.influence]}`) : f.influence}
                   </span>
                 </div>
 
@@ -184,13 +201,11 @@ export default function RiskExplanation({ explanation, report }: Props) {
       {sensitivity.length > 0 && (
         <section>
           <SectionTitle accent="bg-blue-400/60">
-            Sensibilité du modèle (effort en heures)
+            {t("risk.explanation.sensitivity")}
           </SectionTitle>
 
           <p className="mb-4 max-w-3xl text-xs leading-6 text-slate-500">
-            Pour ce projet, chaque variable est augmentée ou réduite de 20 % (les
-            autres restent fixes) et l'effort estimé est recalculé. Les barres
-            montrent l'écart en heures par rapport à l'estimation.
+            {t("risk.explanation.sensitivityHint")}
           </p>
 
           <div className="space-y-2.5">
@@ -204,14 +219,14 @@ export default function RiskExplanation({ explanation, report }: Props) {
       {importance.length > 0 && (
         <section>
           <SectionTitle accent="bg-fuchsia-400/60">
-            Importance globale des variables
+            {t("risk.explanation.importance")}
           </SectionTitle>
 
           <div className="space-y-2">
             {importance.map((g) => (
               <div key={g.feature} className="flex items-center gap-3">
                 <span className="w-56 shrink-0 truncate text-xs text-slate-400">
-                  {g.label}
+                  {featureLabel(g.feature, g.label)}
                 </span>
 
                 <div className="h-2 flex-1 rounded-full bg-white/[0.04]">
@@ -221,7 +236,7 @@ export default function RiskExplanation({ explanation, report }: Props) {
                   />
                 </div>
 
-                <span className="w-12 shrink-0 text-right text-xs tabular-nums text-slate-500">
+                <span className="w-12 shrink-0 text-end text-xs tabular-nums text-slate-500">
                   {(g.importance * 100).toFixed(0)} %
                 </span>
               </div>
@@ -234,7 +249,7 @@ export default function RiskExplanation({ explanation, report }: Props) {
       {(report?.confidence_note || explanation?.limits) && (
         <section className="rounded-2xl border border-amber-400/10 bg-amber-400/[0.03] px-5 py-4">
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300/80">
-            Limites de l'estimation
+            {t("risk.explanation.limits")}
           </p>
 
           <p className="text-xs leading-6 text-slate-400">

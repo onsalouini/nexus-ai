@@ -1,0 +1,26 @@
+{
+  "profileSaved": "تم تحديث الملف الشخصي.",
+  "photoSaved": "تم تحديث الصورة.",
+  "passwordSaved": "تم تحديث كلمة المرور.",
+  "companySaved": "تم تحديث الشركة.",
+  "connectedAs": "متصل بصفة {{role}}",
+  "language": "لغة الواجهة",
+  "languageHint": "اختر لغة عرض NEXUS AI. يتم حفظ اختيارك على هذا الجهاز.",
+  "languages": {
+    "fr": "🇫🇷 Français",
+    "en": "🇬🇧 English",
+    "ar": "🇹🇳 العربية"
+  },
+  "profile": "الملف الشخصي",
+  "changePhoto": "تغيير الصورة",
+  "capacity": "السعة الأسبوعية (س)",
+  "bio": "نبذة",
+  "saveProfile": "حفظ الملف الشخصي",
+  "security": "الأمان",
+  "currentPassword": "كلمة المرور الحالية",
+  "newPassword": "كلمة المرور الجديدة",
+  "confirmation": "التأكيد",
+  "changePassword": "تغيير كلمة المرور",
+  "company": "الشركة",
+  "saveCompany": "حفظ الشركة"
+}

@@ -1,0 +1,80 @@
+{
+  "brandTagline": "Enterprise Intelligence",
+  "home": "Accueil",
+  "close": "Fermer",
+  "cancel": "Annuler",
+  "save": "Enregistrer",
+  "saving": "Enregistrement...",
+  "delete": "Supprimer",
+  "edit": "Modifier",
+  "create": "Créer",
+  "add": "Ajouter",
+  "search": "Rechercher...",
+  "refresh": "Actualiser",
+  "retry": "Réessayer",
+  "back": "Retour",
+  "next": "Suivant",
+  "previous": "Précédent",
+  "confirm": "Confirmer",
+  "all": "Tous",
+  "none": "Aucun",
+  "yes": "Oui",
+  "no": "Non",
+  "loading": "Chargement...",
+  "logout": "Se déconnecter",
+  "genericError": "Une erreur est survenue.",
+  "noData": "Aucune donnée disponible.",
+  "notDefined": "Non défini",
+  "language": "Langue",
+  "changeLanguage": "Changer de langue",
+  "closeLanguageMenu": "Fermer le menu des langues",
+  "roles": {
+    "direction": "Direction",
+    "chef_de_projet": "Chef de projet",
+    "agent_support": "Agent support",
+    "membre_equipe": "Membre d'équipe",
+    "client": "Client",
+    "employee": "Employé"
+  },
+  "projectStatus": {
+    "planifie": "Planifié",
+    "en_cours": "En cours",
+    "termine": "Terminé",
+    "suspendu": "Suspendu"
+  },
+  "risk": {
+    "low": "Faible",
+    "medium": "Moyen",
+    "high": "Élevé",
+    "critical": "Critique"
+  },
+  "employee": {
+    "hello": "Bonjour {{name}}",
+    "text": "Votre compte est actif. Votre espace de travail sera bientôt disponible ici."
+  },
+  "notFound": {
+    "eyebrow": "Erreur",
+    "title": "Page introuvable",
+    "text": "La page que vous cherchez n'existe pas ou a été déplacée.",
+    "backHome": "Retour à l'accueil",
+    "backDashboard": "Retour à mon espace"
+  },
+  "riskLevel": {
+    "low": "Faible",
+    "medium": "Modéré",
+    "high": "Élevé",
+    "critical": "Critique",
+    "unknown": "Indéterminé"
+  },
+  "health": {
+    "good": "Bonne",
+    "average": "Moyenne",
+    "concerning": "Préoccupante",
+    "critical": "Critique"
+  },
+  "hoursShort": "h",
+  "months": "mois",
+  "networkError": "Serveur injoignable. Vérifiez votre connexion.",
+  "forbidden": "Vous n'avez pas accès à cette ressource.",
+  "serverError": "Erreur serveur. Réessayez dans un instant."
+}

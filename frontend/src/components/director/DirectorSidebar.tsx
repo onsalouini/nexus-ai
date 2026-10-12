@@ -1,7 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import {
   Activity,
   BarChart3,
+  CalendarDays,
+  LifeBuoy,
+  ShieldCheck,
   BrainCircuit,
   FolderKanban,
   Home,
@@ -13,82 +17,95 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { NavLink, Link, useNavigate } from "react-router";
+import { NavLink, Link } from "react-router";
+import LanguageSwitcher from "../common/LanguageSwitcher";
 
 import { useAuth } from "../../context/AuthContext";
 
 type NavigationItem = {
-  label: string;
+  labelKey: string;
   path: string;
   icon: LucideIcon;
 };
 
 const navigation: NavigationItem[] = [
   {
-    label: "Vue générale",
+    labelKey: "director.sidebar.overview",
     path: "/dashboard/direction",
     icon: Home,
   },
   {
-    label: "Projets",
+    labelKey: "director.sidebar.projects",
     path: "/dashboard/direction/projects",
     icon: FolderKanban,
   },
   {
-    label: "Équipe",
+    labelKey: "director.sidebar.team",
     path: "/dashboard/direction/team",
     icon: Users,
   },
   {
-    label: "Invitations",
+    labelKey: "director.sidebar.invitations",
     path: "/dashboard/direction/invitations",
     icon: Mail,
   },
   {
-    label: "Monitoring",
+    labelKey: "director.sidebar.planning",
+    path: "/dashboard/direction/planning",
+    icon: CalendarDays,
+  },
+  {
+    labelKey: "director.sidebar.support",
+    path: "/dashboard/direction/support",
+    icon: LifeBuoy,
+  },
+  {
+    labelKey: "director.sidebar.monitoring",
     path: "/dashboard/direction/monitoring",
     icon: Activity,
   },
   {
-    label: "Analytics",
+    labelKey: "director.sidebar.analytics",
     path: "/dashboard/direction/analytics",
     icon: BarChart3,
   },
   {
-    label: "NEXUS AI",
+    labelKey: "director.sidebar.ai",
     path: "/dashboard/direction/model",
         icon: BrainCircuit,
   },
   {
-    label: "Paramètres",
+    labelKey: "director.sidebar.audit",
+    path: "/dashboard/direction/audit",
+    icon: ShieldCheck,
+  },
+  {
+    labelKey: "director.sidebar.settings",
     path: "/dashboard/direction/settings",
     icon: Settings,
   },
 ];
 
 export default function DirectorSidebar() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  const { t } = useTranslation();
+  const { user, logout } = useAuth();
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+  // Révoque le token côté serveur et vide le contexte
   const handleLogout = () => {
-    localStorage.removeItem("nexus_token");
-    navigate("/signin");
+    logout();
   };
 
   const fullName =
     `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() ||
-    "Utilisateur";
+    t("chef.sidebar.user");
 
   const initials =
     `${user?.first_name?.charAt(0) ?? ""}${user?.last_name?.charAt(0) ?? ""}` ||
     "N";
 
-  const role =
-    user?.role === "direction"
-      ? "Direction"
-      : user?.role ?? "Administrateur";
+  const role = t(`common.roles.${user?.role ?? "direction"}`);
 
   /*
    * ==========================================================
@@ -156,11 +173,11 @@ export default function DirectorSidebar() {
 
       <button
         type="button"
-        aria-label="Ouvrir le menu"
+        aria-label={t("chef.sidebar.openMenu")}
         aria-expanded={isMobileOpen}
         onClick={() => setIsMobileOpen(true)}
         className="
-          fixed left-4 top-4 z-[60]
+          fixed start-4 top-4 z-[60]
           flex h-11 w-11 items-center justify-center
           rounded-xl
           border border-white/10
@@ -206,7 +223,7 @@ export default function DirectorSidebar() {
         className={`
           fixed
           bottom-3
-          left-3
+          start-3
           top-3
           z-50
           w-[min(86vw,320px)]
@@ -227,7 +244,7 @@ export default function DirectorSidebar() {
           ease-out
 
           lg:bottom-4
-          lg:left-4
+          lg:start-4
           lg:top-4
           lg:w-[260px]
           lg:translate-x-0
@@ -235,7 +252,7 @@ export default function DirectorSidebar() {
           ${
             isMobileOpen
               ? "translate-x-0"
-              : "-translate-x-[calc(100%+20px)]"
+              : "-translate-x-[calc(100%+20px)] rtl:translate-x-[calc(100%+20px)]"
           }
         `}
       >
@@ -265,7 +282,7 @@ export default function DirectorSidebar() {
           className="
             pointer-events-none
             absolute
-            -left-24
+            -start-24
             -top-24
             h-64
             w-64
@@ -279,7 +296,7 @@ export default function DirectorSidebar() {
           className="
             pointer-events-none
             absolute
-            -right-24
+            -end-24
             top-1/3
             h-56
             w-56
@@ -294,7 +311,7 @@ export default function DirectorSidebar() {
             pointer-events-none
             absolute
             -bottom-24
-            -right-24
+            -end-24
             h-64
             w-64
             rounded-full
@@ -383,10 +400,10 @@ export default function DirectorSidebar() {
 
             <button
               type="button"
-              aria-label="Fermer le menu"
+              aria-label={t("chef.sidebar.closeMenu")}
               onClick={() => setIsMobileOpen(false)}
               className="
-                ml-2
+                ms-2
                 flex
                 h-9
                 w-9
@@ -431,7 +448,7 @@ export default function DirectorSidebar() {
                 className="
                   pointer-events-none
                   absolute
-                  -right-8
+                  -end-8
                   -top-8
                   h-20
                   w-20
@@ -499,7 +516,7 @@ export default function DirectorSidebar() {
                     className="
                       absolute
                       bottom-0
-                      right-0
+                      end-0
                       h-2.5
                       w-2.5
                       rounded-full
@@ -607,7 +624,7 @@ export default function DirectorSidebar() {
                             className="
                               absolute
                               bottom-2
-                              left-0
+                              start-0
                               top-2
                               w-[2px]
                               rounded-full
@@ -634,7 +651,7 @@ export default function DirectorSidebar() {
                         {/* Label */}
 
                         <span className="min-w-0 flex-1 truncate">
-                          {item.label}
+                          {t(item.labelKey)}
                         </span>
 
                         {/* Active dot */}
@@ -694,8 +711,12 @@ export default function DirectorSidebar() {
                 className="shrink-0 transition group-hover:text-red-300"
               />
 
-              <span>Déconnexion</span>
+              <span>{t("nav.logout")}</span>
             </button>
+
+            <div className="mt-3 flex justify-center">
+              <LanguageSwitcher />
+            </div>
 
             {/* Footer branding */}
 

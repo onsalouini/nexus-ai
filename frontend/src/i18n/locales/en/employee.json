@@ -1,0 +1,32 @@
+{
+  "nav": {
+    "tickets": "Tickets",
+    "tasks": "My tasks",
+    "projects": "My projects",
+    "planning": "Planning"
+  },
+  "tasks": {
+    "title": "My tasks",
+    "subtitle": "Update the progress of your tasks: your project manager sees it in real time.",
+    "open": "Open",
+    "late": "Late",
+    "done": "Done",
+    "filters": {
+      "open": "To do",
+      "late": "Late",
+      "done": "Done",
+      "all": "All"
+    },
+    "empty": "No tasks in this view.",
+    "due": "due {{date}}",
+    "saved": "Task updated.",
+    "loadError": "Unable to load your tasks."
+  },
+  "projects": {
+    "title": "My projects",
+    "subtitle": "The projects you take part in.",
+    "empty": "You are not assigned to any project yet.",
+    "myTasks": "My tasks: {{open}} open · {{done}} done",
+    "loadError": "Unable to load your projects."
+  }
+}

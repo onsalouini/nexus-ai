@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use App\Services\AIReportService;
+use App\Services\ProjectReportService;
+use App\Models\AuditLog;
 class ProjectController extends Controller
 {
     public function index(Request $request)
@@ -46,7 +48,7 @@ class ProjectController extends Controller
 
         if (!$prediction) {
             return response()->json([
-                'message' => 'Le service de prédiction est indisponible.',
+                'message' => __('Le service de prédiction est indisponible.'),
             ], 502);
         }
 
@@ -92,7 +94,7 @@ class ProjectController extends Controller
 
     if (is_null($user->company_id)) {
         return response()->json([
-            'message' => 'Configurez d\'abord votre entreprise.'
+            'message' => __('Configurez d\'abord votre entreprise.')
         ], 422);
     }
 
@@ -163,6 +165,8 @@ class ProjectController extends Controller
     |--------------------------------------------------------------------------
     */
 
+    AuditLog::record($request->user(), 'project.created', ['project' => $project->name]);
+
     return response()->json([
         'project' => $project->fresh(),
         'ai_analysis' => $prediction,
@@ -212,17 +216,35 @@ class ProjectController extends Controller
             'project_id' => $project->id,
             'user_id' => $request->user()->id,
             'type' => 'project_updated',
-            'message' => 'Projet mis à jour',
+            'message' => __('Projet mis à jour'),
         ]);
 
-        return response()->json($project->fresh());
+        AuditLog::record($request->user(), 'project.updated', ['project' => $project->name]);
+
+        /*
+        | Bilan IA automatique : si le projet avait déjà un bilan et que les données
+        | du modèle ont changé, on le régénère après l'envoi de la réponse
+        | via defer() : aucun worker nécessaire, l'utilisateur n'attend pas Groq.
+        */
+        $autoReport = $needsRecompute && ! empty($project->ai_report);
+        if ($autoReport) {
+            $user = $request->user();
+            $locale = app()->getLocale();
+            \Illuminate\Support\defer(function () use ($project, $user, $locale) {
+                app()->setLocale($locale);
+                app(ProjectReportService::class)->generate($project->fresh(), $user, 'auto');
+            });
+        }
+
+        return response()->json([...$project->fresh()->toArray(), 'ai_report_regenerating' => $autoReport]);
     }
 
     public function destroy(Request $request, Project $project)
     {
         abort_if($project->chef_de_projet_id !== $request->user()->id, 403);
+        AuditLog::record($request->user(), 'project.deleted', ['project' => $project->name]);
         $project->delete();
-        return response()->json(['message' => 'Projet supprimé.']);
+        return response()->json(['message' => __('Projet supprimé.')]);
     }
 
     public function show(Request $request, Project $project)
@@ -263,101 +285,43 @@ class ProjectController extends Controller
         ]));
     }
 
-    public function generateReport(
-        Request $request,
-        Project $project,
-        AIReportService $aiReportService,
-        RiskPredictionService $riskPredictionService
-    ) {
+    public function generateReport(Request $request, Project $project, ProjectReportService $reports)
+    {
+        $this->authorizeReport($request, $project);
+
+        $result = $reports->generate($project, $request->user(), 'manual');
+
+        if (! $result['ok']) {
+            return response()->json(['message' => $result['message']], $result['status']);
+        }
+
+        AuditLog::record($request->user(), 'project.report_generated', ['project' => $project->name]);
+
+        return response()->json([
+            'project' => $result['project'],
+            'report' => $result['report'],
+        ]);
+    }
+
+    /** Historique des bilans IA d'un projet (pour comparer les versions). */
+    public function reports(Request $request, Project $project)
+    {
+        $this->authorizeReport($request, $project);
+
+        return response()->json(
+            $project->reports()->with('author:id,first_name,last_name')->limit(20)->get()
+        );
+    }
+
+    /** Le chef de projet propriétaire OU la direction de la même entreprise. */
+    private function authorizeReport(Request $request, Project $project): void
+    {
         $user = $request->user();
-
-        // Le chef de projet propriétaire OU la direction de la même entreprise.
         $isOwner = $project->chef_de_projet_id === $user->id;
-
         $isDirector = $user->role === 'direction'
             && $user->company_id !== null
             && $project->company_id === $user->company_id;
 
         abort_unless($isOwner || $isDirector, 403);
-
-        /*
-        | Prédiction absente, ou explication jamais calculée (projets créés avant
-        | cette fonctionnalité) : on interroge de nouveau le modèle pour que le
-        | bilan soit toujours cohérent avec les chiffres affichés.
-        */
-        if (is_null($project->predicted_effort) || empty($project->risk_explanation)) {
-            $prediction = $riskPredictionService->predict([
-                'team_exp' => $project->team_exp,
-                'manager_exp' => $project->manager_exp,
-                'length' => $project->length,
-                'transactions' => $project->transactions,
-                'entities' => $project->entities,
-                'points_non_adjust' => $project->points_non_adjust,
-                'adjustment' => $project->adjustment,
-                'language' => $project->language,
-                'planned_effort' => $project->planned_effort,
-            ]);
-
-            if ($prediction) {
-                $project->update([
-                    'predicted_effort' => $prediction['predicted_effort_hours'] ?? null,
-                    'risk_level' => $prediction['risk_level'] ?? null,
-                    'risk_score' => isset($prediction['gap_percent'])
-                        ? (int) round($prediction['gap_percent'])
-                        : null,
-                    'risk_explanation' => $prediction['explanation'] ?? null,
-                ]);
-            }
-        }
-
-        if (is_null($project->predicted_effort)) {
-            return response()->json([
-                'message' => 'La prédiction ML n\'est pas encore disponible pour ce projet.'
-            ], 422);
-        }
-
-        if (is_null($project->risk_score)) {
-            return response()->json([
-                'message' => 'L\'écart de risque n\'est pas disponible pour ce projet.'
-            ], 422);
-        }
-
-        $report = $aiReportService->generate([
-            'name' => $project->name,
-            'description' => $project->description,
-
-            'team_exp' => $project->team_exp,
-            'manager_exp' => $project->manager_exp,
-            'length' => $project->length,
-            'transactions' => $project->transactions,
-            'entities' => $project->entities,
-            'points_non_adjust' => $project->points_non_adjust,
-            'adjustment' => $project->adjustment,
-            'language' => $project->language,
-
-            'planned_effort' => $project->planned_effort,
-            'predicted_effort' => $project->predicted_effort,
-            'risk_level' => $project->risk_level,
-            'gap_percent' => $project->risk_score,
-
-            'risk_explanation' => $project->risk_explanation,
-        ]);
-
-        if (!$report) {
-            return response()->json([
-                'message' => 'Impossible de générer le bilan AI.'
-            ], 502);
-        }
-
-        // Sauvegarde du bilan en base
-        $project->update([
-            'ai_report' => $report,
-            'ai_report_generated_at' => now(),
-        ]);
-
-        return response()->json([
-            'project' => $project->fresh(),
-            'report' => $report,
-        ]);
     }
 }

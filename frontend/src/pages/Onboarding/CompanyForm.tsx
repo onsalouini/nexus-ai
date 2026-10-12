@@ -1,12 +1,15 @@
 import { FormEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import axios from "axios";
 import { api } from "../../lib/api";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth, getDashboardPath } from "../../context/AuthContext";
+import LanguageSwitcher from "../../components/common/LanguageSwitcher";
 
 export default function CompanyForm() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
 
   const [form, setForm] = useState({
     name: "",
@@ -41,8 +44,9 @@ export default function CompanyForm() {
           ? Number(form.employees_count)
           : null,
       });
-
-      navigate("/dashboard");
+      // /dashboard n'existe pas : on recharge l'utilisateur puis on va vers l'espace de son rôle
+      const fresh = await refreshUser().catch(() => user);
+      navigate(getDashboardPath(fresh?.role ?? user?.role ?? null), { replace: true });
     } catch (err: unknown) {
       console.error("Erreur création entreprise :", err);
 
@@ -50,10 +54,10 @@ export default function CompanyForm() {
         setError(
           err.response?.data?.message ??
             err.response?.data?.error ??
-            "Impossible d'enregistrer l'entreprise pour le moment."
+            t("onboarding.saveError")
         );
       } else {
-        setError("Une erreur inattendue est survenue.");
+        setError(t("common.genericError"));
       }
     } finally {
       setLoading(false);
@@ -68,10 +72,10 @@ export default function CompanyForm() {
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* Cyan */}
-        <div className="absolute -left-40 -top-40 h-[600px] w-[600px] rounded-full bg-[#22D3EE]/[0.06] blur-[140px]" />
+        <div className="absolute -start-40 -top-40 h-[600px] w-[600px] rounded-full bg-[#22D3EE]/[0.06] blur-[140px]" />
 
         {/* Violet */}
-        <div className="absolute -bottom-40 -right-40 h-[600px] w-[600px] rounded-full bg-[#8B5CF6]/[0.07] blur-[140px]" />
+        <div className="absolute -bottom-40 -end-40 h-[600px] w-[600px] rounded-full bg-[#8B5CF6]/[0.07] blur-[140px]" />
 
         {/* Center */}
         <div className="absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#22D3EE]/[0.025] blur-[120px]" />
@@ -86,7 +90,7 @@ export default function CompanyForm() {
           }}
         />
 
-        <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-[#22D3EE]/50 to-transparent" />
+        <div className="absolute start-0 end-0 top-0 h-px bg-gradient-to-r from-transparent via-[#22D3EE]/50 to-transparent" />
       </div>
 
       {/* =====================================================
@@ -118,16 +122,19 @@ export default function CompanyForm() {
                 <span className="h-1.5 w-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
 
                 <span className="font-mono text-[8px] uppercase tracking-[0.16em] text-slate-600">
-                  Intelligent workspace
+                  {t("authFlow.invitation.workspace")}
                 </span>
               </div>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden rounded-full border border-white/[0.07] bg-white/[0.025] px-3 py-1.5 sm:block">
+              <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
+                {t("onboarding.setupBadge")}
+              </span>
+            </div>
 
-          <div className="hidden rounded-full border border-white/[0.07] bg-white/[0.025] px-3 py-1.5 sm:block">
-            <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
-              Workspace setup
-            </span>
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
@@ -147,7 +154,7 @@ export default function CompanyForm() {
               </span>
 
               <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#67E8F9]">
-                Configuration initiale
+                {t("onboarding.initialSetup")}
               </span>
             </div>
           </div>
@@ -155,11 +162,11 @@ export default function CompanyForm() {
           {/* Card */}
           <div className="relative overflow-hidden rounded-[28px] border border-white/[0.09] bg-[#071021]/75 shadow-[0_25px_100px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
 
-            <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-[#22D3EE]/60 to-transparent" />
+            <div className="absolute start-0 end-0 top-0 h-px bg-gradient-to-r from-transparent via-[#22D3EE]/60 to-transparent" />
 
-            <div className="pointer-events-none absolute -right-32 -top-32 h-72 w-72 rounded-full bg-[#22D3EE]/[0.06] blur-[90px]" />
+            <div className="pointer-events-none absolute -end-32 -top-32 h-72 w-72 rounded-full bg-[#22D3EE]/[0.06] blur-[90px]" />
 
-            <div className="pointer-events-none absolute -bottom-32 -left-32 h-72 w-72 rounded-full bg-[#8B5CF6]/[0.06] blur-[90px]" />
+            <div className="pointer-events-none absolute -bottom-32 -start-32 h-72 w-72 rounded-full bg-[#8B5CF6]/[0.06] blur-[90px]" />
 
             <div className="relative p-7 sm:p-10">
 
@@ -179,17 +186,17 @@ export default function CompanyForm() {
               {/* Heading */}
               <div className="mt-7 text-center">
                 <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-[#22D3EE]">
-                  Workspace intelligence
+                  {t("onboarding.eyebrow")}
                 </p>
 
-                <h1 className="mt-3 font-['Space_Grotesk',sans-serif] text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                  Bienvenue
-                  {user?.first_name ? `, ${user.first_name}` : ""} 👋
+                <h1 className="mt-3 font-['Space_Grotesk',sans-serif] text-3xl font-bold tracking-tight text-white sm:text-4xl">                  {user?.first_name
+                    ? t("onboarding.welcomeName", { name: user.first_name })
+                    : t("onboarding.welcome")}{" "}
+                  👋
                 </h1>
 
                 <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-slate-500">
-                  Configurez votre entreprise pour activer votre espace
-                  intelligent NEXUS AI.
+                  {t("onboarding.subtitle")}
                 </p>
               </div>
 
@@ -198,7 +205,7 @@ export default function CompanyForm() {
                 <div className="h-px flex-1 bg-white/[0.07]" />
 
                 <span className="font-mono text-[8px] uppercase tracking-[0.18em] text-slate-700">
-                  Company profile
+                  {t("onboarding.companyProfile")}
                 </span>
 
                 <div className="h-px flex-1 bg-white/[0.07]" />
@@ -222,14 +229,14 @@ export default function CompanyForm() {
                 {/* Company name */}
                 <div>
                   <label className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
-                    Nom de l'entreprise
+                    {t("onboarding.name")}
                   </label>
 
                   <input
                     required
                     value={form.name}
                     onChange={update("name")}
-                    placeholder="Ex. Anypli"
+                    placeholder={t("onboarding.namePlaceholder")}
                     className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 text-sm text-white outline-none placeholder:text-slate-700 transition focus:border-[#22D3EE]/40 focus:bg-[#22D3EE]/[0.025] focus:ring-2 focus:ring-[#22D3EE]/10"
                   />
                 </div>
@@ -239,21 +246,22 @@ export default function CompanyForm() {
 
                   <div>
                     <label className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
-                      Email
+                      {t("onboarding.email")}
+
                     </label>
 
                     <input
                       type="email"
                       value={form.email}
                       onChange={update("email")}
-                      placeholder="contact@entreprise.com"
+                      placeholder={t("onboarding.emailPlaceholder")}
                       className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 text-sm text-white outline-none placeholder:text-slate-700 transition focus:border-[#22D3EE]/40 focus:bg-[#22D3EE]/[0.025] focus:ring-2 focus:ring-[#22D3EE]/10"
                     />
                   </div>
 
                   <div>
                     <label className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
-                      Téléphone
+                      {t("onboarding.phone")}
                     </label>
 
                     <input
@@ -268,13 +276,14 @@ export default function CompanyForm() {
                 {/* Address */}
                 <div>
                   <label className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
-                    Adresse
+                    {t("onboarding.address")}
+
                   </label>
 
                   <input
                     value={form.address}
                     onChange={update("address")}
-                    placeholder="Adresse de l'entreprise"
+                    placeholder={t("onboarding.addressPlaceholder")}
                     className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 text-sm text-white outline-none placeholder:text-slate-700 transition focus:border-[#22D3EE]/40 focus:bg-[#22D3EE]/[0.025] focus:ring-2 focus:ring-[#22D3EE]/10"
                   />
                 </div>
@@ -284,20 +293,20 @@ export default function CompanyForm() {
 
                   <div>
                     <label className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
-                      Secteur d'activité
+                      {t("onboarding.industry")}
                     </label>
 
                     <input
                       value={form.industry}
                       onChange={update("industry")}
-                      placeholder="Agence digitale"
+                      placeholder={t("onboarding.industryPlaceholder")}
                       className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 text-sm text-white outline-none placeholder:text-slate-700 transition focus:border-[#22D3EE]/40 focus:bg-[#22D3EE]/[0.025] focus:ring-2 focus:ring-[#22D3EE]/10"
                     />
                   </div>
 
                   <div>
                     <label className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
-                      Nombre d'employés
+                      {t("onboarding.employees")}
                     </label>
 
                     <input
@@ -322,11 +331,11 @@ export default function CompanyForm() {
                     {loading ? (
                       <>
                         <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-                        Initialisation...
+                        {t("onboarding.submitting")}
                       </>
                     ) : (
                       <>
-                        Accéder à mon tableau de bord
+                        {t("onboarding.submit")}
 
                         <svg
                           width="16"
@@ -362,7 +371,7 @@ export default function CompanyForm() {
                 </svg>
 
                 <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-slate-600">
-                  Environnement sécurisé · NEXUS AI
+                  {t("onboarding.footer")}
                 </span>
               </div>
             </div>
@@ -370,7 +379,7 @@ export default function CompanyForm() {
 
           <div className="mt-6 text-center">
             <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-slate-700">
-              Project intelligence · predictive analytics · AI
+              {t("authFlow.invitation.tagline")}
             </span>
           </div>
         </div>

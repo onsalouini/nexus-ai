@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -17,8 +18,10 @@ import {
   getDirectorProjects,
   type DirectorProject,
 } from "../../services/directorProjects";
+import { statusLabel } from "../ui-nexus/kit";
 
 export default function ProjectsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [projects, setProjects] = useState<DirectorProject[]>([]);
@@ -41,7 +44,7 @@ export default function ProjectsPage() {
         console.error("Erreur chargement projets :", err);
 
         setError(
-          "Impossible de récupérer les projets de votre organisation."
+          t("director.projects.loadError")
         );
       } finally {
         setLoading(false);
@@ -49,7 +52,7 @@ export default function ProjectsPage() {
     }
 
     loadProjects();
-  }, []);
+  }, [t]);
 
   const filteredProjects = useMemo(() => {
     return projects.filter((project) => {
@@ -88,11 +91,11 @@ export default function ProjectsPage() {
     <div className="relative min-h-full overflow-hidden bg-[#020817] text-white">
       {/* Background glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.06] blur-[120px]" />
+        <div className="absolute -start-40 -top-40 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.06] blur-[120px]" />
 
-        <div className="absolute right-[-180px] top-[10%] h-[500px] w-[500px] rounded-full bg-violet-600/[0.07] blur-[130px]" />
+        <div className="absolute end-[-180px] top-[10%] h-[500px] w-[500px] rounded-full bg-violet-600/[0.07] blur-[130px]" />
 
-        <div className="absolute bottom-[-200px] left-[35%] h-[450px] w-[450px] rounded-full bg-blue-600/[0.05] blur-[120px]" />
+        <div className="absolute bottom-[-200px] start-[35%] h-[450px] w-[450px] rounded-full bg-blue-600/[0.05] blur-[120px]" />
       </div>
 
       <div className="relative px-5 py-7 sm:px-7 lg:px-10 lg:py-9">
@@ -105,20 +108,19 @@ export default function ProjectsPage() {
                 <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
 
                 <span className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400">
-                  NEXUS • Projects
+                  NEXUS • {t("director.sidebar.projects")}
                 </span>
               </div>
 
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Vos{" "}
+                {t("director.projects.title1")}{" "}
                 <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                  projets
+                  {t("director.projects.title2")}
                 </span>
               </h1>
 
               <p className="max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-                Centralisez et supervisez les projets de votre organisation,
-                leurs responsables et leurs équipes.
+                {t("director.projects.subtitle")}
               </p>
             </div>
           </header>
@@ -128,28 +130,28 @@ export default function ProjectsPage() {
 
             <StatCard
               icon={<FolderKanban className="h-4 w-4" />}
-              label="Total projets"
+              label={t("director.projects.total")}
               value={projects.length}
               accent="cyan"
             />
 
             <StatCard
               icon={<Clock3 className="h-4 w-4" />}
-              label="En cours"
+              label={t("common.projectStatus.en_cours")}
               value={activeProjects}
               accent="violet"
             />
 
             <StatCard
               icon={<CheckCircle2 className="h-4 w-4" />}
-              label="Terminés"
+              label={t("director.projects.completed")}
               value={completedProjects}
               accent="emerald"
             />
 
             <StatCard
               icon={<ShieldAlert className="h-4 w-4" />}
-              label="Risque élevé"
+              label={t("director.projects.highRisk")}
               value={highRiskProjects}
               accent="red"
             />
@@ -160,13 +162,13 @@ export default function ProjectsPage() {
             <div className="flex flex-col gap-4 lg:flex-row">
 
               <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
+                <Search className="absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
 
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher un projet ou un chef de projet..."
-                  className="h-12 w-full rounded-xl border border-white/10 bg-[#020817]/70 pl-11 pr-4 text-sm text-white outline-none placeholder:text-slate-700 transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/20"
+                  placeholder={t("director.projects.search")}
+                  className="h-12 w-full rounded-xl border border-white/10 bg-[#020817]/70 ps-11 pe-4 text-sm text-white outline-none placeholder:text-slate-700 transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/20"
                 />
               </div>
 
@@ -176,19 +178,19 @@ export default function ProjectsPage() {
                 className="h-12 rounded-xl border border-white/10 bg-[#020817]/70 px-4 text-sm text-white outline-none focus:border-violet-400/40"
               >
                 <option value="all" className="bg-[#020817]">
-                  Tous les statuts
+                  {t("director.projects.allStatuses")}
                 </option>
 
                 <option value="planned" className="bg-[#020817]">
-                  Planifiés
+                  {t("director.projects.planned")}
                 </option>
 
                 <option value="active" className="bg-[#020817]">
-                  En cours
+                  {t("common.projectStatus.en_cours")}
                 </option>
 
                 <option value="completed" className="bg-[#020817]">
-                  Terminés
+                  {t("director.projects.completed")}
                 </option>
               </select>
             </div>
@@ -200,7 +202,7 @@ export default function ProjectsPage() {
               <div className="h-9 w-9 animate-spin rounded-full border-2 border-white/10 border-t-cyan-400" />
 
               <p className="mt-4 text-sm text-slate-500">
-                Chargement des projets...
+                {t("director.projects.loading")}
               </p>
             </div>
           )}
@@ -224,12 +226,11 @@ export default function ProjectsPage() {
               </div>
 
               <h3 className="mt-5 text-sm font-semibold text-slate-300">
-                Aucun projet trouvé
+                {t("director.projects.notFound")}
               </h3>
 
               <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-slate-600">
-                Aucun projet ne correspond à votre recherche ou aux filtres
-                sélectionnés.
+                {t("director.projects.notFoundHint")}
               </p>
             </div>
           )}
@@ -269,11 +270,12 @@ function ProjectCard({
   project,
   onDetails,
 }: ProjectCardProps) {
+  const { t } = useTranslation();
   const status = getStatusInfo(project.status);
 
   return (
     <article className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/20 hover:bg-white/[0.045]">
-      <div className="absolute right-[-80px] top-[-100px] h-64 w-64 rounded-full bg-cyan-500/[0.05] blur-3xl transition group-hover:bg-cyan-500/[0.08]" />
+      <div className="absolute end-[-80px] top-[-100px] h-64 w-64 rounded-full bg-cyan-500/[0.05] blur-3xl transition group-hover:bg-cyan-500/[0.08]" />
 
       <div className="relative p-6">
 
@@ -291,8 +293,7 @@ function ProjectCard({
               </h2>
 
               <p className="mt-1 line-clamp-2 text-sm text-slate-500">
-                {project.description ||
-                  "Aucune description disponible pour ce projet."}
+                {project.description || t("director.projects.noDescription")}
               </p>
             </div>
           </div>
@@ -307,7 +308,7 @@ function ProjectCard({
         {/* Chef */}
         <div className="mt-7 border-t border-white/[0.06] pt-5">
           <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">
-            Chef de projet
+            {t("common.roles.chef_de_projet")}
           </p>
 
           <div className="flex items-center gap-3">
@@ -324,7 +325,7 @@ function ProjectCard({
 
               <p className="text-xs text-slate-600">
                 {project.chef_de_projet.job_title ||
-                  "Chef de projet"}
+                  t("common.roles.chef_de_projet")}
               </p>
             </div>
           </div>
@@ -334,13 +335,12 @@ function ProjectCard({
         <div className="mt-6">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">
-              Équipe
+              {t("director.sidebar.team")}
             </p>
 
             <span className="flex items-center gap-1 text-xs text-slate-600">
               <Users className="h-3.5 w-3.5" />
-              {project.team.length} membre
-              {project.team.length > 1 ? "s" : ""}
+              {t("director.projects.memberCount", { count: project.team.length })}
             </span>
           </div>
 
@@ -356,14 +356,14 @@ function ProjectCard({
               </div>
 
               {project.team.length > 5 && (
-                <span className="ml-3 text-xs text-slate-500">
+                <span className="ms-3 text-xs text-slate-500">
                   +{project.team.length - 5}
                 </span>
               )}
             </div>
           ) : (
             <p className="text-xs text-slate-600">
-              Aucun membre affecté.
+              {t("chef.trackingPage.noAssigned")}
             </p>
           )}
         </div>
@@ -372,7 +372,7 @@ function ProjectCard({
         <div className="mt-6">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">
-              Risque projet
+              {t("director.projects.risk")}
             </span>
 
             <span
@@ -382,7 +382,7 @@ function ProjectCard({
             >
               {project.risk_score !== null
                 ? `${project.risk_score}%`
-                : "N/A"}
+                : t("director.projects.na")}
             </span>
           </div>
 
@@ -407,9 +407,9 @@ function ProjectCard({
             onClick={onDetails}
             className="group/button flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm font-medium text-slate-300 transition hover:border-cyan-400/20 hover:bg-cyan-400/[0.05] hover:text-cyan-300"
           >
-            Voir les détails
+            {t("director.projects.details")}
 
-            <ArrowRight className="h-4 w-4 transition-transform group-hover/button:translate-x-1" />
+            <ArrowRight className="h-4 w-4 transition-transform group-hover/button:translate-x-1 rtl:rotate-180 rtl:group-hover/button:-translate-x-1" />
           </button>
         </div>
       </div>
@@ -498,7 +498,7 @@ function StatCard({
   return (
     <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-xl">
       <div
-        className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${styles[accent].glow}`}
+        className={`absolute -end-10 -top-10 h-28 w-28 rounded-full blur-3xl ${styles[accent].glow}`}
       />
 
       <div className="relative">
@@ -560,7 +560,7 @@ function getStatusInfo(status: string) {
 
   if (normalized === "active") {
     return {
-      label: "En cours",
+      label: statusLabel("en_cours"),
       className:
         "border-cyan-400/15 bg-cyan-400/[0.06] text-cyan-300",
     };
@@ -568,14 +568,14 @@ function getStatusInfo(status: string) {
 
   if (normalized === "completed") {
     return {
-      label: "Terminé",
+      label: statusLabel("termine"),
       className:
         "border-emerald-400/15 bg-emerald-400/[0.06] text-emerald-300",
     };
   }
 
   return {
-    label: "Planifié",
+    label: statusLabel("planifie"),
     className:
       "border-violet-400/15 bg-violet-400/[0.06] text-violet-300",
   };

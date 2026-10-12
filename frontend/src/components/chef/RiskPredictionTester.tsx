@@ -1,7 +1,9 @@
 // src/components/chef/RiskPredictionTester.tsx
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import axios from "axios";
 import { api } from "../../lib/api";
+import { riskLabel } from "../../i18n/labels";
 
 type PredictionResult = {
   predicted_effort_hours: number;
@@ -33,16 +35,17 @@ const INITIAL_STATE: FormState = {
   planned_effort: "",
 };
 
-const FIELDS: { key: keyof FormState; label: string; step?: string }[] = [
-  { key: "team_exp", label: "Expérience équipe (années)" },
-  { key: "manager_exp", label: "Expérience chef de projet (années)" },
-  { key: "length", label: "Durée du projet (mois)" },
-  { key: "transactions", label: "Nombre de transactions" },
-  { key: "entities", label: "Nombre d'entités" },
-  { key: "points_non_adjust", label: "Points de fonction bruts" },
-  { key: "adjustment", label: "Facteur d'ajustement", step: "0.05" },
-  { key: "language", label: "Langage (code numérique)" },
-  { key: "planned_effort", label: "Effort planifié (heures)" },
+// Libellés : chef.tester.fields.<key>
+const FIELDS: { key: keyof FormState; step?: string }[] = [
+  { key: "team_exp" },
+  { key: "manager_exp" },
+  { key: "length" },
+  { key: "transactions" },
+  { key: "entities" },
+  { key: "points_non_adjust" },
+  { key: "adjustment", step: "0.05" },
+  { key: "language" },
+  { key: "planned_effort" },
 ];
 
 function getRiskClass(level: string | null): string {
@@ -64,6 +67,7 @@ function getRiskClass(level: string | null): string {
 }
 
 export default function RiskPredictionTester() {
+  const { t } = useTranslation();
   const [form, setForm] = useState<FormState>(INITIAL_STATE);
   const [result, setResult] = useState<PredictionResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -89,11 +93,10 @@ export default function RiskPredictionTester() {
     } catch (err) {
       if (axios.isAxiosError(err)) {
         setError(
-          err.response?.data?.message ||
-            "Impossible de tester le modèle pour le moment."
+          err.response?.data?.message || t("chef.tester.error")
         );
       } else {
-        setError("Impossible de tester le modèle pour le moment.");
+        setError(t("chef.tester.error"));
       }
     } finally {
       setLoading(false);
@@ -108,15 +111,15 @@ export default function RiskPredictionTester() {
         </span>
         <span className="text-slate-700">/</span>
         <span className="text-[10px] uppercase tracking-[0.15em] text-slate-500">
-          Model Playground
+          {t("chef.tester.badge")}
         </span>
       </div>
 
       <h2 className="mb-1 text-lg font-semibold text-white">
-        Tester le modèle de prédiction de risque
+        {t("chef.tester.title")}
       </h2>
       <p className="mb-6 text-sm text-slate-400">
-        Envoie des paramètres arbitraires au modèle sans créer de projet.
+        {t("chef.tester.subtitle")}
       </p>
 
       <form
@@ -126,16 +129,33 @@ export default function RiskPredictionTester() {
         {FIELDS.map((field) => (
           <div key={field.key}>
             <label className="mb-1.5 block text-xs text-slate-400">
-              {field.label}
+              {t(`chef.tester.fields.${field.key}`)}
             </label>
-            <input
-              type="number"
-              step={field.step ?? "1"}
-              required
-              value={form[field.key]}
-              onChange={(e) => handleChange(field.key, e.target.value)}
-              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/40 focus:bg-white/[0.05]"
-            />
+            {field.key === "language" ? (
+              // Code numérique attendu par le modèle, présenté comme une liste lisible
+              <select
+                required
+                value={form.language}
+                onChange={(e) => handleChange("language", e.target.value)}
+                className="w-full rounded-xl border border-white/[0.08] bg-[#0B1628] px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/40"
+              >
+                <option value="">—</option>
+                {[1, 2, 3, 4, 5].map((code) => (
+                  <option key={code} value={code}>
+                    {t(`chef.projectForm.languages.${code}`)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="number"
+                step={field.step ?? "1"}
+                required
+                value={form[field.key]}
+                onChange={(e) => handleChange(field.key, e.target.value)}
+                className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/40 focus:bg-white/[0.05]"
+              />
+            )}
           </div>
         ))}
 
@@ -145,7 +165,7 @@ export default function RiskPredictionTester() {
             disabled={loading}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/10 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {loading ? "Analyse en cours…" : "Lancer la prédiction"}
+            {loading ? t("chef.tester.running") : t("chef.tester.run")}
           </button>
         </div>
       </form>
@@ -160,24 +180,24 @@ export default function RiskPredictionTester() {
         <div className="mt-6 grid grid-cols-1 gap-4 border-t border-white/[0.06] pt-6 sm:grid-cols-2">
           <div>
             <p className="text-[11px] uppercase tracking-wider text-slate-500">
-              Effort prédit
+              {t("chef.tester.predictedEffort")}
             </p>
             <p className="mt-1.5 text-2xl font-semibold text-cyan-300">
               {result.predicted_effort_hours}
-              <span className="ml-1 text-xs font-normal text-slate-500">h</span>
+              <span className="ms-1 text-xs font-normal text-slate-500">{t("common.hoursShort")}</span>
             </p>
           </div>
 
           <div>
             <p className="text-[11px] uppercase tracking-wider text-slate-500">
-              Niveau de risque
+              {t("chef.tester.riskLevel")}
             </p>
             <span
               className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium ${getRiskClass(
                 result.risk_level
               )}`}
             >
-              {result.risk_level}
+              {riskLabel(result.risk_level)}
             </span>
           </div>
         </div>

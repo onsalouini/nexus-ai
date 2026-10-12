@@ -13,13 +13,13 @@ class DirectorProjectController extends Controller
 
         if (!$user) {
             return response()->json([
-                'message' => 'Utilisateur non authentifié.'
+                'message' => __('Utilisateur non authentifié.')
             ], 401);
         }
 
         if (!$user->company_id) {
             return response()->json([
-                'message' => 'Aucune entreprise associée à cet utilisateur.'
+                'message' => __('Aucune entreprise associée à cet utilisateur.')
             ], 422);
         }
 
@@ -40,13 +40,13 @@ class DirectorProjectController extends Controller
 
         if (!$user) {
             return response()->json([
-                'message' => 'Utilisateur non authentifié.'
+                'message' => __('Utilisateur non authentifié.')
             ], 401);
         }
 
         if ($project->company_id !== $user->company_id) {
             return response()->json([
-                'message' => 'Accès non autorisé.'
+                'message' => __('Accès non autorisé.')
             ], 403);
         }
 

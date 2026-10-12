@@ -6,11 +6,51 @@ import fr from "./locales/fr.json";
 import en from "./locales/en.json";
 import ar from "./locales/ar.json";
 
+export const SUPPORTED_LANGUAGES = ["fr", "en", "ar"] as const;
+export type AppLanguage = (typeof SUPPORTED_LANGUAGES)[number];
+
 const RTL_LANGS = new Set(["ar"]);
 
-function normalizeLanguage(language?: string): string {
-  if (!language) return "fr";
-  return language.toLowerCase().split("-")[0];
+type Dict = Record<string, unknown>;
+
+/*
+| Chaque module a son fichier par langue : locales/<lng>/<module>.json
+| Son contenu est exposé sous la clé <module> (ex: t("chef.sidebar.dashboard")).
+*/
+const moduleFiles = import.meta.glob<Dict>("./locales/*/*.json", {
+  eager: true,
+  import: "default",
+});
+
+function buildResources() {
+  const base: Record<AppLanguage, Dict> = {
+    fr: { ...fr },
+    en: { ...en },
+    ar: { ...ar },
+  };
+
+  for (const [file, content] of Object.entries(moduleFiles)) {
+    const match = file.match(/\.\/locales\/([a-z]+)\/([\w-]+)\.json$/);
+    if (!match) continue;
+
+    const [, lng, ns] = match;
+    if (!(lng in base)) continue;
+
+    base[lng as AppLanguage][ns] = content;
+  }
+
+  return {
+    fr: { translation: base.fr },
+    en: { translation: base.en },
+    ar: { translation: base.ar },
+  };
+}
+
+export function normalizeLanguage(language?: string): AppLanguage {
+  const code = (language ?? "fr").toLowerCase().split("-")[0];
+  return (SUPPORTED_LANGUAGES as readonly string[]).includes(code)
+    ? (code as AppLanguage)
+    : "fr";
 }
 
 function syncDocumentLanguage(language?: string): void {
@@ -25,16 +65,13 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: {
-      fr: { translation: fr },
-      en: { translation: en },
-      ar: { translation: ar },
-    },
-    supportedLngs: ["fr", "en", "ar"],
+    resources: buildResources(),
+    supportedLngs: [...SUPPORTED_LANGUAGES],
     nonExplicitSupportedLngs: true,
     load: "languageOnly",
     fallbackLng: "fr",
     returnNull: false,
+    returnObjects: false,
     interpolation: { escapeValue: false },
     detection: {
       order: ["localStorage", "navigator"],

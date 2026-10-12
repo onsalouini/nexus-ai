@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import i18n from "../../i18n";
 
 export const cardCls =
   "rounded-2xl border border-white/[0.08] bg-[#071021]/70 backdrop-blur-xl";
@@ -40,7 +41,7 @@ export function Modal({
       >
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">{title}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white" aria-label="Fermer">✕</button>
+          <button onClick={onClose} className="text-slate-400 hover:text-white" aria-label={i18n.t("common.close")}>✕</button>
         </div>
         {children}
       </div>
@@ -82,16 +83,27 @@ export function ProgressBar({ value }: { value: number }) {
   );
 }
 
-export function errMsg(e: unknown, fallback = "Une erreur est survenue."): string {
+export function errMsg(e: unknown, fallback = i18n.t("common.genericError")): string {
   const anyE = e as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
   const errors = anyE?.response?.data?.errors;
   if (errors) return Object.values(errors).flat().join(" ");
   return anyE?.response?.data?.message ?? fallback;
 }
 
-export const STATUS_LABEL: Record<string, string> = {
-  planifie: "Planifié",
-  en_cours: "En cours",
-  termine: "Terminé",
-  suspendu: "Suspendu",
-};
+export const PROJECT_STATUSES = ["planifie", "en_cours", "termine", "suspendu"] as const;
+
+/* Libellé traduit d'un statut projet (suit la langue active) */
+export function statusLabel(status: string): string {
+  return i18n.t(`common.projectStatus.${status}`, { defaultValue: status });
+}
+
+/* Objet { statut: libellé } recalculé à chaque accès pour suivre la langue */
+export const STATUS_LABEL: Record<string, string> = new Proxy({} as Record<string, string>, {
+  get: (_, key) => (typeof key === "string" ? statusLabel(key) : undefined),
+  ownKeys: () => [...PROJECT_STATUSES],
+  getOwnPropertyDescriptor: (_, key) => ({
+    enumerable: true,
+    configurable: true,
+    value: statusLabel(String(key)),
+  }),
+});

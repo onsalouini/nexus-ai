@@ -24,7 +24,7 @@ class VerificationCodeService
 
         app(BrevoMailService::class)->send(
             $email,
-            'Votre code de vérification NEXUS AI',
+            __('Votre code de vérification NEXUS AI'),
             $html,
             $firstName
         );

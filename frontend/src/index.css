@@ -889,3 +889,37 @@ html {
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
+/* Calendrier de planification (thème sombre NEXUS) */
+.nexus-calendar .fc {
+  --fc-border-color: rgba(255, 255, 255, 0.07);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: rgba(255, 255, 255, 0.03);
+  --fc-list-event-hover-bg-color: rgba(255, 255, 255, 0.05);
+  --fc-today-bg-color: rgba(34, 211, 238, 0.08);
+  --fc-button-bg-color: rgba(255, 255, 255, 0.05);
+  --fc-button-border-color: rgba(255, 255, 255, 0.1);
+  --fc-button-hover-bg-color: rgba(34, 211, 238, 0.15);
+  --fc-button-hover-border-color: rgba(34, 211, 238, 0.3);
+  --fc-button-active-bg-color: rgba(34, 211, 238, 0.2);
+  --fc-button-active-border-color: rgba(34, 211, 238, 0.4);
+  --fc-event-text-color: #e2e8f0;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+.nexus-calendar .fc .fc-toolbar-title {
+  font-size: 1.05rem;
+  color: #fff;
+  text-transform: capitalize;
+}
+.nexus-calendar .fc .fc-col-header-cell-cushion,
+.nexus-calendar .fc .fc-daygrid-day-number,
+.nexus-calendar .fc .fc-list-day-text,
+.nexus-calendar .fc .fc-list-day-side-text {
+  color: #94a3b8;
+}
+.nexus-calendar .fc .fc-list-day-cushion {
+  background: rgba(255, 255, 255, 0.03);
+}
+.nexus-calendar .fc .fc-event {
+  cursor: pointer;
+}

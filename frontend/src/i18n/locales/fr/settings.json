@@ -1,0 +1,26 @@
+{
+  "profileSaved": "Profil mis à jour.",
+  "photoSaved": "Photo mise à jour.",
+  "passwordSaved": "Mot de passe mis à jour.",
+  "companySaved": "Entreprise mise à jour.",
+  "connectedAs": "Connecté en tant que {{role}}",
+  "language": "Langue de l'interface",
+  "languageHint": "Choisissez la langue d'affichage de NEXUS AI. Le choix est mémorisé sur cet appareil.",
+  "languages": {
+    "fr": "🇫🇷 Français",
+    "en": "🇬🇧 English",
+    "ar": "🇹🇳 العربية"
+  },
+  "profile": "Profil",
+  "changePhoto": "Changer la photo",
+  "capacity": "Capacité hebdo (h)",
+  "bio": "Bio",
+  "saveProfile": "Enregistrer le profil",
+  "security": "Sécurité",
+  "currentPassword": "Mot de passe actuel",
+  "newPassword": "Nouveau mot de passe",
+  "confirmation": "Confirmation",
+  "changePassword": "Changer le mot de passe",
+  "company": "Entreprise",
+  "saveCompany": "Enregistrer l'entreprise"
+}

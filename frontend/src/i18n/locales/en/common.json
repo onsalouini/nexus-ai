@@ -1,0 +1,80 @@
+{
+  "brandTagline": "Enterprise Intelligence",
+  "home": "Home",
+  "close": "Close",
+  "cancel": "Cancel",
+  "save": "Save",
+  "saving": "Saving...",
+  "delete": "Delete",
+  "edit": "Edit",
+  "create": "Create",
+  "add": "Add",
+  "search": "Search...",
+  "refresh": "Refresh",
+  "retry": "Retry",
+  "back": "Back",
+  "next": "Next",
+  "previous": "Previous",
+  "confirm": "Confirm",
+  "all": "All",
+  "none": "None",
+  "yes": "Yes",
+  "no": "No",
+  "loading": "Loading...",
+  "logout": "Sign out",
+  "genericError": "Something went wrong.",
+  "noData": "No data available.",
+  "notDefined": "Not set",
+  "language": "Language",
+  "changeLanguage": "Change language",
+  "closeLanguageMenu": "Close language menu",
+  "roles": {
+    "direction": "Management",
+    "chef_de_projet": "Project manager",
+    "agent_support": "Support agent",
+    "membre_equipe": "Team member",
+    "client": "Client",
+    "employee": "Employee"
+  },
+  "projectStatus": {
+    "planifie": "Planned",
+    "en_cours": "In progress",
+    "termine": "Completed",
+    "suspendu": "On hold"
+  },
+  "risk": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "employee": {
+    "hello": "Hello {{name}}",
+    "text": "Your account is active. Your workspace will be available here soon."
+  },
+  "notFound": {
+    "eyebrow": "Error",
+    "title": "Page not found",
+    "text": "The page you are looking for does not exist or has been moved.",
+    "backHome": "Back to home",
+    "backDashboard": "Back to my workspace"
+  },
+  "riskLevel": {
+    "low": "Low",
+    "medium": "Moderate",
+    "high": "High",
+    "critical": "Critical",
+    "unknown": "Undetermined"
+  },
+  "health": {
+    "good": "Good",
+    "average": "Average",
+    "concerning": "Concerning",
+    "critical": "Critical"
+  },
+  "hoursShort": "h",
+  "months": "months",
+  "networkError": "Server unreachable. Check your connection.",
+  "forbidden": "You don't have access to this resource.",
+  "serverError": "Server error. Please try again shortly."
+}

@@ -1,0 +1,14 @@
+{
+  "title": "Notifications",
+  "empty": "Aucune notification pour le moment.",
+  "markAllRead": "Tout marquer comme lu",
+  "types": {
+    "task_late": "Tâche en retard : « {{task}} » ({{project}}) — échéance le {{due_date}}",
+    "task_due_soon": "Échéance proche : « {{task}} » ({{project}}) le {{due_date}}",
+    "project_high_risk": "Risque {{risk_level}} détecté sur le projet « {{project}} »",
+    "project_late_tasks": "{{count}} tâche(s) en retard sur « {{project}} »",
+    "invitation_accepted": "{{name}} a accepté son invitation ({{role}})",
+    "ticket_critical": "Ticket critique en attente : « {{title}} »",
+    "ai_report_auto": "Bilan IA régénéré automatiquement pour « {{project}} »"
+  }
+}

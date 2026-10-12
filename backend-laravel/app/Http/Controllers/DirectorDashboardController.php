@@ -16,13 +16,13 @@ class DirectorDashboardController extends Controller
 
         if (!$user) {
             return response()->json([
-                'message' => 'Utilisateur non authentifié.'
+                'message' => __('Utilisateur non authentifié.')
             ], 401);
         }
 
         if (!$user->company_id) {
             return response()->json([
-                'message' => 'Aucune entreprise associée à cet utilisateur.'
+                'message' => __('Aucune entreprise associée à cet utilisateur.')
             ], 422);
         }
 
@@ -38,7 +38,7 @@ class DirectorDashboardController extends Controller
 
         if (!$company) {
             return response()->json([
-                'message' => 'Entreprise introuvable.'
+                'message' => __('Entreprise introuvable.')
             ], 404);
         }
 

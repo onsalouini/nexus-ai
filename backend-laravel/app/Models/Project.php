@@ -83,6 +83,11 @@ class Project extends Model
         return $this->hasMany(ProjectActivity::class)->latest();
     }
 
+    public function reports()
+    {
+        return $this->hasMany(ProjectReport::class)->latest();
+    }
+
     public function teamGroup()
     {
         return $this->belongsTo(Team::class, 'team_id');

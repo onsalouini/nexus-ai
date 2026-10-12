@@ -1,0 +1,37 @@
+{
+  "explanation": {
+    "enteredValue": "valeur saisie : {{value}}",
+    "behavior": {
+      "increasing": "Effort ↑ quand la valeur ↑",
+      "decreasing": "Effort ↓ quand la valeur ↑",
+      "nonLinear": "Réponse irrégulière",
+      "negligible": "Impact négligeable"
+    },
+    "influence": {
+      "increases": "Augmente l'effort",
+      "reduces": "Réduit l'effort",
+      "irregular": "Impact irrégulier",
+      "low": "Impact faible"
+    },
+    "why": "Pourquoi cette estimation ?",
+    "keyFactors": "Facteurs clés",
+    "sensitivity": "Sensibilité du modèle (effort en heures)",
+    "sensitivityHint": "Pour ce projet, chaque variable est augmentée ou réduite de 20 % (les autres restent fixes) et l'effort estimé est recalculé. Les barres montrent l'écart en heures par rapport à l'estimation.",
+    "importance": "Importance globale des variables",
+    "limits": "Limites de l'estimation"
+  },
+  "section": {
+    "title": "Résultat du modèle de risque",
+    "subtitle": "Estimation d'effort calculée par le modèle ML",
+    "riskBadge": "Risque {{level}}",
+    "noPrediction": "Aucune prédiction enregistrée pour ce projet.",
+    "modelEffort": "Effort estimé par le modèle",
+    "report": "Bilan explicable",
+    "reportHint": "Analyse complète rédigée par NEXUS AI à partir du modèle",
+    "regenerate": "Régénérer le bilan",
+    "generate": "Générer le bilan",
+    "noReport": "Aucun bilan n'a encore été généré pour ce projet. Le bilan explique pourquoi le modèle estime cet effort, quels facteurs pèsent le plus, les risques et les recommandations.",
+    "healthBadge": "Santé du projet : {{health}}",
+    "effortGap": "Analyse de l'écart d'effort"
+  }
+}

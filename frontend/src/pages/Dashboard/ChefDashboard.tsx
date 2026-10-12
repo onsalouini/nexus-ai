@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { api } from "../../lib/api";
+import i18n from "../../i18n";
 import ProjectsGrid from "../../components/chef/ProjectsGrid.tsx";
 import { useOutletContext } from "react-router";
 
@@ -50,6 +52,7 @@ type Project = {
 };
 
 export default function ChefDashboard() {
+  const { t } = useTranslation();
   const { refreshKey } =
     useOutletContext<ChefLayoutContext>();
 
@@ -77,9 +80,7 @@ export default function ChefDashboard() {
         err
       );
 
-      setError(
-        "Impossible de charger les projets pour le moment."
-      );
+      setError(i18n.t("chef.dashboard.loadError"));
     } finally {
       setLoading(false);
     }
@@ -106,7 +107,7 @@ export default function ChefDashboard() {
           </span>
 
           <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-cyan-300">
-            Project Intelligence
+            {t("chef.projects.intelligence")}
           </span>
         </div>
 
@@ -115,13 +116,11 @@ export default function ChefDashboard() {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="font-['Space_Grotesk',sans-serif] text-3xl font-bold tracking-[-0.03em] text-white sm:text-[38px]">
-              Mes projets
+              {t("chef.dashboard.title")}
             </h1>
 
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
-              Créez et pilotez vos projets tout en obtenant
-              une estimation intelligente du risque grâce à
-              NEXUS AI.
+              {t("chef.dashboard.subtitle")}
             </p>
           </div>
 
@@ -131,7 +130,7 @@ export default function ChefDashboard() {
 
               <div>
                 <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/25">
-                  Workspace
+                  {t("chef.sidebar.workspace")}
                 </p>
 
                 <div className="mt-0.5 flex items-center gap-2">
@@ -140,9 +139,7 @@ export default function ChefDashboard() {
                   </span>
 
                   <span className="text-xs text-white/35">
-                    {projects.length === 1
-                      ? "projet"
-                      : "projets"}
+                    {t("chef.dashboard.projectCount", { count: projects.length })}
                   </span>
                 </div>
               </div>
@@ -171,11 +168,11 @@ export default function ChefDashboard() {
             </div>
 
             <p className="text-sm font-medium text-white/60">
-              Chargement de vos projets
+              {t("chef.dashboard.loading")}
             </p>
 
             <p className="mt-1 text-xs text-white/25">
-              NEXUS Intelligence prépare votre espace...
+              {t("chef.dashboard.loadingHint")}
             </p>
           </div>
         </div>
@@ -197,7 +194,7 @@ export default function ChefDashboard() {
             </div>
 
             <p className="mt-4 text-sm font-medium text-red-200">
-              Une erreur est survenue
+              {t("common.genericError")}
             </p>
 
             <p className="mt-1 max-w-md text-xs leading-5 text-white/30">
@@ -209,7 +206,7 @@ export default function ChefDashboard() {
               onClick={loadProjects}
               className="mt-5 rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-2 text-xs font-medium text-white/55 transition-all duration-200 hover:border-cyan-400/20 hover:bg-cyan-400/[0.04] hover:text-white"
             >
-              Réessayer
+              {t("common.retry")}
             </button>
           </div>
         </div>

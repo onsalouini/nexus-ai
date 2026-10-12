@@ -1,0 +1,15 @@
+{
+  "title": "Double authentification",
+  "subtitle": "Protégez votre compte avec un code à usage unique généré par une application (Google Authenticator, Microsoft Authenticator, Authy…).",
+  "enabled": "Activée",
+  "disabled": "Désactivée",
+  "recommended": "Fortement recommandée pour la direction : votre compte donne accès aux finances et à toute l'entreprise.",
+  "enable": "Activer la double authentification",
+  "scan": "Scannez ce QR code avec votre application d'authentification.",
+  "manual": "Ou saisissez cette clé manuellement :",
+  "code": "Code à 6 chiffres",
+  "confirm": "Confirmer et activer",
+  "disable": "Désactiver",
+  "enabledToast": "Double authentification activée.",
+  "disabledToast": "Double authentification désactivée."
+}

@@ -1,0 +1,63 @@
+{
+  "title": "Support client",
+  "subtitle": "File de tickets triée automatiquement par urgence et sentiment.",
+  "new": "Nouveau ticket",
+  "loadError": "Impossible de charger les tickets.",
+  "required": "Le titre et la description sont obligatoires.",
+  "created": "Ticket créé — classé « {{category}} », urgence {{urgency}}.",
+  "empty": "Aucun ticket dans cette vue.",
+  "anonymous": "Client anonyme",
+  "unassigned": "Non assigné",
+  "classification": "Tri automatique",
+  "corrected": "corrigé par un agent",
+  "correctionHint": "Vos corrections sont enregistrées pour améliorer le tri automatique.",
+  "autoTriage": "La catégorie, l'urgence et le sentiment sont détectés automatiquement à la création.",
+  "take": "Prendre en charge",
+  "taken": "Ticket pris en charge.",
+  "statusSaved": "Statut mis à jour.",
+  "stats": {
+    "open": "Ouverts",
+    "inProgress": "En traitement",
+    "critical": "Critiques ouverts",
+    "resolved": "Résolus"
+  },
+  "filters": {
+    "queue": "File d'attente",
+    "mine": "Mes tickets",
+    "resolved": "Résolus"
+  },
+  "fields": {
+    "title": "Titre",
+    "description": "Message du client",
+    "customerName": "Nom du client",
+    "customerEmail": "Email du client",
+    "category": "Catégorie",
+    "urgency": "Urgence",
+    "sentiment": "Sentiment",
+    "status": "Statut"
+  },
+  "category": {
+    "bug": "Bug",
+    "billing": "Facturation",
+    "feature": "Demande de fonctionnalité",
+    "account": "Compte / accès",
+    "other": "Autre"
+  },
+  "urgency": {
+    "critical": "Critique",
+    "high": "Haute",
+    "medium": "Moyenne",
+    "low": "Faible"
+  },
+  "sentiment": {
+    "negative": "Négatif",
+    "neutral": "Neutre",
+    "positive": "Positif"
+  },
+  "status": {
+    "open": "Ouvert",
+    "in_progress": "En traitement",
+    "resolved": "Résolu",
+    "closed": "Fermé"
+  }
+}

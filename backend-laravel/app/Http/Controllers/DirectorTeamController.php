@@ -13,13 +13,13 @@ class DirectorTeamController extends Controller
 
         if (!$user) {
             return response()->json([
-                'message' => 'Utilisateur non authentifié.'
+                'message' => __('Utilisateur non authentifié.')
             ], 401);
         }
 
         if (!$user->company_id) {
             return response()->json([
-                'message' => 'Aucune entreprise associée.'
+                'message' => __('Aucune entreprise associée.')
             ], 422);
         }
 
@@ -64,7 +64,7 @@ class DirectorTeamController extends Controller
 
         if (!$user || $member->company_id !== $user->company_id) {
             return response()->json([
-                'message' => 'Accès non autorisé.'
+                'message' => __('Accès non autorisé.')
             ], 403);
         }
 

@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "../../lib/api";
 
 type Props = {
@@ -7,13 +8,8 @@ type Props = {
   onCreated: () => void;
 };
 
-const LANGUAGES = [
-  { value: 1, label: "React / Laravel" },
-  { value: 2, label: "Python" },
-  { value: 3, label: "Java / Spring" },
-  { value: 4, label: "PHP natif" },
-  { value: 5, label: "Autre" },
-];
+// Libellés traduits : chef.projectForm.languages.<value>
+const LANGUAGES = [1, 2, 3, 4, 5];
 
 const initial = {
   name: "",
@@ -72,6 +68,7 @@ export default function CreateProjectModal({
   onClose,
   onCreated,
 }: Props) {
+  const { t } = useTranslation();
   const [form, setForm] = useState(initial);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,7 +107,7 @@ export default function CreateProjectModal({
             ).response?.data?.message
           : undefined;
 
-      setError(message ?? "Impossible de créer le projet.");
+      setError(message ?? t("chef.projectForm.createError"));
     } finally {
       setLoading(false);
     }
@@ -123,15 +120,15 @@ export default function CreateProjectModal({
 
       {/* Ambient Nexus glow */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute left-[15%] top-[15%] h-72 w-72 rounded-full bg-cyan-500/10 blur-[100px]" />
-        <div className="absolute bottom-[10%] right-[15%] h-80 w-80 rounded-full bg-violet-600/10 blur-[120px]" />
+        <div className="absolute start-[15%] top-[15%] h-72 w-72 rounded-full bg-cyan-500/10 blur-[100px]" />
+        <div className="absolute bottom-[10%] end-[15%] h-80 w-80 rounded-full bg-violet-600/10 blur-[120px]" />
       </div>
 
       {/* Modal */}
       <div className="relative my-8 w-full max-w-3xl overflow-hidden rounded-3xl border border-white/10 bg-[#07111f]/95 shadow-[0_25px_100px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
 
         {/* Top gradient line */}
-        <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80" />
+        <div className="absolute start-0 end-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80" />
 
         {/* Header */}
         <div className="border-b border-white/[0.07] px-7 pb-6 pt-7">
@@ -161,16 +158,18 @@ export default function CreateProjectModal({
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-semibold text-white">
-                    Nouveau projet
+                    {t("chef.projectForm.title")}
+
                   </h2>
 
                   <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-cyan-300">
-                    AI Analysis
+                    {t("chef.projectForm.aiBadge")}
+
                   </span>
                 </div>
 
                 <p className="mt-1 text-sm text-slate-400">
-                  Configurez les paramètres du projet pour lancer l'analyse Nexus.
+                  {t("chef.projectForm.subtitle")}
                 </p>
               </div>
             </div>
@@ -191,8 +190,7 @@ export default function CreateProjectModal({
             </div>
 
             <p className="text-xs leading-relaxed text-slate-400">
-              Ces données alimentent le modèle IA de prédiction de risque.
-              Plus les informations sont précises, plus l'estimation sera fiable.
+              {t("chef.projectForm.aiNote")}
             </p>
           </div>
         </div>
@@ -213,7 +211,7 @@ export default function CreateProjectModal({
               <div className="h-px flex-1 bg-gradient-to-r from-cyan-400/30 to-transparent" />
 
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300">
-                Informations générales
+                {t("chef.projectForm.sections.general")}
               </span>
 
               <div className="h-px flex-1 bg-gradient-to-l from-cyan-400/30 to-transparent" />
@@ -221,21 +219,21 @@ export default function CreateProjectModal({
 
             <div className="space-y-4">
 
-              <Field label="Nom du projet">
+              <Field label={t("chef.projectForm.name")}>
                 <input
                   required
                   className={inputClass}
-                  placeholder="Ex. Nexus CRM"
+                  placeholder={t("chef.projectForm.namePlaceholder")}
                   value={form.name}
                   onChange={(e) => update("name", e.target.value)}
                 />
               </Field>
 
-              <Field label="Description">
+              <Field label={t("chef.projectForm.description")}>
                 <textarea
                   rows={2}
                   className={textareaClass}
-                  placeholder="Décrivez brièvement le projet..."
+                  placeholder={t("chef.projectForm.descriptionPlaceholder")}
                   value={form.description}
                   onChange={(e) =>
                     update("description", e.target.value)
@@ -245,7 +243,7 @@ export default function CreateProjectModal({
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
-                <Field label="Durée prévue (mois)">
+                <Field label={t("chef.projectForm.length")}>
                   <input
                     type="number"
                     min={1}
@@ -258,7 +256,7 @@ export default function CreateProjectModal({
                   />
                 </Field>
 
-                <Field label="Technologie principale">
+                <Field label={t("chef.projectForm.language")}>
                   <select
                     className={`${inputClass} cursor-pointer`}
                     value={form.language}
@@ -266,7 +264,7 @@ export default function CreateProjectModal({
                       update("language", Number(e.target.value))
                     }
                   >
-                    {LANGUAGES.map((l) => (
+                    {LANGUAGES.map((value) => ({ value, label: t(`chef.projectForm.languages.${value}`) })).map((l) => (
                       <option
                         key={l.value}
                         value={l.value}
@@ -288,7 +286,8 @@ export default function CreateProjectModal({
               <div className="h-px flex-1 bg-gradient-to-r from-violet-400/30 to-transparent" />
 
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-300">
-                Équipe
+                {t("chef.projectForm.sections.team")}
+
               </span>
 
               <div className="h-px flex-1 bg-gradient-to-l from-violet-400/30 to-transparent" />
@@ -297,8 +296,8 @@ export default function CreateProjectModal({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
               <Field
-                label="Expérience moyenne de l'équipe"
-                hint="Moyenne d'expérience professionnelle des développeurs qui travailleront sur ce projet."
+                label={t("chef.projectForm.teamExp")}
+                hint={t("chef.projectForm.teamExpHint")}
               >
                 <div className="relative">
                   <input
@@ -306,21 +305,22 @@ export default function CreateProjectModal({
                     min={0}
                     step={0.5}
                     required
-                    className={`${inputClass} pr-20`}
+                    className={`${inputClass} pe-20`}
                     value={form.team_exp}
                     onChange={(e) =>
                       update("team_exp", Number(e.target.value))
                     }
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500">
-                    années
+                  <span className="absolute end-4 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+                    {t("chef.projectForm.years")}
+
                   </span>
                 </div>
               </Field>
 
               <Field
-                label="Expérience en gestion"
-                hint="Votre expérience personnelle en tant que chef de projet."
+                label={t("chef.projectForm.managerExp")}
+                hint={t("chef.projectForm.managerExpHint")}
               >
                 <div className="relative">
                   <input
@@ -328,14 +328,15 @@ export default function CreateProjectModal({
                     min={0}
                     step={0.5}
                     required
-                    className={`${inputClass} pr-20`}
+                    className={`${inputClass} pe-20`}
                     value={form.manager_exp}
                     onChange={(e) =>
                       update("manager_exp", Number(e.target.value))
                     }
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500">
-                    années
+                  <span className="absolute end-4 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+                    {t("chef.projectForm.years")}
+
                   </span>
                 </div>
               </Field>
@@ -349,7 +350,7 @@ export default function CreateProjectModal({
               <div className="h-px flex-1 bg-gradient-to-r from-blue-400/30 to-transparent" />
 
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-300">
-                Taille technique
+                {t("chef.projectForm.sections.size")}
               </span>
 
               <div className="h-px flex-1 bg-gradient-to-l from-blue-400/30 to-transparent" />
@@ -358,8 +359,8 @@ export default function CreateProjectModal({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
               <Field
-                label="Nombre de transactions"
-                hint="Nombre d'actions utilisateur distinctes prévues : créer, modifier, rechercher, supprimer..."
+                label={t("chef.projectForm.transactions")}
+                hint={t("chef.projectForm.transactionsHint")}
               >
                 <input
                   type="number"
@@ -374,8 +375,8 @@ export default function CreateProjectModal({
               </Field>
 
               <Field
-                label="Nombre d'entités"
-                hint="Nombre de types d'objets métier distincts : Client, Commande, Produit..."
+                label={t("chef.projectForm.entities")}
+                hint={t("chef.projectForm.entitiesHint")}
               >
                 <input
                   type="number"
@@ -390,8 +391,8 @@ export default function CreateProjectModal({
               </Field>
 
               <Field
-                label="Points de fonction"
-                hint="Taille brute du projet en points de fonction."
+                label={t("chef.projectForm.points")}
+                hint={t("chef.projectForm.pointsHint")}
               >
                 <input
                   type="number"
@@ -409,8 +410,8 @@ export default function CreateProjectModal({
               </Field>
 
               <Field
-                label="Facteur d'ajustement"
-                hint="Complexité technique additionnelle : 0.65 simple, 1 standard, 1.35 complexe."
+                label={t("chef.projectForm.adjustment")}
+                hint={t("chef.projectForm.adjustmentHint")}
               >
                 <input
                   type="number"
@@ -434,30 +435,31 @@ export default function CreateProjectModal({
               <div className="h-px flex-1 bg-gradient-to-r from-fuchsia-400/30 to-transparent" />
 
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-fuchsia-300">
-                Budget & effort
+                {t("chef.projectForm.sections.budget")}
               </span>
 
               <div className="h-px flex-1 bg-gradient-to-l from-fuchsia-400/30 to-transparent" />
             </div>
 
             <Field
-              label="Budget d'effort prévu"
-              hint="Nombre d'heures prévu ou budgété. Nexus le comparera à son estimation IA."
+              label={t("chef.projectForm.plannedEffort")}
+              hint={t("chef.projectForm.plannedEffortHint")}
             >
               <div className="relative">
                 <input
                   type="number"
                   min={1}
                   required
-                  className={`${inputClass} pr-20`}
+                  className={`${inputClass} pe-20`}
                   value={form.planned_effort}
                   onChange={(e) =>
                     update("planned_effort", Number(e.target.value))
                   }
                 />
 
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500">
-                  heures
+                <span className="absolute end-4 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+                  {t("chef.projectForm.hours")}
+
                 </span>
               </div>
             </Field>
@@ -471,7 +473,8 @@ export default function CreateProjectModal({
               onClick={onClose}
               className="rounded-xl border border-white/10 bg-white/[0.03] px-6 py-3 text-sm font-medium text-slate-300 transition hover:border-white/20 hover:bg-white/[0.07] hover:text-white"
             >
-              Annuler
+              {t("common.cancel")}
+
             </button>
 
             <button
@@ -483,12 +486,13 @@ export default function CreateProjectModal({
                 {loading ? (
                   <>
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    Création...
+                    {t("chef.projectForm.creating")}
+
                   </>
                 ) : (
                   <>
                     <span>✦</span>
-                    Créer le projet
+                    {t("chef.projectForm.submit")}
                   </>
                 )}
               </span>

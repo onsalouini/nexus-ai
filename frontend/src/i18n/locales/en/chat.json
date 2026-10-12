@@ -1,0 +1,24 @@
+{
+  "suggestions": {
+    "0": "How should I split tasks in a team of 5 developers?",
+    "1": "What are the main risks of a project that exceeds its effort budget?",
+    "2": "Help me plan a 6-month project in sprints.",
+    "3": "How do I prioritize my backlog when everything seems urgent?"
+  },
+  "loadError": "Unable to load this conversation.",
+  "pdfOnly": "Only PDF files are accepted.",
+  "pdfTooLarge": "The PDF must not exceed 10 MB.",
+  "pdfError": "Unable to analyze this PDF.",
+  "unavailable": "NEXUS AI is temporarily unavailable. Please try again shortly.",
+  "new": "New conversation",
+  "empty": "No conversations yet.",
+  "conversations": "Conversations",
+  "subtitle": "Project & team management assistant",
+  "welcome": "How can I help you?",
+  "welcomeHint": "Planning, tasks, team, risks… You can also attach a PDF (specifications, schedule) for analysis.",
+  "analyzed": "analyzed",
+  "attach": "Attach a PDF",
+  "placeholder": "Type your message…",
+  "send": "Send",
+  "hint": "Enter to send · Shift+Enter for a new line"
+}

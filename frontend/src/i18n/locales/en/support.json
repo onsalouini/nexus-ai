@@ -1,0 +1,63 @@
+{
+  "title": "Customer support",
+  "subtitle": "Ticket queue automatically sorted by urgency and sentiment.",
+  "new": "New ticket",
+  "loadError": "Unable to load tickets.",
+  "required": "Title and description are required.",
+  "created": "Ticket created — classified as \"{{category}}\", {{urgency}} urgency.",
+  "empty": "No tickets in this view.",
+  "anonymous": "Anonymous customer",
+  "unassigned": "Unassigned",
+  "classification": "Automatic triage",
+  "corrected": "corrected by an agent",
+  "correctionHint": "Your corrections are saved to improve automatic triage.",
+  "autoTriage": "Category, urgency and sentiment are detected automatically on creation.",
+  "take": "Take ownership",
+  "taken": "Ticket assigned to you.",
+  "statusSaved": "Status updated.",
+  "stats": {
+    "open": "Open",
+    "inProgress": "In progress",
+    "critical": "Open critical",
+    "resolved": "Resolved"
+  },
+  "filters": {
+    "queue": "Queue",
+    "mine": "My tickets",
+    "resolved": "Resolved"
+  },
+  "fields": {
+    "title": "Title",
+    "description": "Customer message",
+    "customerName": "Customer name",
+    "customerEmail": "Customer email",
+    "category": "Category",
+    "urgency": "Urgency",
+    "sentiment": "Sentiment",
+    "status": "Status"
+  },
+  "category": {
+    "bug": "Bug",
+    "billing": "Billing",
+    "feature": "Feature request",
+    "account": "Account / access",
+    "other": "Other"
+  },
+  "urgency": {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "sentiment": {
+    "negative": "Negative",
+    "neutral": "Neutral",
+    "positive": "Positive"
+  },
+  "status": {
+    "open": "Open",
+    "in_progress": "In progress",
+    "resolved": "Resolved",
+    "closed": "Closed"
+  }
+}

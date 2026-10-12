@@ -1,0 +1,142 @@
+{
+  "signin": {
+    "notMember": "Not a member yet?",
+    "createAccount": "Create an account",
+    "badge": "Secure access",
+    "title1": "Good to see you",
+    "title2": "again.",
+    "subtitle": "Sign in to access your workspace, your projects and all the intelligence of NEXUS AI.",
+    "cardEyebrow": "Authentication",
+    "cardTitle": "Sign-in details",
+    "secureNote": "Your connection is secured and protected by NEXUS AI.",
+    "guide": {
+      "title": "How does NEXUS work?",
+      "badge": "GUIDE",
+      "subtitle": "Just follow these steps to access your NEXUS AI environment.",
+      "currentStep": "You are currently at the step",
+      "currentStepName": "Sign in",
+      "open": "Show the NEXUS AI guide",
+      "steps": {
+        "0": {
+          "title": "Open your session",
+          "text": "Sign in to your workspace."
+        },
+        "1": {
+          "title": "Access the dashboard",
+          "text": "Find your data and projects."
+        },
+        "2": {
+          "title": "Explore NEXUS AI",
+          "text": "Analyze your smart signals."
+        },
+        "3": {
+          "title": "Steer your company",
+          "text": "Make better decisions."
+        }
+      }
+    }
+  },
+  "signup": {
+    "alreadyMember": "Already a member?",
+    "signIn": "Sign in",
+    "badge": "Company workspace setup",
+    "title1": "Build your",
+    "title2": "business intelligence.",
+    "subtitle": "Create your Management workspace to start connecting your projects, customer support and financial data in NEXUS AI.",
+    "stepLabel": "Step 01",
+    "cardTitle": "Company information",
+    "secureNote": "Your workspace is secure and access is controlled through NEXUS AI invitations.",
+    "guide": {
+      "subtitle": "Just follow these steps to start your journey with NEXUS AI.",
+      "currentStepName": "Account creation",
+      "steps": {
+        "0": {
+          "title": "Create your account",
+          "text": "Set up your Management workspace."
+        },
+        "1": {
+          "title": "Invite your team",
+          "text": "Add project managers and agents."
+        },
+        "2": {
+          "title": "Connect your data",
+          "text": "Projects, tickets and financial data."
+        },
+        "3": {
+          "title": "Turn on the intelligence",
+          "text": "NEXUS analyzes your signals."
+        }
+      }
+    }
+  },
+  "invitation": {
+    "welcome": "Welcome",
+    "initializing": "Initializing NEXUS AI",
+    "accessDenied": "Access denied",
+    "invalidTitle": "Invalid invitation",
+    "invalidText": "This invitation is invalid or has expired. Ask the person who invited you for a new link.",
+    "workspace": "Intelligent workspace",
+    "secure": "Secure invitation",
+    "accessGranted": "Access granted",
+    "yourSpace": "Your NEXUS workspace",
+    "ready": "Your intelligent environment is ready. Discover the features available for your role.",
+    "capabilities": "Capabilities",
+    "continue": "Continue to my workspace",
+    "footer": "Secure invitation · NEXUS AI",
+    "tagline": "Project intelligence · predictive analytics · AI",
+    "roles": {
+      "chef_de_projet": {
+        "title": "Welcome, future Project Manager",
+        "points": {
+          "0": "Create your projects and track their overrun risk, predicted and explained by AI",
+          "1": "Build your team and assign who does what on each project",
+          "2": "Invite your clients to follow the progress of their project",
+          "3": "Get alerts before a problem becomes critical"
+        }
+      },
+      "agent_support": {
+        "title": "Welcome, future Support Agent",
+        "points": {
+          "0": "Handle a ticket queue already sorted by urgency and sentiment",
+          "1": "Correct classifications when needed — your feedback improves the model",
+          "2": "Track your resolution statistics"
+        }
+      },
+      "membre_equipe": {
+        "title": "Welcome to the team",
+        "points": {
+          "0": "Find the projects you are assigned to",
+          "1": "Track your tasks and their deadlines",
+          "2": "Collaborate with your project manager in real time"
+        }
+      }
+    }
+  },
+  "complete": {
+    "stepBadge": "Step {{number}}",
+    "steps": {
+      "info": "Your information",
+      "verify": "Email verification",
+      "password": "Secure your account"
+    },
+    "createError": "Unable to create the account.",
+    "badge": "Profile setup",
+    "title1": "Complete your",
+    "title2": "NEXUS AI workspace.",
+    "subtitle": "Complete your information to access your intelligent workspace and join your organization.",
+    "preview": "Preview",
+    "photo": "Profile photo",
+    "photoHint": "Add a photo to personalize your profile.",
+    "choosePhoto": "Choose a photo",
+    "firstNamePlaceholder": "Your first name",
+    "lastNamePlaceholder": "Your last name",
+    "email": "Email address",
+    "emailPlaceholder": "you@company.com",
+    "codeSent": "A 6-digit code was sent to",
+    "cv": "Resume",
+    "cvOptional": "(PDF, optional)",
+    "uploadCv": "Upload your resume",
+    "pdfOnly": "PDF format only",
+    "secureNote": "Your data is protected and your access is secured by NEXUS AI."
+  }
+}

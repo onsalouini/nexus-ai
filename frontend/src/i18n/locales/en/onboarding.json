@@ -1,0 +1,23 @@
+{
+  "saveError": "Unable to save the company right now.",
+  "setupBadge": "Workspace setup",
+  "initialSetup": "Initial setup",
+  "eyebrow": "Workspace intelligence",
+  "welcome": "Welcome",
+  "welcomeName": "Welcome, {{name}}",
+  "subtitle": "Set up your company to activate your NEXUS AI intelligent workspace.",
+  "companyProfile": "Company profile",
+  "name": "Company name",
+  "namePlaceholder": "e.g. Anypli",
+  "email": "Email",
+  "emailPlaceholder": "contact@company.com",
+  "phone": "Phone",
+  "address": "Address",
+  "addressPlaceholder": "Company address",
+  "industry": "Industry",
+  "industryPlaceholder": "Digital agency",
+  "employees": "Number of employees",
+  "submitting": "Setting up...",
+  "submit": "Go to my dashboard",
+  "footer": "Secure environment · NEXUS AI"
+}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import {
   BriefcaseBusiness,
@@ -19,8 +20,16 @@ import {
   type TeamMember,
   type TeamMemberDetails,
 } from "../../services/directorTeam";
+import i18n from "../../i18n";
+import { statusLabel } from "../ui-nexus/kit";
+import { roleLabel } from "../../i18n/labels";
+import { toast } from "../../lib/toast";
+import { errMsg } from "../ui-nexus/kit";
+import { SkeletonRows } from "../ui-nexus/Skeleton";
+import { exportRows } from "../../utils/export";
 
 export default function TeamPage() {
+  const { t } = useTranslation();
   const [leaders, setLeaders] = useState<TeamLeader[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -51,7 +60,7 @@ export default function TeamPage() {
       }
     } catch (err) {
       console.error("Erreur chargement équipe :", err);
-      setError("Impossible de charger l'équipe.");
+      setError(i18n.t("director.team.loadError"));
     } finally {
       setLoading(false);
     }
@@ -65,10 +74,32 @@ export default function TeamPage() {
 
       setSelectedMember(data);
     } catch (err) {
-      console.error("Erreur chargement membre :", err);
+      // Auparavant silencieux : l'utilisateur ne savait pas pourquoi rien ne s'ouvrait
+      toast.error(errMsg(err, t("director.team.profileError")));
     } finally {
       setLoadingMember(false);
     }
+  }
+
+  // Export : une ligne par personne (chefs de projet et leurs collaborateurs)
+  function exportTeam(format: "csv" | "xlsx") {
+    type Row = { first_name: string; last_name: string; email: string; job_title?: string | null; role: string; manager: string };
+    const rows: Row[] = leaders.flatMap((leader) => [
+      { ...leader, role: "chef_de_projet", manager: "" },
+      ...leader.team_members.map((m) => ({
+        ...m,
+        role: (m as { role?: string }).role ?? "membre_equipe",
+        manager: `${leader.first_name} ${leader.last_name}`,
+      })),
+    ]);
+    void exportRows(format, t("director.sidebar.team"), [
+      { header: t("auth.signup.step1.firstName"), value: (r: Row) => r.first_name },
+      { header: t("chef.editProject.name"), value: (r: Row) => r.last_name },
+      { header: t("auth.email"), value: (r: Row) => r.email },
+      { header: t("chef.members.job"), value: (r: Row) => r.job_title ?? "" },
+      { header: t("director.team.role"), value: (r: Row) => roleLabel(r.role) },
+      { header: t("common.roles.chef_de_projet"), value: (r: Row) => r.manager },
+    ], rows);
   }
 
   const normalizedSearch = search.toLowerCase().trim();
@@ -123,11 +154,11 @@ export default function TeamPage() {
     <div className="relative min-h-full overflow-hidden bg-[#020817] text-white">
       {/* Background glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.06] blur-[120px]" />
+        <div className="absolute -start-40 -top-40 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.06] blur-[120px]" />
 
-        <div className="absolute right-[-180px] top-[10%] h-[500px] w-[500px] rounded-full bg-violet-600/[0.07] blur-[130px]" />
+        <div className="absolute end-[-180px] top-[10%] h-[500px] w-[500px] rounded-full bg-violet-600/[0.07] blur-[130px]" />
 
-        <div className="absolute bottom-[-200px] left-[35%] h-[450px] w-[450px] rounded-full bg-blue-600/[0.05] blur-[120px]" />
+        <div className="absolute bottom-[-200px] start-[35%] h-[450px] w-[450px] rounded-full bg-blue-600/[0.05] blur-[120px]" />
       </div>
 
       <div className="relative px-5 py-7 sm:px-7 lg:px-10 lg:py-9">
@@ -139,31 +170,48 @@ export default function TeamPage() {
                 <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
 
                 <span className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">
-                  NEXUS • Organization
+                  NEXUS • {t("director.home.organization")}
                 </span>
               </div>
 
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Équipe
+                {t("director.sidebar.team")}
               </h1>
 
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                Visualisez les chefs de projet et les collaborateurs
-                de votre entreprise.
+                {t("director.team.subtitle")}
               </p>
             </div>
 
+            <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
+            <button
+              type="button"
+              onClick={() => exportTeam("csv")}
+              disabled={!leaders.length}
+              className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-slate-300 transition hover:bg-white/[0.05] disabled:opacity-40"
+            >
+              CSV
+            </button>
+            <button
+              type="button"
+              onClick={() => exportTeam("xlsx")}
+              disabled={!leaders.length}
+              className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-slate-300 transition hover:bg-white/[0.05] disabled:opacity-40"
+            >
+              Excel
+            </button>
             {/* Search */}
             <div className="relative w-full lg:w-80">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
+              <Search className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
 
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher un membre..."
-                className="w-full rounded-2xl border border-white/10 bg-white/[0.035] py-3 pl-11 pr-4 text-sm text-white outline-none backdrop-blur-xl placeholder:text-slate-700 transition focus:border-cyan-400/30 focus:bg-white/[0.05]"
+                placeholder={t("director.team.search")}
+                className="w-full rounded-2xl border border-white/10 bg-white/[0.035] py-3 ps-11 pe-4 text-sm text-white outline-none backdrop-blur-xl placeholder:text-slate-700 transition focus:border-cyan-400/30 focus:bg-white/[0.05]"
               />
+            </div>
             </div>
           </div>
 
@@ -171,19 +219,19 @@ export default function TeamPage() {
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <StatCard
               icon={<Users className="h-4 w-4" />}
-              label="Collaborateurs"
+              label={t("director.team.collaborators")}
               value={totalMembers}
             />
 
             <StatCard
               icon={<BriefcaseBusiness className="h-4 w-4" />}
-              label="Chefs de projet"
+              label={t("director.team.managers")}
               value={leaders.length}
             />
 
             <StatCard
               icon={<ShieldAlert className="h-4 w-4" />}
-              label="Équipes"
+              label={t("director.team.teams")}
               value={leaders.length}
             />
           </div>
@@ -232,7 +280,7 @@ export default function TeamPage() {
             <div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-white/10 border-t-cyan-400" />
 
             <p className="mt-3 text-sm text-slate-500">
-              Chargement du profil...
+              {t("director.team.loadingProfile")}
             </p>
           </div>
         </div>
@@ -256,12 +304,13 @@ function TeamLeaderCard({
   onToggle: () => void;
   onMemberClick: (member: TeamMember) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] shadow-2xl backdrop-blur-xl">
       {/* Leader header */}
       <button
         onClick={onToggle}
-        className="group flex w-full items-center justify-between gap-4 p-5 text-left transition hover:bg-white/[0.025] sm:p-6"
+        className="group flex w-full items-center justify-between gap-4 p-5 text-start transition hover:bg-white/[0.025] sm:p-6"
       >
         <div className="flex min-w-0 items-center gap-4">
           <Avatar
@@ -276,13 +325,13 @@ function TeamLeaderCard({
               </h2>
 
               <span className="rounded-full border border-violet-400/15 bg-violet-400/[0.06] px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-violet-300">
-                Chef de projet
+                {t("common.roles.chef_de_projet")}
               </span>
             </div>
 
             <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
               <span>
-                {leader.job_title || "Chef de projet"}
+                {leader.job_title || t("common.roles.chef_de_projet")}
               </span>
 
               <span className="flex items-center gap-1">
@@ -294,13 +343,13 @@ function TeamLeaderCard({
         </div>
 
         <div className="flex shrink-0 items-center gap-4">
-          <div className="hidden text-right sm:block">
+          <div className="hidden text-end sm:block">
             <p className="text-lg font-semibold text-white">
               {leader.team_members.length}
             </p>
 
             <p className="text-[10px] uppercase tracking-wider text-slate-700">
-              membres
+              {t("director.team.members")}
             </p>
           </div>
 
@@ -322,7 +371,7 @@ function TeamLeaderCard({
               <Users className="mx-auto h-7 w-7 text-slate-700" />
 
               <p className="mt-3 text-sm text-slate-600">
-                Aucun membre n'est actuellement affecté à cette équipe.
+                {t("director.team.noMembers")}
               </p>
             </div>
           ) : (
@@ -353,10 +402,11 @@ function MemberCard({
   member: TeamMember;
   onClick: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <button
       onClick={onClick}
-      className="group w-full rounded-2xl border border-white/[0.06] bg-black/10 p-4 text-left transition hover:-translate-y-0.5 hover:border-cyan-400/20 hover:bg-white/[0.035]"
+      className="group w-full rounded-2xl border border-white/[0.06] bg-black/10 p-4 text-start transition hover:-translate-y-0.5 hover:border-cyan-400/20 hover:bg-white/[0.035]"
     >
       <div className="flex items-center gap-3">
         <Avatar member={member} />
@@ -367,7 +417,7 @@ function MemberCard({
           </p>
 
           <p className="mt-1 truncate text-xs text-slate-600">
-            {member.job_title || "Collaborateur"}
+            {member.job_title || t("director.team.collaborator")}
           </p>
         </div>
 
@@ -383,8 +433,8 @@ function MemberCard({
           {member.email}
         </span>
 
-        <span className="ml-auto text-[10px] font-medium text-cyan-500 opacity-0 transition group-hover:opacity-100">
-          Profil →
+        <span className="ms-auto text-[10px] font-medium text-cyan-500 opacity-0 transition group-hover:opacity-100">
+          {t("director.team.profile")} {i18n.dir() === "rtl" ? "←" : "→"}
         </span>
       </div>
     </button>
@@ -402,6 +452,7 @@ function MemberDetailsModal({
   member: TeamMemberDetails;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md"
@@ -412,18 +463,18 @@ function MemberDetailsModal({
         className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/10 bg-[#06101f] shadow-2xl"
       >
         {/* Glow */}
-        <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-cyan-500/[0.08] blur-3xl" />
+        <div className="pointer-events-none absolute -end-20 -top-20 h-64 w-64 rounded-full bg-cyan-500/[0.08] blur-3xl" />
 
         {/* Header */}
         <div className="relative border-b border-white/[0.06] p-6 sm:p-8">
           <button
             onClick={onClose}
-            className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-slate-500 transition hover:border-red-400/20 hover:text-red-300"
+            className="absolute end-5 top-5 flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-slate-500 transition hover:border-red-400/20 hover:text-red-300"
           >
             <X className="h-4 w-4" />
           </button>
 
-          <div className="flex items-center gap-4 pr-10">
+          <div className="flex items-center gap-4 pe-10">
             <Avatar member={member} size="large" />
 
             <div className="min-w-0">
@@ -433,12 +484,12 @@ function MemberDetailsModal({
                 </h2>
 
                 <span className="rounded-full border border-cyan-400/15 bg-cyan-400/[0.06] px-2.5 py-1 text-[10px] uppercase tracking-wider text-cyan-300">
-                  {member.role}
+                  {roleLabel(member.role)}
                 </span>
               </div>
 
               <p className="mt-1 text-sm text-slate-500">
-                {member.job_title || "Collaborateur"}
+                {member.job_title || t("director.team.collaborator")}
               </p>
 
               <div className="mt-2 flex items-center gap-2 text-xs text-slate-600">
@@ -454,27 +505,27 @@ function MemberDetailsModal({
           <div>
             <SectionTitle
               icon={<UserRound className="h-4 w-4" />}
-              title="Informations"
+              title={t("director.team.information")}
             />
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <DetailItem
-                label="Nom complet"
+                label={t("director.team.fullName")}
                 value={`${member.first_name} ${member.last_name}`}
               />
 
               <DetailItem
-                label="Poste"
-                value={member.job_title || "Non renseigné"}
+                label={t("chef.members.job")}
+                value={member.job_title || t("director.home.notProvided")}
               />
 
               <DetailItem
-                label="Email"
+                label={t("auth.email")}
                 value={member.email}
               />
 
               <DetailItem
-                label="Rôle"
+                label={t("director.team.role")}
                 value={formatRole(member.role)}
               />
             </div>
@@ -484,7 +535,7 @@ function MemberDetailsModal({
           <div>
             <SectionTitle
               icon={<Users className="h-4 w-4" />}
-              title="Chef de projet"
+              title={t("common.roles.chef_de_projet")}
             />
 
             <div className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
@@ -500,13 +551,13 @@ function MemberDetailsModal({
 
                     <p className="mt-1 text-xs text-slate-600">
                       {member.manager.job_title ||
-                        "Chef de projet"}
+                        t("common.roles.chef_de_projet")}
                     </p>
                   </div>
                 </div>
               ) : (
                 <p className="text-sm text-slate-600">
-                  Aucun chef de projet associé.
+                  {t("director.team.noManager")}
                 </p>
               )}
             </div>
@@ -516,7 +567,7 @@ function MemberDetailsModal({
           <div>
             <SectionTitle
               icon={<FileText className="h-4 w-4" />}
-              title="Documents"
+              title={t("director.team.documents")}
             />
 
             <div className="mt-4">
@@ -534,23 +585,23 @@ function MemberDetailsModal({
 
                     <div>
                       <p className="text-sm font-medium text-white">
-                        Curriculum Vitae
+                        {t("director.team.cv")}
                       </p>
 
                       <p className="mt-1 text-xs text-slate-600">
-                        Consulter le CV du collaborateur
+                        {t("director.team.cvHint")}
                       </p>
                     </div>
                   </div>
 
                   <span className="text-xs font-medium text-cyan-400 transition group-hover:text-cyan-300">
-                    Voir le CV →
+                    {t("director.team.viewCv")}
                   </span>
                 </a>
               ) : (
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
                   <p className="text-sm text-slate-600">
-                    Aucun CV disponible.
+                    {t("director.team.noCv")}
                   </p>
                 </div>
               )}
@@ -561,7 +612,7 @@ function MemberDetailsModal({
           <div>
             <SectionTitle
               icon={<BriefcaseBusiness className="h-4 w-4" />}
-              title="Projets"
+              title={t("director.sidebar.projects")}
             />
 
             <div className="mt-4 space-y-3">
@@ -570,7 +621,7 @@ function MemberDetailsModal({
                   <BriefcaseBusiness className="mx-auto h-6 w-6 text-slate-700" />
 
                   <p className="mt-2 text-sm text-slate-600">
-                    Aucun projet associé.
+                    {t("director.team.noProjects")}
                   </p>
                 </div>
               ) : (
@@ -590,9 +641,9 @@ function MemberDetailsModal({
                     </div>
 
                     {project.risk_score !== null && (
-                      <div className="shrink-0 text-right">
+                      <div className="shrink-0 text-end">
                         <p className="text-[10px] uppercase tracking-wider text-slate-700">
-                          Risk
+                          {t("chef.projects.risk")}
                         </p>
 
                         <p
@@ -740,13 +791,10 @@ function DetailItem({
 ========================================================= */
 
 function LoadingState() {
+  const { t } = useTranslation();
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-16 text-center">
-      <div className="mx-auto h-9 w-9 animate-spin rounded-full border-2 border-white/10 border-t-cyan-400" />
-
-      <p className="mt-4 text-sm text-slate-600">
-        Chargement de l'organisation...
-      </p>
+    <div aria-label={t("director.team.loading")}>
+      <SkeletonRows count={4} />
     </div>
   );
 }
@@ -758,12 +806,13 @@ function ErrorState({
   message: string;
   onRetry: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-3xl border border-red-400/15 bg-red-400/[0.03] p-12 text-center">
       <ShieldAlert className="mx-auto h-8 w-8 text-red-400" />
 
       <h2 className="mt-4 text-lg font-semibold text-white">
-        Impossible de charger l'équipe
+        {t("director.team.loadError")}
       </h2>
 
       <p className="mt-2 text-sm text-red-300">
@@ -774,27 +823,24 @@ function ErrorState({
         onClick={onRetry}
         className="mt-5 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-300 transition hover:border-cyan-400/20 hover:text-cyan-300"
       >
-        Réessayer
+        {t("common.retry")}
       </button>
     </div>
   );
 }
 
 function EmptyState({ search }: { search: string }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-16 text-center">
       <Users className="mx-auto h-9 w-9 text-slate-700" />
 
       <h2 className="mt-4 text-lg font-semibold text-white">
-        {search
-          ? "Aucun résultat"
-          : "Aucun chef de projet"}
+        {search ? t("director.team.noResults") : t("director.team.noManagers")}
       </h2>
 
       <p className="mt-2 text-sm text-slate-600">
-        {search
-          ? "Aucun membre ne correspond à votre recherche."
-          : "Les équipes apparaîtront ici une fois configurées."}
+        {search ? t("director.team.noResultsHint") : t("director.team.noManagersHint")}
       </p>
     </div>
   );
@@ -805,36 +851,11 @@ function EmptyState({ search }: { search: string }) {
 ========================================================= */
 
 function formatRole(role: string) {
-  switch (role) {
-    case "chef_de_projet":
-      return "Chef de projet";
-
-    case "agent_support":
-      return "Agent support";
-
-    case "direction":
-      return "Direction";
-
-    default:
-      return role;
-  }
+  return roleLabel(role);
 }
 
 function formatStatus(status: string) {
-  switch (status) {
-    case "en_cours":
-      return "En cours";
-
-    case "termine":
-    case "terminé":
-      return "Terminé";
-
-    case "planifie":
-      return "Planifié";
-
-    default:
-      return status;
-  }
+  return statusLabel(status === "terminé" ? "termine" : status);
 }
 
 function getRiskColor(score: number) {

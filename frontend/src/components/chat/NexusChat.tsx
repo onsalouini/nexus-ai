@@ -1,6 +1,7 @@
 // src/components/chat/NexusChat.tsx
 // Interface du chatbot NEXUS AI (branchée sur les routes Laravel /api/ai/*)
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { KeyboardEvent, ReactNode } from "react";
 import axios from "axios";
 import {
@@ -16,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { api } from "../../lib/api";
+import { formatDate as formatLocaleDate } from "../../i18n/format";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                              */
@@ -46,12 +48,8 @@ type UploadedDoc = {
 /* Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-const SUGGESTIONS = [
-  "Comment répartir les tâches dans une équipe de 5 développeurs ?",
-  "Quels sont les principaux risques d'un projet qui dépasse son budget d'effort ?",
-  "Aide-moi à planifier un projet de 6 mois en sprints.",
-  "Comment prioriser mon backlog quand tout semble urgent ?",
-];
+// Textes : chat.suggestions.<i>
+const SUGGESTION_COUNT = 4;
 
 function errorMessage(err: unknown, fallback: string): string {
   if (axios.isAxiosError(err)) {
@@ -102,7 +100,7 @@ function MessageContent({ content }: { content: string }) {
     blocks.push(
       <Tag
         key={`l${blocks.length}`}
-        className={`my-2 space-y-1 pl-5 ${
+        className={`my-2 space-y-1 ps-5 ${
           list.ordered ? "list-decimal" : "list-disc"
         } marker:text-cyan-300/70`}
       >
@@ -183,7 +181,7 @@ function MessageContent({ content }: { content: string }) {
 function formatDate(value: string): string {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+  return formatLocaleDate(d, { day: "2-digit", month: "short" });
 }
 
 /* ------------------------------------------------------------------ */
@@ -191,6 +189,7 @@ function formatDate(value: string): string {
 /* ------------------------------------------------------------------ */
 
 export default function NexusChat() {
+  const { t } = useTranslation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -267,7 +266,7 @@ export default function NexusChat() {
       );
       setMessages(res.data.messages ?? []);
     } catch (err) {
-      setError(errorMessage(err, "Impossible de charger cette conversation."));
+      setError(errorMessage(err, t("chat.loadError")));
     } finally {
       setLoadingConv(false);
     }
@@ -319,7 +318,7 @@ export default function NexusChat() {
           role: "assistant",
           content: errorMessage(
             err,
-            "NEXUS AI est temporairement indisponible. Réessaie dans un instant."
+            t("chat.unavailable")
           ),
           error: true,
         },
@@ -333,11 +332,11 @@ export default function NexusChat() {
     if (!file) return;
 
     if (file.type !== "application/pdf") {
-      setError("Seuls les fichiers PDF sont acceptés.");
+      setError(t("chat.pdfOnly"));
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      setError("Le PDF ne doit pas dépasser 10 Mo.");
+      setError(t("chat.pdfTooLarge"));
       return;
     }
 
@@ -360,7 +359,7 @@ export default function NexusChat() {
         { name: file.name, chars: res.data.text_length },
       ]);
     } catch (err) {
-      setError(errorMessage(err, "Impossible d'analyser ce PDF."));
+      setError(errorMessage(err, t("chat.pdfError")));
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -390,8 +389,8 @@ export default function NexusChat() {
       />
 
       <aside
-        className={`absolute inset-y-0 left-0 z-30 flex w-[270px] flex-col border-r border-white/[0.06] bg-[#08111f] transition-transform md:static md:translate-x-0 ${
-          panelOpen ? "translate-x-0" : "-translate-x-full"
+        className={`absolute inset-y-0 start-0 z-30 flex w-[270px] flex-col border-e border-white/[0.06] bg-[#08111f] transition-transform md:static md:translate-x-0 ${
+          panelOpen ? "translate-x-0" : "-translate-x-full rtl:translate-x-full"
         }`}
       >
         <div className="p-3">
@@ -401,16 +400,16 @@ export default function NexusChat() {
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/10 transition hover:brightness-110"
           >
             <Plus className="h-4 w-4" />
-            Nouvelle conversation
+            {t("chat.new")}
           </button>
         </div>
 
         <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-2 pb-3">
           {loadingList ? (
-            <p className="px-3 py-4 text-xs text-slate-500">Chargement…</p>
+            <p className="px-3 py-4 text-xs text-slate-500">{t("common.loading")}</p>
           ) : conversations.length === 0 ? (
             <p className="px-3 py-4 text-xs text-slate-500">
-              Aucune conversation pour le moment.
+              {t("chat.empty")}
             </p>
           ) : (
             conversations.map((c) => (
@@ -418,7 +417,7 @@ export default function NexusChat() {
                 key={c.id}
                 type="button"
                 onClick={() => void openConversation(c.id)}
-                className={`group flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition ${
+                className={`group flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-start transition ${
                   c.id === activeId
                     ? "border-cyan-400/20 bg-cyan-400/[0.07] text-white"
                     : "border-transparent text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
@@ -426,7 +425,7 @@ export default function NexusChat() {
               >
                 <MessageSquare className="h-4 w-4 shrink-0 text-cyan-300/70" />
                 <span className="min-w-0 flex-1 truncate text-sm">
-                  {c.title || "Nouvelle conversation"}
+                  {c.title || t("chat.new")}
                 </span>
                 <span className="shrink-0 text-[10px] text-slate-600">
                   {formatDate(c.updated_at)}
@@ -444,7 +443,7 @@ export default function NexusChat() {
         <header className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3">
           <button
             type="button"
-            aria-label="Conversations"
+            aria-label={t("chat.conversations")}
             onClick={() => setPanelOpen(true)}
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-white/60 transition hover:text-white md:hidden"
           >
@@ -458,7 +457,7 @@ export default function NexusChat() {
           <div className="min-w-0">
             <h1 className="text-sm font-semibold text-white">NEXUS AI</h1>
             <p className="text-[11px] text-slate-500">
-              Assistant gestion de projets & équipes
+              {t("chat.subtitle")}
             </p>
           </div>
         </header>
@@ -475,20 +474,19 @@ export default function NexusChat() {
                 <Sparkles className="h-6 w-6" />
               </span>
               <h2 className="text-lg font-semibold text-white">
-                Comment puis-je t'aider ?
+                {t("chat.welcome")}
               </h2>
               <p className="mt-1 text-sm text-slate-400">
-                Planification, tâches, équipe, risques… Tu peux aussi joindre
-                un PDF (cahier des charges, planning) à analyser.
+                {t("chat.welcomeHint")}
               </p>
 
               <div className="mt-6 grid w-full gap-2 sm:grid-cols-2">
-                {SUGGESTIONS.map((s) => (
+                {Array.from({ length: SUGGESTION_COUNT }, (_, i) => t(`chat.suggestions.${i}`)).map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => void sendMessage(s)}
-                    className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 text-left text-xs leading-5 text-slate-300 transition hover:border-cyan-400/25 hover:bg-cyan-400/[0.05] hover:text-white"
+                    className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 text-start text-xs leading-5 text-slate-300 transition hover:border-cyan-400/25 hover:bg-cyan-400/[0.05] hover:text-white"
                   >
                     {s}
                   </button>
@@ -556,7 +554,7 @@ export default function NexusChat() {
                 <span>{error}</span>
                 <button
                   type="button"
-                  aria-label="Fermer"
+                  aria-label={t("common.close")}
                   onClick={() => setError(null)}
                 >
                   <X className="h-3.5 w-3.5" />
@@ -574,7 +572,7 @@ export default function NexusChat() {
                     <FileText className="h-3.5 w-3.5 shrink-0" />
                     <span className="truncate">{d.name}</span>
                     <span className="shrink-0 text-emerald-300/60">
-                      · analysé
+                      · {t("chat.analyzed")}
                     </span>
                   </span>
                 ))}
@@ -592,8 +590,8 @@ export default function NexusChat() {
 
               <button
                 type="button"
-                aria-label="Joindre un PDF"
-                title="Joindre un PDF"
+                aria-label={t("chat.attach")}
+                title={t("chat.attach")}
                 disabled={uploading || sending}
                 onClick={() => fileRef.current?.click()}
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/[0.05] hover:text-cyan-300 disabled:opacity-40"
@@ -611,13 +609,13 @@ export default function NexusChat() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder="Écris ton message…"
+                placeholder={t("chat.placeholder")}
                 className="max-h-40 min-h-[40px] flex-1 resize-none bg-transparent px-2 py-2.5 text-sm text-white outline-none placeholder:text-slate-500"
               />
 
               <button
                 type="button"
-                aria-label="Envoyer"
+                aria-label={t("chat.send")}
                 disabled={!input.trim() || sending}
                 onClick={() => void sendMessage(input)}
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
@@ -627,7 +625,7 @@ export default function NexusChat() {
             </div>
 
             <p className="mt-2 text-center text-[10px] text-slate-600">
-              Entrée pour envoyer · Maj+Entrée pour un retour à la ligne
+              {t("chat.hint")}
             </p>
           </div>
         </footer>

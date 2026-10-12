@@ -1,0 +1,66 @@
+<?php
+
+// Messages de validation en français (règles utilisées par l'API NEXUS).
+// Les règles absentes retombent sur la langue de secours (anglais).
+return [
+    'accepted' => 'Le champ :attribute doit être accepté.',
+    'after_or_equal' => 'Le champ :attribute doit être une date postérieure ou égale au :date.',
+    'array' => 'Le champ :attribute doit être un tableau.',
+    'between' => [
+        'numeric' => 'La valeur de :attribute doit être comprise entre :min et :max.',
+        'string' => 'Le texte :attribute doit contenir entre :min et :max caractères.',
+    ],
+    'boolean' => 'Le champ :attribute doit être vrai ou faux.',
+    'confirmed' => 'La confirmation du champ :attribute ne correspond pas.',
+    'current_password' => 'Le mot de passe est incorrect.',
+    'date' => "Le champ :attribute n'est pas une date valide.",
+    'digits' => 'Le champ :attribute doit contenir :digits chiffres.',
+    'email' => 'Le champ :attribute doit être une adresse email valide.',
+    'exists' => 'Le champ :attribute sélectionné est invalide.',
+    'file' => 'Le champ :attribute doit être un fichier.',
+    'image' => 'Le champ :attribute doit être une image.',
+    'in' => 'Le champ :attribute est invalide.',
+    'integer' => 'Le champ :attribute doit être un entier.',
+    'max' => [
+        'array' => 'Le champ :attribute ne peut pas contenir plus de :max éléments.',
+        'file' => 'Le fichier :attribute ne peut pas dépasser :max Ko.',
+        'numeric' => 'La valeur de :attribute ne peut pas être supérieure à :max.',
+        'string' => 'Le champ :attribute ne peut pas dépasser :max caractères.',
+    ],
+    'mimes' => 'Le fichier :attribute doit être de type : :values.',
+    'min' => [
+        'array' => 'Le champ :attribute doit contenir au moins :min éléments.',
+        'file' => 'Le fichier :attribute doit faire au moins :min Ko.',
+        'numeric' => 'La valeur de :attribute doit être supérieure ou égale à :min.',
+        'string' => 'Le champ :attribute doit contenir au moins :min caractères.',
+    ],
+    'numeric' => 'Le champ :attribute doit être un nombre.',
+    'required' => 'Le champ :attribute est obligatoire.',
+    'size' => [
+        'string' => 'Le champ :attribute doit contenir :size caractères.',
+    ],
+    'string' => 'Le champ :attribute doit être une chaîne de caractères.',
+    'unique' => 'La valeur du champ :attribute est déjà utilisée.',
+
+    'attributes' => [
+        'first_name' => 'prénom',
+        'last_name' => 'nom',
+        'email' => 'email',
+        'password' => 'mot de passe',
+        'current_password' => 'mot de passe actuel',
+        'name' => 'nom',
+        'title' => 'titre',
+        'description' => 'description',
+        'phone' => 'téléphone',
+        'address' => 'adresse',
+        'role' => 'rôle',
+        'deadline' => 'échéance',
+        'start_date' => 'date de début',
+        'due_date' => "date d'échéance",
+        'planned_effort' => 'effort prévu',
+        'project_id' => 'projet',
+        'file' => 'fichier',
+        'avatar' => 'photo',
+        'code' => 'code',
+    ],
+];

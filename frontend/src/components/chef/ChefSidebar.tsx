@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   BrainCircuit,
   CheckSquare,
@@ -10,86 +11,88 @@ import {
   AlertTriangle,
   MessageSquare,
   Activity,
+  CalendarDays,
   Settings,
   type LucideIcon,
 } from "lucide-react";
 
-import { NavLink, Link, useNavigate } from "react-router";
+import { NavLink, Link } from "react-router";
+import LanguageSwitcher from "../common/LanguageSwitcher";
 
 import { useAuth } from "../../context/AuthContext";
 
 type NavigationItem = {
-  label: string;
+  labelKey: string;
   path: string;
   icon: LucideIcon;
 };
 
 const navigation: NavigationItem[] = [
   {
-    label: "Mes projets",
+    labelKey: "chef.sidebar.projects",
     path: "/dashboard/chef",
     icon: FolderKanban,
   },
   {
-    label: "Équipe",
+    labelKey: "chef.sidebar.team",
     path: "/dashboard/chef/team",
     icon: Users,
   },
   {
-    label: "Suivi",
+    labelKey: "chef.sidebar.tracking",
     path: "/dashboard/chef/tracking",
     icon: Activity,
   },
   {
-    label: "Tâches",
+    labelKey: "chef.sidebar.planning",
+    path: "/dashboard/chef/planning",
+    icon: CalendarDays,
+  },
+  {
+    labelKey: "chef.sidebar.tasks",
     path: "/dashboard/chef/tasks",
     icon: CheckSquare,
   },
   {
-    label: "Prédiction de risque", // 👈 nouveau bouton
+    labelKey: "chef.sidebar.riskPrediction",
     path: "/dashboard/chef/risk-predictions",
     icon: AlertTriangle,
   },
   {
-    label: "Modèles IA",
+    labelKey: "chef.sidebar.models",
     path: "/dashboard/chef/models",
     icon: BrainCircuit,
   },
   {
-    label: "Assistant IA",
+    labelKey: "chef.sidebar.assistant",
     path: "/dashboard/chef/assistant",
     icon: MessageSquare,
   },
   {
-    label: "Paramètres",
+    labelKey: "chef.sidebar.settings",
     path: "/dashboard/chef/settings",
     icon: Settings,
   },
 ];
 
 export default function ChefSidebar() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  const { t } = useTranslation();
+  const { user, logout } = useAuth();
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-
+  // Révoque le token côté serveur et vide le contexte (sinon l'utilisateur reste "connecté" en mémoire)
   function handleLogout() {
-    localStorage.removeItem("nexus_token");
-    navigate("/signin");
+    logout();
   }
 
   const fullName =
     `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() ||
-    "Utilisateur";
+    t("chef.sidebar.user");
 
   const initials =
     `${user?.first_name?.charAt(0) ?? ""}${user?.last_name?.charAt(0) ?? ""}` ||
     "N";
-
-  const role =
-    user?.role === "chef_de_projet"
-      ? "Chef de projet"
-      : user?.role ?? "Chef de projet";
+  const role = t(`common.roles.${user?.role ?? "chef_de_projet"}`);
 
   /*
    * =====================================================
@@ -157,12 +160,12 @@ export default function ChefSidebar() {
 
       <button
         type="button"
-        aria-label="Ouvrir le menu"
+        aria-label={t("chef.sidebar.openMenu")}
         aria-expanded={isMobileOpen}
         onClick={() => setIsMobileOpen(true)}
         className="
           fixed
-          left-4
+          start-4
           top-4
           z-[60]
           flex
@@ -219,7 +222,7 @@ export default function ChefSidebar() {
         className={`
           fixed
           bottom-3
-          left-3
+          start-3
           top-3
           z-50
           w-[min(86vw,320px)]
@@ -237,7 +240,7 @@ export default function ChefSidebar() {
           ease-out
 
           lg:bottom-4
-          lg:left-4
+          lg:start-4
           lg:top-4
           lg:w-[260px]
           lg:translate-x-0
@@ -245,7 +248,7 @@ export default function ChefSidebar() {
           ${
             isMobileOpen
               ? "translate-x-0"
-              : "-translate-x-[calc(100%+20px)]"
+              : "-translate-x-[calc(100%+20px)] rtl:translate-x-[calc(100%+20px)]"
           }
         `}
       >
@@ -253,11 +256,11 @@ export default function ChefSidebar() {
             BACKGROUND GLOWS
         ===================================================== */}
 
-        <div className="pointer-events-none absolute -left-24 -top-24 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute -start-24 -top-24 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
 
-        <div className="pointer-events-none absolute -right-24 top-1/3 h-56 w-56 rounded-full bg-blue-600/[0.07] blur-3xl" />
+        <div className="pointer-events-none absolute -end-24 top-1/3 h-56 w-56 rounded-full bg-blue-600/[0.07] blur-3xl" />
 
-        <div className="pointer-events-none absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-violet-600/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -end-24 h-64 w-64 rounded-full bg-violet-600/10 blur-3xl" />
 
         <div className="relative flex h-full min-h-0 flex-col">
 
@@ -320,10 +323,10 @@ export default function ChefSidebar() {
 
             <button
               type="button"
-              aria-label="Fermer le menu"
+              aria-label={t("chef.sidebar.closeMenu")}
               onClick={() => setIsMobileOpen(false)}
               className="
-                ml-2
+                ms-2
                 flex
                 h-9
                 w-9
@@ -353,7 +356,7 @@ export default function ChefSidebar() {
           <div className="border-b border-white/[0.06] px-5 py-4 sm:py-5">
             <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.025] p-3">
 
-              <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-violet-500/10 blur-2xl" />
+              <div className="pointer-events-none absolute -end-8 -top-8 h-20 w-20 rounded-full bg-violet-500/10 blur-2xl" />
 
               <div className="relative flex min-w-0 items-center gap-3">
 
@@ -404,7 +407,7 @@ export default function ChefSidebar() {
                     className="
                       absolute
                       bottom-0
-                      right-0
+                      end-0
                       h-2.5
                       w-2.5
                       rounded-full
@@ -453,7 +456,8 @@ export default function ChefSidebar() {
               <span className="h-px flex-1 bg-white/[0.05]" />
 
               <p className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/25">
-                Workspace
+                {t("chef.sidebar.workspace")}
+
               </p>
 
               <span className="h-px flex-1 bg-white/[0.05]" />
@@ -489,7 +493,7 @@ export default function ChefSidebar() {
                             className="
                               absolute
                               bottom-2
-                              left-0
+                              start-0
                               top-2
                               w-[2px]
                               rounded-full
@@ -516,7 +520,7 @@ export default function ChefSidebar() {
                         {/* Label */}
 
                         <span className="min-w-0 flex-1 truncate">
-                          {item.label}
+                          {t(item.labelKey)}
                         </span>
 
                         {/* Active dot */}
@@ -578,8 +582,11 @@ export default function ChefSidebar() {
                 className="shrink-0 transition group-hover:text-red-300"
               />
 
-              <span>Déconnexion</span>
+              <span>{t("nav.logout")}</span>
             </button>
+            <div className="mt-3 flex justify-center">
+              <LanguageSwitcher />
+            </div>
 
             <div className="mt-3 flex items-center justify-center gap-2">
 

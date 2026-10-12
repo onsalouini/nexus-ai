@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { chefApi } from "../../services/chefApi";
-import { Field, Modal, STATUS_LABEL, btnGhost, btnPrimary, errMsg, inputCls } from "../ui-nexus/kit";
+import { toast } from "../../lib/toast";
+import { Field, Modal, PROJECT_STATUSES, statusLabel, btnGhost, btnPrimary, errMsg, inputCls } from "../ui-nexus/kit";
 
 export type EditableProject = {
   id: number;
@@ -24,6 +26,7 @@ export default function EditProjectModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useTranslation();
   const [f, setF] = useState({
     name: project.name,
     description: project.description ?? "",
@@ -41,12 +44,14 @@ export default function EditProjectModal({
   async function save() {
     setBusy(true);
     try {
-      await chefApi.updateProject(project.id, {
+      const updated = await chefApi.updateProject(project.id, {
         ...f,
         description: f.description || null,
         start_date: f.start_date || null,
         deadline: f.deadline || null,
       });
+      // Le backend relance le bilan IA en arrière-plan si les données du modèle ont changé
+      toast.success(updated?.ai_report_regenerating ? t("chef.editProject.regenerating") : t("chef.editProject.saved"));
       onSaved();
       onClose();
     } catch (e) {
@@ -61,30 +66,30 @@ export default function EditProjectModal({
   );
 
   return (
-    <Modal title="Modifier le projet" onClose={onClose} wide>
+    <Modal title={t("chef.editProject.title")} onClose={onClose} wide>
       <div className="space-y-4">
-        <Field label="Nom"><input className={inputCls} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
-        <Field label="Description"><textarea rows={3} className={inputCls} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></Field>
+        <Field label={t("chef.editProject.name")}><input className={inputCls} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
+        <Field label={t("chef.projectForm.description")}><textarea rows={3} className={inputCls} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></Field>
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Statut">
+          <Field label={t("chef.editProject.status")}>
             <select className={inputCls} value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })}>
-              {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              {PROJECT_STATUSES.map((k) => <option key={k} value={k}>{statusLabel(k)}</option>)}
             </select>
           </Field>
-          <Field label="Début"><input type="date" className={inputCls} value={f.start_date} onChange={(e) => setF({ ...f, start_date: e.target.value })} /></Field>
-          <Field label="Échéance"><input type="date" className={inputCls} value={f.deadline} onChange={(e) => setF({ ...f, deadline: e.target.value })} /></Field>
+          <Field label={t("chef.editProject.start")}><input type="date" className={inputCls} value={f.start_date} onChange={(e) => setF({ ...f, start_date: e.target.value })} /></Field>
+          <Field label={t("chef.editProject.deadline")}><input type="date" className={inputCls} value={f.deadline} onChange={(e) => setF({ ...f, deadline: e.target.value })} /></Field>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Field label="Effort prévu (h)">{num("planned_effort")}</Field>
-          <Field label="Durée (mois)">{num("length")}</Field>
-          <Field label="Exp. équipe">{num("team_exp")}</Field>
-          <Field label="Exp. chef">{num("manager_exp")}</Field>
+          <Field label={t("chef.editProject.plannedEffort")}>{num("planned_effort")}</Field>
+          <Field label={t("chef.editProject.length")}>{num("length")}</Field>
+          <Field label={t("chef.editProject.teamExp")}>{num("team_exp")}</Field>
+          <Field label={t("chef.editProject.managerExp")}>{num("manager_exp")}</Field>
         </div>
-        <p className="text-xs text-slate-500">Modifier l'effort, la durée ou l'expérience relance automatiquement la prédiction de risque IA.</p>
+        <p className="text-xs text-slate-500">{t("chef.editProject.note")}</p>
         {error && <p className="text-sm text-red-300">{error}</p>}
         <div className="flex justify-end gap-2">
-          <button className={btnGhost} onClick={onClose}>Annuler</button>
-          <button className={btnPrimary} onClick={save} disabled={busy || !f.name.trim()}>{busy ? "Enregistrement…" : "Enregistrer"}</button>
+          <button className={btnGhost} onClick={onClose}>{t("common.cancel")}</button>
+          <button className={btnPrimary} onClick={save} disabled={busy || !f.name.trim()}>{busy ? t("common.saving") : t("common.save")}</button>
         </div>
       </div>
     </Modal>

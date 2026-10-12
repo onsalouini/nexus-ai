@@ -104,6 +104,6 @@ class ChefTeamController extends Controller
         $member->teams()->where('chef_id', $request->user()->id)->detach();
         $member->update(['manager_id' => null]);
 
-        return response()->json(['message' => 'Membre retiré de votre équipe.']);
+        return response()->json(['message' => __('Membre retiré de votre équipe.')]);
     }
 }

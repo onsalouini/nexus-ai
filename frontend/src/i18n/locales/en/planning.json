@@ -1,0 +1,13 @@
+{
+  "title": "Planning",
+  "subtitle": "Task deadlines and project schedule, as a monthly view or a Gantt chart.",
+  "calendar": "Calendar",
+  "gantt": "Gantt",
+  "today": "Today",
+  "month": "Month",
+  "list": "List",
+  "noDates": "No project has dates yet. Set a start date and a deadline to show it on the Gantt chart.",
+  "legendProject": "Project period (progress)",
+  "legendTask": "Task deadline",
+  "loadError": "Unable to load the planning."
+}

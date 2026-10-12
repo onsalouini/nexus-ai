@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 import LanguageSwitcher from "../common/LanguageSwitcher";
+import NotificationBell from "../common/NotificationBell";
 
 import {
-  Bell,
   ChevronDown,
   LogOut,
   Plus,
@@ -21,6 +22,7 @@ export default function ChefTopbar({
   onCreateProject,
   onOpenTeam,
 }: Props) {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -28,7 +30,7 @@ export default function ChefTopbar({
 
   const fullName =
     `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() ||
-    "Utilisateur";
+    t("chef.sidebar.user");
 
   const initials =
     `${user?.first_name?.charAt(0) ?? ""}${
@@ -54,7 +56,7 @@ export default function ChefTopbar({
           <button
             type="button"
             onClick={onOpenTeam}
-            aria-label="Ouvrir l'équipe"
+            aria-label={t("chef.topbar.openTeam")}
             className="
               group
               flex items-center gap-2
@@ -78,7 +80,8 @@ export default function ChefTopbar({
             />
 
             <span className="hidden sm:inline">
-              Équipe
+              {t("chef.topbar.team")}
+
             </span>
           </button>
 
@@ -91,7 +94,7 @@ export default function ChefTopbar({
             onClick={onCreateProject}
             className="
               group
-              ml-1
+              ms-1
               flex items-center gap-2
               rounded-lg
               border border-cyan-400/20
@@ -117,11 +120,13 @@ export default function ChefTopbar({
             />
 
             <span className="hidden sm:inline">
-              Nouveau projet
+              {t("chef.topbar.newProject")}
+
             </span>
 
             <span className="sm:hidden">
-              Projet
+              {t("chef.topbar.project")}
+
             </span>
           </button>
 
@@ -135,43 +140,7 @@ export default function ChefTopbar({
               NOTIFICATIONS
           ================================================== */}
 
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="
-              group
-              relative
-              flex h-9 w-9
-              items-center justify-center
-              rounded-lg
-              text-white/35
-              transition-all duration-200
-              hover:bg-white/[0.035]
-              hover:text-white/80
-            "
-          >
-            <Bell
-              size={17}
-              strokeWidth={1.6}
-              className="
-                transition-colors duration-200
-                group-hover:text-cyan-300
-              "
-            />
-
-            {/* Notification indicator */}
-            <span
-              className="
-                absolute
-                right-[8px]
-                top-[7px]
-                h-1.5 w-1.5
-                rounded-full
-                bg-cyan-400
-                shadow-[0_0_7px_rgba(34,211,238,0.7)]
-              "
-            />
-          </button>
+          <NotificationBell />
 
           {/* =================================================
               LANGUAGE
@@ -185,19 +154,19 @@ export default function ChefTopbar({
               USER
           ================================================== */}
 
-          <div className="relative ml-1">
+          <div className="relative ms-1">
 
             <button
               type="button"
               onClick={() => setMenuOpen((value) => !value)}
-              aria-label="Menu utilisateur"
+              aria-label={t("chef.topbar.userMenu")}
               aria-expanded={menuOpen}
               className="
                 group
                 flex items-center gap-2
                 rounded-full
                 border border-transparent
-                py-1 pl-1 pr-1.5
+                py-1 ps-1 pe-1.5
                 transition-all duration-200
                 hover:border-white/[0.07]
                 hover:bg-white/[0.035]
@@ -226,7 +195,7 @@ export default function ChefTopbar({
                   <span
                     className="
                       absolute
-                      bottom-0.5 right-0.5
+                      bottom-0.5 end-0.5
                       h-1.5 w-1.5
                       rounded-full
                       border border-[#020817]
@@ -256,7 +225,7 @@ export default function ChefTopbar({
                   <span
                     className="
                       absolute
-                      bottom-0.5 right-0.5
+                      bottom-0.5 end-0.5
                       h-1.5 w-1.5
                       rounded-full
                       border border-[#020817]
@@ -269,7 +238,7 @@ export default function ChefTopbar({
               {/* Prénom uniquement */}
 
               <span className="hidden max-w-[90px] truncate text-xs font-medium text-white/65 md:block">
-                {user?.first_name || "Utilisateur"}
+                {user?.first_name || t("chef.sidebar.user")}
               </span>
 
               <ChevronDown
@@ -304,7 +273,7 @@ export default function ChefTopbar({
 
                 <div
                   className="
-                    absolute right-0 top-full z-50
+                    absolute end-0 top-full z-50
                     mt-2.5
                     w-60
                     overflow-hidden
@@ -322,7 +291,7 @@ export default function ChefTopbar({
                     className="
                       pointer-events-none
                       absolute
-                      -right-10
+                      -end-10
                       -top-10
                       h-28 w-28
                       rounded-full
@@ -394,14 +363,14 @@ export default function ChefTopbar({
                     type="button"
                     onClick={() => {
                       setMenuOpen(false);
-                      navigate("/settings");
+                      navigate("/dashboard/chef/settings");
                     }}
                     className="
                       group
                       flex w-full items-center gap-3
                       rounded-lg
                       px-2.5 py-2.5
-                      text-left
+                      text-start
                       text-xs
                       text-white/50
                       transition-all duration-200
@@ -428,7 +397,7 @@ export default function ChefTopbar({
                     </span>
 
                     <span>
-                      Paramètres du compte
+                      {t("nav.settings")}
                     </span>
                   </button>
 
@@ -447,7 +416,7 @@ export default function ChefTopbar({
                       flex w-full items-center gap-3
                       rounded-lg
                       px-2.5 py-2.5
-                      text-left
+                      text-start
                       text-xs
                       text-white/40
                       transition-all duration-200
@@ -474,7 +443,8 @@ export default function ChefTopbar({
                     </span>
 
                     <span>
-                      Déconnexion
+                      {t("nav.logout")}
+
                     </span>
                   </button>
                 </div>

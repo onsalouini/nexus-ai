@@ -1,7 +1,9 @@
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 import SignUpForm from "../../components/auth/SignUpForm";
 
 export default function SignUp() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen overflow-hidden bg-[#030712] font-['Inter',sans-serif] text-white">
 
@@ -13,7 +15,7 @@ export default function SignUp() {
 
         {/* signup image — droite */}
         <div
-          className="absolute right-0 top-0 h-full w-[48%] bg-cover bg-center bg-no-repeat"
+          className="absolute end-0 top-0 h-full w-[48%] bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: "url('/signup.jpg')",
             filter: "brightness(.72) saturate(.9)",
@@ -21,18 +23,18 @@ export default function SignUp() {
         />
 
         {/* dark gradient over image */}
-        <div className="absolute right-0 top-0 h-full w-[55%] bg-gradient-to-r from-[#030712] via-[#030712]/55 to-transparent" />
+        <div className="absolute end-0 top-0 h-full w-[55%] bg-gradient-to-r from-[#030712] via-[#030712]/55 to-transparent" />
 
         <div className="absolute inset-0 bg-[#030712]/20" />
 
         {/* cyan glow */}
-        <div className="absolute -left-40 top-[20%] h-[500px] w-[500px] rounded-full bg-[#22D3EE]/10 blur-[150px]" />
+        <div className="absolute -start-40 top-[20%] h-[500px] w-[500px] rounded-full bg-[#22D3EE]/10 blur-[150px]" />
 
         {/* violet glow */}
-        <div className="absolute right-[15%] top-[20%] h-[500px] w-[500px] rounded-full bg-[#8B5CF6]/10 blur-[160px]" />
+        <div className="absolute end-[15%] top-[20%] h-[500px] w-[500px] rounded-full bg-[#8B5CF6]/10 blur-[160px]" />
 
         {/* blue glow */}
-        <div className="absolute bottom-[-200px] left-[30%] h-[500px] w-[500px] rounded-full bg-[#3B82F6]/10 blur-[150px]" />
+        <div className="absolute bottom-[-200px] start-[30%] h-[500px] w-[500px] rounded-full bg-[#3B82F6]/10 blur-[150px]" />
 
         {/* subtle grid */}
         <div
@@ -101,7 +103,7 @@ export default function SignUp() {
                   </div>
 
                   <div className="mt-0.5 font-mono text-[7px] uppercase tracking-[0.22em] text-slate-600">
-                    Enterprise Intelligence
+                    {t("common.brandTagline")}
                   </div>
 
                 </div>
@@ -113,9 +115,9 @@ export default function SignUp() {
                 to="/signin"
                 className="hidden rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-2 text-[11px] font-medium text-slate-400 backdrop-blur-xl transition hover:border-[#22D3EE]/20 hover:bg-white/[0.05] hover:text-white sm:block"
               >
-                Déjà membre ?
-                <span className="ml-1.5 text-[#67E8F9]">
-                  Se connecter
+                {t("authFlow.signup.alreadyMember")}
+                <span className="ms-1.5 text-[#67E8F9]">
+                  {t("authFlow.signup.signIn")}
                 </span>
               </Link>
 
@@ -134,7 +136,7 @@ export default function SignUp() {
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22D3EE] shadow-[0_0_10px_#22D3EE]" />
 
                 <span className="font-mono text-[8px] font-semibold uppercase tracking-[0.18em] text-[#67E8F9]">
-                  Création d'espace entreprise
+                  {t("authFlow.signup.badge")}
                 </span>
 
               </div>
@@ -142,21 +144,19 @@ export default function SignUp() {
 
               <h1 className="font-['Space_Grotesk',sans-serif] text-[34px] font-bold leading-[1.08] tracking-[-0.035em] text-white sm:text-[40px]">
 
-                Construisez votre
+                {t("authFlow.signup.title1")}
 
                 <br />
 
                 <span className="bg-gradient-to-r from-[#22D3EE] via-[#3B82F6] to-[#8B5CF6] bg-clip-text text-transparent">
-                  intelligence d'entreprise.
+                  {t("authFlow.signup.title2")}
                 </span>
 
               </h1>
 
 
               <p className="mt-4 max-w-[470px] text-[13px] leading-7 text-slate-500">
-                Créez votre espace Direction pour commencer à connecter
-                vos projets, votre support client et vos données financières
-                dans NEXUS AI.
+                {t("authFlow.signup.subtitle")}
               </p>
 
             </div>
@@ -177,7 +177,7 @@ export default function SignUp() {
                 {/* top glass reflection */}
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
 
-                <div className="pointer-events-none absolute left-[15%] right-[15%] top-0 h-16 bg-white/[0.035] blur-2xl" />
+                <div className="pointer-events-none absolute start-[15%] end-[15%] top-0 h-16 bg-white/[0.035] blur-2xl" />
 
 
                 {/* form title */}
@@ -186,11 +186,11 @@ export default function SignUp() {
                   <div>
 
                     <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#22D3EE]">
-                      Étape 01
+                      {t("authFlow.signup.stepLabel")}
                     </p>
 
                     <h2 className="mt-1 text-[15px] font-semibold text-white">
-                      Informations de l'entreprise
+                      {t("authFlow.signup.cardTitle")}
                     </h2>
 
                   </div>
@@ -230,8 +230,7 @@ export default function SignUp() {
               </span>
 
               <p className="text-[9px] leading-5 text-slate-600">
-                Votre espace est sécurisé et créé sous contrôle
-                des invitations NEXUS AI.
+                {t("authFlow.signup.secureNote")}
               </p>
 
             </div>
@@ -251,10 +250,10 @@ export default function SignUp() {
           <div className="absolute inset-0 bg-gradient-to-br from-[#030712]/20 via-transparent to-[#030712]/50" />
 
           {/* cyan radial light */}
-          <div className="absolute left-[15%] top-[20%] h-[350px] w-[350px] rounded-full bg-[#22D3EE]/10 blur-[120px]" />
+          <div className="absolute start-[15%] top-[20%] h-[350px] w-[350px] rounded-full bg-[#22D3EE]/10 blur-[120px]" />
 
           {/* violet radial light */}
-          <div className="absolute bottom-[15%] right-[10%] h-[400px] w-[400px] rounded-full bg-[#8B5CF6]/10 blur-[140px]" />
+          <div className="absolute bottom-[15%] end-[10%] h-[400px] w-[400px] rounded-full bg-[#8B5CF6]/10 blur-[140px]" />
 
           {/* =================================================
               VISUAL CONTENT
@@ -273,7 +272,7 @@ export default function SignUp() {
           → visible au hover
       ========================================================= */}
 
-      <div className="group fixed bottom-6 right-6 z-50">
+      <div className="group fixed bottom-6 end-6 z-50">
 
         {/* =======================================================
             HINT BUBBLE
@@ -285,7 +284,7 @@ export default function SignUp() {
             pointer-events-none
             absolute
             bottom-16
-            right-0
+            end-0
             w-[285px]
             translate-y-3
             scale-95
@@ -311,7 +310,7 @@ export default function SignUp() {
             {/* Mirror reflection */}
             <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-white/45 to-transparent" />
 
-            <div className="pointer-events-none absolute left-[15%] right-[15%] top-0 h-12 bg-white/[0.035] blur-xl" />
+            <div className="pointer-events-none absolute start-[15%] end-[15%] top-0 h-12 bg-white/[0.035] blur-xl" />
 
 
             {/* Header */}
@@ -328,19 +327,19 @@ export default function SignUp() {
                 <div className="flex items-center justify-between gap-2">
 
                   <p className="text-[10px] font-semibold text-white">
-                    Comment fonctionne NEXUS ?
+                    {t("authFlow.signin.guide.title")}
                   </p>
 
                   <span className="rounded-full border border-[#22D3EE]/10 bg-[#22D3EE]/[0.04] px-2 py-0.5 font-mono text-[6px] text-[#67E8F9]">
-                    GUIDE
+                    {t("authFlow.signin.guide.badge")}
+
                   </span>
 
                 </div>
 
 
                 <p className="mt-1 text-[8px] leading-5 text-slate-500">
-                  Suivez simplement ces étapes pour commencer
-                  votre parcours dans NEXUS AI.
+                  {t("authFlow.signup.guide.subtitle")}
                 </p>
 
               </div>
@@ -355,7 +354,7 @@ export default function SignUp() {
             <div className="relative mt-4">
 
               {/* connector */}
-              <div className="absolute bottom-3 left-[9px] top-3 w-px bg-gradient-to-b from-[#22D3EE]/40 via-[#3B82F6]/25 to-[#8B5CF6]/30" />
+              <div className="absolute bottom-3 start-[9px] top-3 w-px bg-gradient-to-b from-[#22D3EE]/40 via-[#3B82F6]/25 to-[#8B5CF6]/30" />
 
 
               <div className="space-y-3">
@@ -363,26 +362,26 @@ export default function SignUp() {
                 {[
                   {
                     number: "01",
-                    title: "Créer votre compte",
-                    text: "Configurez votre espace Direction.",
+                    title: t("authFlow.signup.guide.steps.0.title"),
+                    text: t("authFlow.signup.guide.steps.0.text"),
                     color: "#22D3EE",
                   },
                   {
                     number: "02",
-                    title: "Inviter votre équipe",
-                    text: "Ajoutez les chefs de projet et agents.",
+                    title: t("authFlow.signup.guide.steps.1.title"),
+                    text: t("authFlow.signup.guide.steps.1.text"),
                     color: "#3B82F6",
                   },
                   {
                     number: "03",
-                    title: "Connecter vos données",
-                    text: "Projets, tickets et données financières.",
+                    title: t("authFlow.signup.guide.steps.2.title"),
+                    text: t("authFlow.signup.guide.steps.2.text"),
                     color: "#6366F1",
                   },
                   {
                     number: "04",
-                    title: "Activer l'intelligence",
-                    text: "NEXUS analyse vos signaux.",
+                    title: t("authFlow.signup.guide.steps.3.title"),
+                    text: t("authFlow.signup.guide.steps.3.text"),
                     color: "#8B5CF6",
                   },
                 ].map((step) => (
@@ -436,9 +435,9 @@ export default function SignUp() {
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
 
                 <p className="text-[7px] leading-4 text-slate-500">
-                  Vous êtes actuellement à l'étape
-                  <span className="ml-1 font-semibold text-[#67E8F9]">
-                    Création du compte
+                  {t("authFlow.signin.guide.currentStep")}
+                  <span className="ms-1 font-semibold text-[#67E8F9]">
+                    {t("authFlow.signup.guide.currentStepName")}
                   </span>
                 </p>
 
@@ -457,7 +456,7 @@ export default function SignUp() {
 
         <button
           type="button"
-          aria-label="Afficher le guide NEXUS AI"
+          aria-label={t("authFlow.signin.guide.open")}
           className="
             relative
             flex
@@ -493,7 +492,7 @@ export default function SignUp() {
           </span>
 
           {/* notification dot */}
-          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
+          <span className="absolute end-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
 
         </button>
 

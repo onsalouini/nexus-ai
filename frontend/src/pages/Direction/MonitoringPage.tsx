@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import {
@@ -22,6 +23,8 @@ import {
 } from "lucide-react";
 
 import { api } from "../../lib/api";
+import i18n from "../../i18n";
+import { formatDateTime } from "../../i18n/format";
 
 type FinancialIndicator = {
   id: number;
@@ -82,21 +85,18 @@ type HistoryResponse = {
 };
 
 function formatDate(date: string) {
-  return new Intl.DateTimeFormat("fr-FR", {
+  return formatDateTime(date, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-  }).format(new Date(date));
+  });
 }
 
 function formatShortDate(date: string) {
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-  }).format(new Date(date));
+  return formatDateTime(date, { day: "2-digit", month: "2-digit" });
 }
 
 function clamp(value: number, min = 0, max = 100) {
@@ -139,10 +139,11 @@ function LineChart({
   reports: FinancialReport[];
   type: "score" | "risk";
 }) {
+  const { t } = useTranslation();
   if (reports.length === 0) {
     return (
       <div className="flex h-[280px] items-center justify-center text-sm text-slate-500">
-        Aucun historique disponible.
+        {t("monitoring.noHistory")}
       </div>
     );
   }
@@ -303,10 +304,11 @@ function ComparisonBars({
 }: {
   reports: FinancialReport[];
 }) {
+  const { t } = useTranslation();
   if (reports.length === 0) {
     return (
       <div className="flex h-[300px] items-center justify-center text-sm text-slate-500">
-        Aucun rapport enregistré.
+        {t("monitoring.noReports")}
       </div>
     );
   }
@@ -333,7 +335,7 @@ function ComparisonBars({
                 style={{
                   height: `${Math.max(score * 2.05, 4)}px`,
                 }}
-                title={`Score : ${score.toFixed(1)}`}
+                title={t("monitoring.scoreTitle", { value: score.toFixed(1) })}
               >
                 <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] text-cyan-300">
                   {score.toFixed(0)}
@@ -346,7 +348,7 @@ function ComparisonBars({
                 style={{
                   height: `${Math.max(risk * 2.05, 4)}px`,
                 }}
-                title={`Risque : ${risk.toFixed(1)}%`}
+                title={t("monitoring.riskTitle", { value: risk.toFixed(1) })}
               >
                 <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] text-rose-300">
                   {risk.toFixed(0)}
@@ -381,6 +383,7 @@ function HealthDonut({
   healthy: number;
   atRisk: number;
 }) {
+  const { t } = useTranslation();
   const total = healthy + atRisk;
 
   const healthyPercent =
@@ -413,7 +416,7 @@ function HealthDonut({
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
             <span className="text-sm text-slate-300">
-              Saines
+              {t("monitoring.healthyPlural")}
             </span>
           </div>
 
@@ -426,7 +429,7 @@ function HealthDonut({
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
             <span className="text-sm text-slate-300">
-              À risque
+              {t("monitoring.atRiskPlural")}
             </span>
           </div>
 
@@ -446,6 +449,7 @@ function HealthDonut({
  */
 
 export default function MonitoringPage() {
+  const { t } = useTranslation();
   const [reports, setReports] = useState<FinancialReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -497,11 +501,11 @@ export default function MonitoringPage() {
       if (axios.isAxiosError(err)) {
         setError(
           err.response?.data?.message ||
-            "Impossible de récupérer l'historique financier."
+            i18n.t("monitoring.loadError")
         );
       } else {
         setError(
-          "Impossible de récupérer l'historique financier."
+          i18n.t("monitoring.loadError")
         );
       }
     } finally {
@@ -629,7 +633,7 @@ export default function MonitoringPage() {
       );
 
       setError(
-        "Impossible de télécharger le rapport PDF."
+        t("finance.downloadError")
       );
     } finally {
       setDownloadingId(null);
@@ -681,7 +685,7 @@ export default function MonitoringPage() {
           </div>
 
           <p className="text-sm text-slate-400">
-            Chargement du monitoring financier...
+            {t("monitoring.loading")}
           </p>
         </div>
       </div>
@@ -706,11 +710,11 @@ export default function MonitoringPage() {
 
             <div>
               <h1 className="text-2xl font-bold tracking-tight">
-                Monitoring financier
+                {t("monitoring.title")}
               </h1>
 
               <p className="mt-1 text-sm text-slate-500">
-                Évolution de la santé financière de votre entreprise
+                {t("monitoring.subtitle")}
               </p>
             </div>
 
@@ -725,7 +729,7 @@ export default function MonitoringPage() {
             className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
           >
             <FileText className="h-4 w-4 text-cyan-300" />
-            Historique des rapports
+            {t("monitoring.history")}
           </button>
 
           <button
@@ -742,7 +746,7 @@ export default function MonitoringPage() {
               }`}
             />
 
-            Actualiser
+            {t("common.refresh")}
           </button>
 
         </div>
@@ -771,13 +775,11 @@ export default function MonitoringPage() {
           </div>
 
           <h2 className="mt-5 text-xl font-semibold">
-            Aucun bilan financier enregistré
+            {t("monitoring.empty")}
           </h2>
 
           <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-            Lancez votre première analyse financière
-            pour commencer à construire l'historique
-            et visualiser l'évolution de votre entreprise.
+            {t("monitoring.emptyHint")}
           </p>
 
         </section>
@@ -792,13 +794,13 @@ export default function MonitoringPage() {
             {/* Score */}
             <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
 
-              <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-cyan-400/10 blur-3xl" />
+              <div className="absolute -end-8 -top-8 h-28 w-28 rounded-full bg-cyan-400/10 blur-3xl" />
 
               <div className="relative">
 
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-slate-500">
-                    Score actuel
+                    {t("monitoring.currentScore")}
                   </span>
 
                   <ShieldCheck className="h-5 w-5 text-cyan-300" />
@@ -832,7 +834,7 @@ export default function MonitoringPage() {
                   </span>
 
                   <span className="text-slate-600">
-                    vs bilan précédent
+                    {t("monitoring.vsPreviousReport")}
                   </span>
                 </div>
 
@@ -842,13 +844,13 @@ export default function MonitoringPage() {
             {/* Risque */}
             <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
 
-              <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-rose-400/10 blur-3xl" />
+              <div className="absolute -end-8 -top-8 h-28 w-28 rounded-full bg-rose-400/10 blur-3xl" />
 
               <div className="relative">
 
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-slate-500">
-                    Risque de faillite
+                    {t("monitoring.bankruptcyRisk")}
                   </span>
 
                   <AlertTriangle className="h-5 w-5 text-rose-300" />
@@ -879,7 +881,7 @@ export default function MonitoringPage() {
                   </span>
 
                   <span className="text-slate-600">
-                    vs précédent
+                    {t("monitoring.vsPrevious")}
                   </span>
 
                 </div>
@@ -892,7 +894,7 @@ export default function MonitoringPage() {
 
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-slate-500">
-                  Score moyen
+                  {t("monitoring.averageScore")}
                 </span>
 
                 <BarChart3 className="h-5 w-5 text-violet-300" />
@@ -903,7 +905,7 @@ export default function MonitoringPage() {
                   {statistics.averageScore.toFixed(1)}
                 </span>
 
-                <span className="ml-1 text-sm text-slate-600">
+                <span className="ms-1 text-sm text-slate-600">
                   /100
                 </span>
               </div>
@@ -924,7 +926,7 @@ export default function MonitoringPage() {
 
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-slate-500">
-                  Bilans analysés
+                  {t("monitoring.analyzed")}
                 </span>
 
                 <FileText className="h-5 w-5 text-blue-300" />
@@ -937,8 +939,7 @@ export default function MonitoringPage() {
               </div>
 
               <p className="mt-4 text-xs text-slate-600">
-                {statistics.healthyPercent.toFixed(0)}%
-                des bilans sont sains
+                {t("monitoring.healthyShare", { value: statistics.healthyPercent.toFixed(0) })}
               </p>
 
             </section>
@@ -961,12 +962,12 @@ export default function MonitoringPage() {
                     <TrendingUp className="h-5 w-5 text-cyan-300" />
 
                     <h2 className="font-semibold">
-                      Évolution du score
+                      {t("monitoring.scoreEvolution")}
                     </h2>
                   </div>
 
                   <p className="mt-1 text-xs text-slate-600">
-                    Score de santé financière sur les différents bilans
+                    {t("monitoring.scoreEvolutionHint")}
                   </p>
                 </div>
 
@@ -993,12 +994,12 @@ export default function MonitoringPage() {
                     <TrendingDown className="h-5 w-5 text-rose-300" />
 
                     <h2 className="font-semibold">
-                      Évolution du risque
+                      {t("monitoring.riskEvolution")}
                     </h2>
                   </div>
 
                   <p className="mt-1 text-xs text-slate-600">
-                    Probabilité de faillite détectée par le modèle
+                    {t("monitoring.riskEvolutionHint")}
                   </p>
                 </div>
 
@@ -1032,12 +1033,12 @@ export default function MonitoringPage() {
                   <BarChart3 className="h-5 w-5 text-blue-300" />
 
                   <h2 className="font-semibold">
-                    Comparaison des bilans
+                    {t("monitoring.comparison")}
                   </h2>
                 </div>
 
                 <p className="mt-1 text-xs text-slate-600">
-                  Score de santé vs probabilité de faillite
+                  {t("monitoring.comparisonHint")}
                 </p>
 
               </div>
@@ -1051,14 +1052,14 @@ export default function MonitoringPage() {
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-sm bg-cyan-400" />
                   <span className="text-slate-500">
-                    Score santé
+                    {t("finance.healthScore")}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-sm bg-rose-400" />
                   <span className="text-slate-500">
-                    Risque faillite
+                    {t("finance.probability")}
                   </span>
                 </div>
 
@@ -1075,12 +1076,12 @@ export default function MonitoringPage() {
                   <PieChart className="h-5 w-5 text-violet-300" />
 
                   <h2 className="font-semibold">
-                    État financier
+                    {t("monitoring.state")}
                   </h2>
                 </div>
 
                 <p className="mt-1 text-xs text-slate-600">
-                  Répartition des bilans enregistrés
+                  {t("monitoring.stateHint")}
                 </p>
 
               </div>
@@ -1125,11 +1126,11 @@ export default function MonitoringPage() {
                     <div>
 
                       <h2 className="font-semibold">
-                        Dernier bilan financier
+                        {t("monitoring.latest")}
                       </h2>
 
                       <p className="mt-1 text-xs text-slate-600">
-                        Généré le{" "}
+                        {t("monitoring.generatedOn")}{" "}
                         {formatDate(
                           latestReport.created_at
                         )}
@@ -1143,10 +1144,10 @@ export default function MonitoringPage() {
 
                 <div className="flex items-center gap-5">
 
-                  <div className="text-right">
+                  <div className="text-end">
 
                     <p className="text-xs text-slate-600">
-                      Score
+                      {t("monitoring.score")}
                     </p>
 
                     <p className="text-xl font-bold text-cyan-300">
@@ -1159,10 +1160,10 @@ export default function MonitoringPage() {
 
                   <div className="h-10 w-px bg-white/[0.08]" />
 
-                  <div className="text-right">
+                  <div className="text-end">
 
                     <p className="text-xs text-slate-600">
-                      Faillite
+                      {t("monitoring.bankruptcy")}
                     </p>
 
                     <p className="text-xl font-bold text-rose-300">
@@ -1228,11 +1229,11 @@ export default function MonitoringPage() {
 
                   <div>
                     <h2 className="text-lg font-semibold">
-                      Historique des rapports
+                      {t("monitoring.history")}
                     </h2>
 
                     <p className="text-xs text-slate-500">
-                      Tous les bilans financiers enregistrés
+                      {t("monitoring.historyHint")}
                     </p>
                   </div>
 
@@ -1257,7 +1258,7 @@ export default function MonitoringPage() {
 
               {reports.length === 0 ? (
                 <div className="py-16 text-center text-sm text-slate-500">
-                  Aucun rapport disponible.
+                  {t("monitoring.noReportAvailable")}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -1311,7 +1312,7 @@ export default function MonitoringPage() {
                                 <div className="flex flex-wrap items-center gap-2">
 
                                   <span className="font-semibold text-slate-200">
-                                    Rapport #{report.id}
+                                    {t("monitoring.report", { id: report.id })}
                                   </span>
 
                                   <span
@@ -1321,9 +1322,7 @@ export default function MonitoringPage() {
                                         : "bg-rose-400/10 text-rose-300"
                                     }`}
                                   >
-                                    {isHealthy
-                                      ? "Saine"
-                                      : "À risque"}
+                                    {isHealthy ? t("monitoring.healthy") : t("monitoring.atRisk")}
                                   </span>
 
                                 </div>
@@ -1346,8 +1345,8 @@ export default function MonitoringPage() {
 
                               <div className="min-w-[90px] rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
                                 <p className="text-[9px] uppercase tracking-wider text-slate-600">
-                                  Score
-                                </p>
+                      {t("monitoring.score")}
+                    </p>
 
                                 <p className="mt-1 font-bold text-cyan-300">
                                   {score.toFixed(1)}
@@ -1356,8 +1355,8 @@ export default function MonitoringPage() {
 
                               <div className="min-w-[90px] rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
                                 <p className="text-[9px] uppercase tracking-wider text-slate-600">
-                                  Faillite
-                                </p>
+                      {t("monitoring.bankruptcy")}
+                    </p>
 
                                 <p className="mt-1 font-bold text-rose-300">
                                   {risk.toFixed(1)}%
@@ -1366,7 +1365,7 @@ export default function MonitoringPage() {
 
                               <div className="min-w-[90px] rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
                                 <p className="text-[9px] uppercase tracking-wider text-slate-600">
-                                  Seuil
+                                  {t("monitoring.threshold")}
                                 </p>
 
                                 <p className="mt-1 font-bold text-violet-300">
@@ -1381,7 +1380,7 @@ export default function MonitoringPage() {
 
                               <div className="min-w-[90px] rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
                                 <p className="text-[9px] uppercase tracking-wider text-slate-600">
-                                  Modèle
+                                  {t("monitoring.model")}
                                 </p>
 
                                 <p className="mt-1 font-bold text-slate-300">
@@ -1414,7 +1413,7 @@ export default function MonitoringPage() {
                                 <Download className="h-4 w-4" />
                               )}
 
-                              Télécharger PDF
+                              {t("monitoring.downloadPdf")}
                             </button>
 
                           </div>
@@ -1426,7 +1425,7 @@ export default function MonitoringPage() {
                             <div>
                               <div className="mb-1 flex justify-between text-[10px]">
                                 <span className="text-slate-600">
-                                  Santé financière
+                                  {t("director.sidebar.analytics")}
                                 </span>
 
                                 <span className="text-cyan-300">
@@ -1447,7 +1446,7 @@ export default function MonitoringPage() {
                             <div>
                               <div className="mb-1 flex justify-between text-[10px]">
                                 <span className="text-slate-600">
-                                  Risque de faillite
+                    {t("monitoring.bankruptcyRisk")}
                                 </span>
 
                                 <span className="text-rose-300">
@@ -1483,14 +1482,7 @@ export default function MonitoringPage() {
               <div className="flex items-center justify-between text-xs text-slate-600">
 
                 <span>
-                  {reports.length} rapport
-                  {reports.length > 1
-                    ? "s"
-                    : ""}{" "}
-                  enregistré
-                  {reports.length > 1
-                    ? "s"
-                    : ""}
+                  {t("monitoring.savedCount", { count: reports.length })}
                 </span>
 
                 <button
@@ -1500,7 +1492,7 @@ export default function MonitoringPage() {
                   }
                   className="rounded-xl border border-white/[0.08] px-4 py-2 text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
                 >
-                  Fermer
+                  {t("common.close")}
                 </button>
 
               </div>

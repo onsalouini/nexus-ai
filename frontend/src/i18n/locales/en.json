@@ -54,7 +54,14 @@
       "passwordPlaceholder": "••••••••",
       "connecting": "Logging in...",
       "loginError": "Could not log in. Check your email and password.",
-      "createCompanyAccount": "Create my company account"
+      "createCompanyAccount": "Create my company account",
+      "tooManyAttempts": "Too many sign-in attempts. Please try again in a minute."
+    },
+    "twoFactor": {
+      "prompt": "Two-factor authentication is enabled on this account. Enter the code shown in your app.",
+      "code": "Verification code",
+      "verify": "Verify",
+      "back": "← Use another account"
     }
   },
   "dashboard": {
@@ -155,7 +162,7 @@
       "description": "Each role has an experience tailored to its operational needs.",
       "items": [
         {
-          "title": "Direction",
+          "title": "Management",
           "text": "Global view of company health."
         },
         {

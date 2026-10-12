@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -17,8 +18,11 @@ import {
   type DirectorProject,
 } from "../../services/directorProjects";
 import ProjectRiskSection from "../project/ProjectRiskSection";
+import { statusLabel } from "../ui-nexus/kit";
+import { riskLabel } from "../../i18n/labels";
 
 export default function ProjectDetailsPage() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -38,14 +42,14 @@ export default function ProjectDetailsPage() {
         setProject(data);
       } catch (err) {
         console.error(err);
-        setError("Impossible de charger ce projet.");
+        setError(t("director.projectDetails.loadError"));
       } finally {
         setLoading(false);
       }
     }
 
     loadProject();
-  }, [id]);
+  }, [id, t]);
 
   if (loading) {
     return (
@@ -62,15 +66,15 @@ export default function ProjectDetailsPage() {
           onClick={() => navigate("/dashboard/direction/projects")}
           className="flex items-center gap-2 text-sm text-slate-400 hover:text-white"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Retour aux projets
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+          {t("director.projectDetails.back")}
         </button>
 
         <div className="mt-10 rounded-3xl border border-red-400/20 bg-red-400/[0.04] p-8 text-center">
           <ShieldAlert className="mx-auto h-8 w-8 text-red-400" />
 
           <p className="mt-4 text-sm text-red-300">
-            {error || "Projet introuvable."}
+            {error || t("director.projectDetails.notFound")}
           </p>
         </div>
       </div>
@@ -83,9 +87,9 @@ export default function ProjectDetailsPage() {
     <div className="relative min-h-full overflow-hidden bg-[#020817] text-white">
 
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.06] blur-[120px]" />
+        <div className="absolute -start-40 -top-40 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.06] blur-[120px]" />
 
-        <div className="absolute right-[-180px] top-[10%] h-[500px] w-[500px] rounded-full bg-violet-600/[0.07] blur-[130px]" />
+        <div className="absolute end-[-180px] top-[10%] h-[500px] w-[500px] rounded-full bg-violet-600/[0.07] blur-[130px]" />
       </div>
 
       <div className="relative px-5 py-7 sm:px-7 lg:px-10 lg:py-9">
@@ -98,13 +102,13 @@ export default function ProjectDetailsPage() {
             }
             className="mb-7 flex items-center gap-2 text-sm text-slate-500 transition hover:text-cyan-300"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Retour aux projets
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+            {t("director.projectDetails.back")}
           </button>
 
           {/* Header */}
           <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] backdrop-blur-2xl">
-            <div className="absolute right-[-100px] top-[-120px] h-72 w-72 rounded-full bg-cyan-500/[0.07] blur-3xl" />
+            <div className="absolute end-[-100px] top-[-120px] h-72 w-72 rounded-full bg-cyan-500/[0.07] blur-3xl" />
 
             <div className="relative p-6 sm:p-8">
 
@@ -119,7 +123,7 @@ export default function ProjectDetailsPage() {
                   <div>
                     <div className="mb-2 flex items-center gap-2">
                       <span className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">
-                        NEXUS • Project
+                        NEXUS • {t("chef.topbar.project")}
                       </span>
                     </div>
 
@@ -128,8 +132,7 @@ export default function ProjectDetailsPage() {
                     </h1>
 
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
-                      {project.description ||
-                        "Aucune description disponible."}
+                      {project.description || t("director.projects.noDescription")}
                     </p>
                   </div>
                 </div>
@@ -148,26 +151,24 @@ export default function ProjectDetailsPage() {
 
             <InfoCard
               icon={<Clock3 className="h-4 w-4" />}
-              label="Statut"
+              label={t("chef.editProject.status")}
               value={status.label}
             />
 
             <InfoCard
               icon={<ShieldAlert className="h-4 w-4" />}
-              label="Risk Score"
+              label={t("director.projectDetails.riskScore")}
               value={
                 project.risk_score !== null
                   ? `${project.risk_score}%`
-                  : "N/A"
+                  : t("director.projects.na")
               }
             />
 
             <InfoCard
               icon={<Users className="h-4 w-4" />}
-              label="Équipe"
-              value={`${project.team.length} membre${
-                project.team.length > 1 ? "s" : ""
-              }`}
+              label={t("director.sidebar.team")}
+              value={t("director.projects.memberCount", { count: project.team.length })}
             />
           </div>
 
@@ -184,11 +185,11 @@ export default function ProjectDetailsPage() {
 
                 <div>
                   <h2 className="text-sm font-semibold">
-                    Chef de projet
+                    {t("common.roles.chef_de_projet")}
                   </h2>
 
                   <p className="text-xs text-slate-600">
-                    Responsable du projet
+                    {t("director.projectDetails.manager")}
                   </p>
                 </div>
               </div>
@@ -206,7 +207,7 @@ export default function ProjectDetailsPage() {
 
                     <p className="mt-1 text-xs text-slate-600">
                       {project.chef_de_projet.job_title ||
-                        "Chef de projet"}
+                        t("common.roles.chef_de_projet")}
                     </p>
                   </div>
                 </div>
@@ -229,18 +230,17 @@ export default function ProjectDetailsPage() {
 
                   <div>
                     <h2 className="text-sm font-semibold">
-                      Équipe du projet
+                      {t("chef.trackingPage.projectTeam")}
                     </h2>
 
                     <p className="text-xs text-slate-600">
-                      Membres affectés à ce projet
+                      {t("director.projectDetails.membersHint")}
                     </p>
                   </div>
                 </div>
 
                 <span className="text-xs text-slate-600">
-                  {project.team.length} membre
-                  {project.team.length > 1 ? "s" : ""}
+                  {t("director.projects.memberCount", { count: project.team.length })}
                 </span>
               </div>
 
@@ -249,7 +249,7 @@ export default function ProjectDetailsPage() {
                   <Users className="mx-auto h-6 w-6 text-slate-700" />
 
                   <p className="mt-3 text-sm text-slate-600">
-                    Aucun membre n'est actuellement affecté.
+                    {t("director.projectDetails.noMembers")}
                   </p>
                 </div>
               ) : (
@@ -268,7 +268,7 @@ export default function ProjectDetailsPage() {
                         </p>
 
                         <p className="mt-1 truncate text-xs text-slate-600">
-                          {member.job_title || "Membre de l'équipe"}
+                          {member.job_title || t("common.roles.membre_equipe")}
                         </p>
                       </div>
                     </div>
@@ -288,11 +288,11 @@ export default function ProjectDetailsPage() {
 
               <div>
                 <h2 className="text-sm font-semibold">
-                  Informations du projet
+                  {t("director.projectDetails.info")}
                 </h2>
 
                 <p className="text-xs text-slate-600">
-                  Données utilisées par NEXUS Intelligence
+                  {t("director.projectDetails.infoHint")}
                 </p>
               </div>
             </div>
@@ -300,30 +300,30 @@ export default function ProjectDetailsPage() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
               <Metric
-                label="Durée prévue"
-                value={`${project.length} mois`}
+                label={t("director.projectDetails.length")}
+                value={`${project.length} ${t("common.months")}`}
               />
 
               <Metric
-                label="Effort prévu"
-                value={`${project.planned_effort} h`}
+                label={t("chef.projects.plannedEffort")}
+                value={`${project.planned_effort} ${t("common.hoursShort")}`}
               />
 
               <Metric
-                label="Effort prédit"
+                label={t("chef.tester.predictedEffort")}
                 value={
                   project.predicted_effort !== null
-                    ? `${project.predicted_effort} h`
-                    : "N/A"
-                }
-              />
+                    ? `${project.predicted_effort} ${t("common.hoursShort")}`
+                  : t("director.projects.na")
+              }
+            />
 
               <Metric
-                label="Risque"
+                label={t("chef.projects.risk")}
                 value={
                   project.risk_level
-                    ? project.risk_level
-                    : "Non calculé"
+                    ? riskLabel(project.risk_level)
+                    : t("director.projectDetails.notComputed")
                 }
               />
             </div>
@@ -425,7 +425,7 @@ function getStatusInfo(status: string) {
     )
   ) {
     return {
-      label: "En cours",
+      label: statusLabel("en_cours"),
       className:
         "border-cyan-400/15 bg-cyan-400/[0.06] text-cyan-300",
     };
@@ -437,14 +437,14 @@ function getStatusInfo(status: string) {
     )
   ) {
     return {
-      label: "Terminé",
+      label: statusLabel("termine"),
       className:
         "border-emerald-400/15 bg-emerald-400/[0.06] text-emerald-300",
     };
   }
 
   return {
-    label: "Planifié",
+    label: statusLabel("planifie"),
     className:
       "border-violet-400/15 bg-violet-400/[0.06] text-violet-300",
   };

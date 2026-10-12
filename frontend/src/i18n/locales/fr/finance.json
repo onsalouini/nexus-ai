@@ -1,0 +1,81 @@
+{
+  "invalidResponse": "La réponse du service de prédiction est invalide.",
+  "missingReportId": "Le rapport a peut-être été enregistré, mais son identifiant n'a pas été retourné par le serveur.",
+  "saved": "Analyse terminée et rapport #{{id}} enregistré.",
+  "serviceError": "Impossible de contacter le service de santé financière.",
+  "analysisError": "Une erreur inattendue est survenue pendant l'analyse.",
+  "noReport": "Aucun rapport disponible pour le téléchargement.",
+  "invalidPdf": "Le serveur n'a pas retourné un PDF valide.",
+  "downloadError": "Impossible de télécharger le rapport PDF.",
+  "subtitle": "Analyse prédictive de la santé financière de votre entreprise",
+  "indicators": "Indicateurs financiers",
+  "indicatorsHint": "Entrez les indicateurs utilisés par le modèle ML.",
+  "analyze": "Analyser la santé financière",
+  "generatingPdf": "Génération du PDF...",
+  "downloadPdf": "Télécharger le rapport PDF",
+  "healthScore": "Score de santé",
+  "computedByAi": "Calculé par le modèle IA",
+  "atRisk": "Entreprise à risque",
+  "healthy": "Situation financière saine",
+  "runHint": "Lancez une analyse pour obtenir le score.",
+  "probability": "Probabilité de faillite",
+  "threshold": "Seuil :",
+  "factors": "Facteurs explicatifs",
+  "shap": "Analyse SHAP du modèle",
+  "analyzingFactors": "Analyse des facteurs...",
+  "factorsHint": "Les facteurs explicatifs apparaîtront après l'analyse.",
+  "fields": {
+    "current_ratio": {
+      "label": "Ratio de liquidité générale",
+      "desc": "Capacité à couvrir les dettes à court terme"
+    },
+    "cash_total_assets": {
+      "label": "Trésorerie / Total actifs",
+      "desc": "Part des actifs détenue sous forme de liquidités"
+    },
+    "roa_before_interest_depreciation": {
+      "label": "ROA avant intérêts et dépréciation",
+      "desc": "Rentabilité des actifs"
+    },
+    "operating_profit_rate": {
+      "label": "Taux de marge opérationnelle",
+      "desc": "Taux de profit opérationnel"
+    },
+    "debt_ratio": {
+      "label": "Ratio d'endettement",
+      "desc": "Niveau d'endettement"
+    },
+    "net_worth_assets": {
+      "label": "Capitaux propres / Actifs",
+      "desc": "Poids des capitaux propres"
+    },
+    "working_capital_total_assets": {
+      "label": "Fonds de roulement / Actifs",
+      "desc": "Poids du fonds de roulement"
+    },
+    "net_income_total_assets": {
+      "label": "Résultat net / Actifs",
+      "desc": "Rentabilité nette des actifs"
+    },
+    "total_asset_turnover": {
+      "label": "Rotation des actifs",
+      "desc": "Efficacité d'utilisation des actifs"
+    },
+    "retained_earnings_total_assets": {
+      "label": "Bénéfices non distribués / Actifs",
+      "desc": "Bénéfices conservés par rapport aux actifs"
+    },
+    "interest_coverage_ratio": {
+      "label": "Couverture des intérêts",
+      "desc": "Capacité à couvrir les intérêts"
+    },
+    "equity_liability": {
+      "label": "Capitaux propres / Passifs",
+      "desc": "Rapport capitaux propres / passifs"
+    },
+    "cash_flow_total_assets": {
+      "label": "Flux de trésorerie / Actifs",
+      "desc": "Flux de trésorerie généré par les actifs"
+    }
+  }
+}

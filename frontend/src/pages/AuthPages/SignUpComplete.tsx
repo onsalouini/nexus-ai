@@ -1,17 +1,16 @@
 import { FormEvent, ChangeEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import { useAuth, getDashboardPath } from "../../context/AuthContext";
 import { api } from "../../lib/api";
+import LanguageSwitcher from "../../components/common/LanguageSwitcher";
 
 type Step = "info" | "verify" | "password";
 
-const STEP_META: Record<Step, { badge: string; title: string }> = {
-  info: { badge: "Étape 01", title: "Vos informations" },
-  verify: { badge: "Étape 02", title: "Vérification de l'email" },
-  password: { badge: "Étape 03", title: "Sécurisez votre compte" },
-};
+const STEP_NUMBER: Record<Step, string> = { info: "01", verify: "02", password: "03" };
 
 export default function SignUpComplete() {
+  const { t } = useTranslation();
   const { registerWithFiles } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -51,7 +50,7 @@ export default function SignUpComplete() {
     e.preventDefault();
     setError(null);
     if (!form.first_name || !form.last_name || !form.email) {
-      setError("Merci de remplir tous les champs.");
+      setError(t("auth.signup.step1.fillAllFields"));
       return;
     }
     setLoading(true);
@@ -59,7 +58,7 @@ export default function SignUpComplete() {
       await api.post("/auth/send-code", { email: form.email, first_name: form.first_name });
       setStep("verify");
     } catch (err) {
-      setError(extractMessage(err, "Impossible d'envoyer le code."));
+      setError(extractMessage(err, t("auth.signup.step1.sendCodeError")));
     } finally {
       setLoading(false);
     }
@@ -73,7 +72,7 @@ export default function SignUpComplete() {
       await api.post("/auth/verify-code", { email: form.email, code: verificationCode });
       setStep("password");
     } catch (err) {
-      setError(extractMessage(err, "Code incorrect ou expiré."));
+      setError(extractMessage(err, t("auth.signup.step2.invalidCode")));
     } finally {
       setLoading(false);
     }
@@ -85,7 +84,7 @@ export default function SignUpComplete() {
     try {
       await api.post("/auth/send-code", { email: form.email, first_name: form.first_name });
     } catch (err) {
-      setError(extractMessage(err, "Impossible de renvoyer le code."));
+      setError(extractMessage(err, t("auth.signup.step2.resendError")));
     } finally {
       setLoading(false);
     }
@@ -96,7 +95,7 @@ export default function SignUpComplete() {
     setError(null);
 
     if (form.password !== form.password_confirmation) {
-      setError("Les deux mots de passe ne correspondent pas.");
+      setError(t("auth.signup.step3.passwordMismatch"));
       return;
     }
 
@@ -111,7 +110,7 @@ export default function SignUpComplete() {
       const { needsCompanySetup, role } = await registerWithFiles(fd);
       navigate(needsCompanySetup ? "/onboarding/entreprise" : getDashboardPath(role));
     } catch (err) {
-      setError(extractMessage(err, "Impossible de créer le compte."));
+      setError(extractMessage(err, t("authFlow.complete.createError")));
     } finally {
       setLoading(false);
     }
@@ -128,9 +127,9 @@ export default function SignUpComplete() {
     <div className="relative min-h-screen overflow-hidden bg-[#030712] font-['Inter',sans-serif] text-white">
       {/* BACKGROUND */}
       <div className="pointer-events-none fixed inset-0">
-        <div className="absolute -left-40 top-[10%] h-[500px] w-[500px] rounded-full bg-[#22D3EE]/10 blur-[150px]" />
-        <div className="absolute right-[-100px] top-[15%] h-[500px] w-[500px] rounded-full bg-[#8B5CF6]/10 blur-[160px]" />
-        <div className="absolute bottom-[-200px] left-[35%] h-[500px] w-[500px] rounded-full bg-[#3B82F6]/10 blur-[150px]" />
+        <div className="absolute -start-40 top-[10%] h-[500px] w-[500px] rounded-full bg-[#22D3EE]/10 blur-[150px]" />
+        <div className="absolute end-[-100px] top-[15%] h-[500px] w-[500px] rounded-full bg-[#8B5CF6]/10 blur-[160px]" />
+        <div className="absolute bottom-[-200px] start-[35%] h-[500px] w-[500px] rounded-full bg-[#3B82F6]/10 blur-[150px]" />
         <div
           className="absolute inset-0 opacity-[0.025]"
           style={{
@@ -159,18 +158,20 @@ export default function SignUpComplete() {
                   NEXUS <span className="bg-gradient-to-r from-[#22D3EE] to-[#8B5CF6] bg-clip-text text-transparent">AI</span>
                 </div>
                 <div className="mt-0.5 font-mono text-[7px] uppercase tracking-[0.22em] text-slate-600">
-                  Enterprise Intelligence
+                  {t("common.brandTagline")}
                 </div>
               </div>
             </button>
-
+            <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <button
               type="button"
               onClick={() => navigate("/signin")}
               className="hidden rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-2 text-[11px] font-medium text-slate-400 backdrop-blur-xl transition hover:border-[#22D3EE]/20 hover:bg-white/[0.05] hover:text-white sm:block"
             >
-              Déjà membre ? <span className="ml-1.5 text-[#67E8F9]">Se connecter</span>
+              {t("authFlow.signup.alreadyMember")} <span className="ms-1.5 text-[#67E8F9]">{t("authFlow.signup.signIn")}</span>
             </button>
+            </div>
           </div>
 
           {/* HEADER */}
@@ -178,20 +179,20 @@ export default function SignUpComplete() {
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#22D3EE]/15 bg-[#22D3EE]/[0.04] px-3 py-1.5 backdrop-blur-xl">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22D3EE] shadow-[0_0_10px_#22D3EE]" />
               <span className="font-mono text-[8px] font-semibold uppercase tracking-[0.18em] text-[#67E8F9]">
-                Configuration du profil
+                {t("authFlow.complete.badge")}
               </span>
             </div>
 
             <h1 className="font-['Space_Grotesk',sans-serif] text-[34px] font-bold leading-[1.08] tracking-[-0.035em] text-white sm:text-[40px]">
-              Finalisez votre
+              {t("authFlow.complete.title1")}
               <br />
               <span className="bg-gradient-to-r from-[#22D3EE] via-[#3B82F6] to-[#8B5CF6] bg-clip-text text-transparent">
-                espace NEXUS AI.
+                {t("authFlow.complete.title2")}
               </span>
             </h1>
 
             <p className="mt-4 max-w-[500px] text-[13px] leading-7 text-slate-500">
-              Complétez vos informations pour accéder à votre espace intelligent et rejoindre votre organisation.
+              {t("authFlow.complete.subtitle")}
             </p>
           </div>
 
@@ -201,13 +202,13 @@ export default function SignUpComplete() {
             className="relative overflow-hidden rounded-[28px] border border-white/[0.09] bg-[#070D1C]/75 p-6 shadow-[0_30px_90px_rgba(0,0,0,.45)] backdrop-blur-2xl sm:p-8"
           >
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-            <div className="pointer-events-none absolute left-[15%] right-[15%] top-0 h-16 bg-white/[0.035] blur-2xl" />
+            <div className="pointer-events-none absolute start-[15%] end-[15%] top-0 h-16 bg-white/[0.035] blur-2xl" />
 
             {/* CARD HEADER */}
             <div className="mb-7 flex items-center justify-between">
               <div>
-                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#22D3EE]">{STEP_META[step].badge}</p>
-                <h2 className="mt-1 text-[15px] font-semibold text-white">{STEP_META[step].title}</h2>
+                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#22D3EE]">{t("authFlow.complete.stepBadge", { number: STEP_NUMBER[step] })}</p>
+                <h2 className="mt-1 text-[15px] font-semibold text-white">{t("authFlow.complete.steps." + step)}</h2>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className={`h-1.5 rounded-full transition-all ${step === "info" ? "w-5 bg-gradient-to-r from-[#22D3EE] to-[#3B82F6]" : "w-1.5 bg-white/20"}`} />
@@ -232,17 +233,17 @@ export default function SignUpComplete() {
                     <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#22D3EE]/20 to-[#8B5CF6]/20 blur-md" />
                     <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/[0.10] bg-white/[0.035]">
                       {avatarPreview ? (
-                        <img src={avatarPreview} alt="Aperçu" className="h-full w-full object-cover" />
+                        <img src={avatarPreview} alt={t("authFlow.complete.preview")} className="h-full w-full object-cover" />
                       ) : (
                         <span className="text-xl text-slate-600">✦</span>
                       )}
                     </div>
                   </div>
                   <div>
-                    <p className="text-[11px] font-medium text-slate-200">Photo de profil</p>
-                    <p className="mt-1 text-[8px] leading-4 text-slate-600">Ajoutez une photo pour personnaliser votre profil.</p>
+                    <p className="text-[11px] font-medium text-slate-200">{t("authFlow.complete.photo")}</p>
+                    <p className="mt-1 text-[8px] leading-4 text-slate-600">{t("authFlow.complete.photoHint")}</p>
                     <label className="mt-2 inline-flex cursor-pointer rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 py-1.5 text-[9px] font-medium text-slate-400 transition hover:border-[#22D3EE]/25 hover:bg-white/[0.05] hover:text-[#67E8F9]">
-                      Choisir une photo
+                      {t("authFlow.complete.choosePhoto")}
                       <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
                     </label>
                   </div>
@@ -250,35 +251,35 @@ export default function SignUpComplete() {
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className={labelClass}>Prénom</label>
+                    <label className={labelClass}>{t("auth.signup.step1.firstName")}</label>
                     <input
                       required
                       value={form.first_name}
                       onChange={(e) => setForm((f) => ({ ...f, first_name: e.target.value }))}
-                      placeholder="Votre prénom"
+                      placeholder={t("authFlow.complete.firstNamePlaceholder")}
                       className={inputClass}
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>Nom</label>
+                    <label className={labelClass}>{t("auth.signup.step1.lastName")}</label>
                     <input
                       required
                       value={form.last_name}
                       onChange={(e) => setForm((f) => ({ ...f, last_name: e.target.value }))}
-                      placeholder="Votre nom"
+                      placeholder={t("authFlow.complete.lastNamePlaceholder")}
                       className={inputClass}
                     />
                   </div>
                 </div>
 
                 <div className="mt-4">
-                  <label className={labelClass}>Adresse email</label>
+                  <label className={labelClass}>{t("authFlow.complete.email")}</label>
                   <input
                     type="email"
                     required
                     value={form.email}
                     onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                    placeholder="vous@entreprise.com"
+                    placeholder={t("authFlow.complete.emailPlaceholder")}
                     className={inputClass}
                   />
                 </div>
@@ -289,9 +290,9 @@ export default function SignUpComplete() {
             {step === "verify" && (
               <div>
                 <p className="mb-5 text-[11px] leading-5 text-slate-400">
-                  Un code à 6 chiffres a été envoyé à <span className="text-white">{form.email}</span>. Saisissez-le ci-dessous.
+                  {t("authFlow.complete.codeSent")} <span className="text-white" dir="ltr">{form.email}</span>
                 </p>
-                <label className={labelClass}>Code de vérification</label>
+                <label className={labelClass}>{t("auth.signup.step2.codeLabel")}</label>
                 <input
                   required
                   maxLength={6}
@@ -306,14 +307,14 @@ export default function SignUpComplete() {
                   disabled={loading}
                   className="mt-3 text-[10px] font-semibold text-[#67E8F9] hover:underline disabled:opacity-40"
                 >
-                  Renvoyer le code
+                  {t("auth.signup.step2.resendCode")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setStep("info")}
-                  className="mt-3 ml-4 text-[10px] font-semibold text-slate-500 hover:underline"
+                  className="mt-3 ms-4 text-[10px] font-semibold text-slate-500 hover:underline"
                 >
-                  ← Modifier mon email
+                  {t("auth.signup.step2.editEmail")}
                 </button>
               </div>
             )}
@@ -322,39 +323,39 @@ export default function SignUpComplete() {
             {step === "password" && (
               <>
                 <div>
-                  <label className={labelClass}>Mot de passe</label>
+                  <label className={labelClass}>{t("auth.password")}</label>
                   <input
                     type="password"
                     required
                     minLength={8}
                     value={form.password}
                     onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                    placeholder="Minimum 8 caractères"
+                    placeholder={t("auth.signup.step3.passwordPlaceholder")}
                     className={inputClass}
                   />
                 </div>
 
                 <div className="mt-4">
-                  <label className={labelClass}>Confirmation du mot de passe</label>
+                  <label className={labelClass}>{t("auth.signup.step3.confirmPassword")}</label>
                   <input
                     type="password"
                     required
                     value={form.password_confirmation}
                     onChange={(e) => setForm((f) => ({ ...f, password_confirmation: e.target.value }))}
-                    placeholder="Répétez votre mot de passe"
+                    placeholder={t("auth.signup.step3.confirmPlaceholder")}
                     className={inputClass}
                   />
                 </div>
 
                 <div className="mt-5">
                   <label className={labelClass}>
-                    CV <span className="ml-2 normal-case tracking-normal text-slate-700">(PDF, optionnel)</span>
+                    {t("authFlow.complete.cv")} <span className="ms-2 normal-case tracking-normal text-slate-700">{t("authFlow.complete.cvOptional")}</span>
                   </label>
                   <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-white/[0.10] bg-white/[0.02] px-4 py-3 transition hover:border-[#22D3EE]/25 hover:bg-white/[0.035]">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#67E8F9]">↑</div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[10px] font-medium text-slate-300">{cv ? cv.name : "Importer votre CV"}</p>
-                      <p className="mt-0.5 text-[8px] text-slate-600">Format PDF uniquement</p>
+                      <p className="truncate text-[10px] font-medium text-slate-300">{cv ? cv.name : t("authFlow.complete.uploadCv")}</p>
+                      <p className="mt-0.5 text-[8px] text-slate-600">{t("authFlow.complete.pdfOnly")}</p>
                     </div>
                     <input type="file" accept="application/pdf" className="hidden" onChange={(e) => setCv(e.target.files?.[0] ?? null)} />
                   </label>
@@ -371,26 +372,26 @@ export default function SignUpComplete() {
               <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
               <span className="relative">
                 {loading
-                  ? "PATIENTEZ..."
+                  ? t("auth.signup.pleaseWait")
                   : step === "info"
-                  ? "VÉRIFIER MON EMAIL"
+                  ? t("auth.signup.step1.verifyButton")
                   : step === "verify"
-                  ? "VALIDER LE CODE"
-                  : "CRÉER MON COMPTE"}
+                  ? t("auth.signup.step2.validateButton")
+                  : t("auth.signup.step3.createAccountButton")}
               </span>
             </button>
 
             <div className="mt-5 flex items-center justify-center gap-2 text-center">
               <span className="text-[9px] text-[#22D3EE]">◉</span>
               <p className="text-[8px] leading-5 text-slate-600">
-                Vos données sont protégées et votre accès est sécurisé par NEXUS AI.
+                {t("authFlow.complete.secureNote")}
               </p>
             </div>
           </form>
 
           <div className="mt-6 text-center sm:hidden">
             <button type="button" onClick={() => navigate("/signin")} className="text-[10px] text-slate-500 transition hover:text-white">
-              Déjà membre ? <span className="ml-1 text-[#67E8F9]">Se connecter</span>
+              {t("authFlow.signup.alreadyMember")} <span className="ms-1 text-[#67E8F9]">{t("authFlow.signup.signIn")}</span>
             </button>
           </div>
         </div>

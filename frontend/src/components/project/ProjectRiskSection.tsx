@@ -1,10 +1,15 @@
 // Résultat du modèle de risque + bilan explicable (Groq) pour un projet
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { Loader2, RefreshCw, Sparkles } from "lucide-react";
 
 import { api } from "../../lib/api";
 import RiskExplanation from "./RiskExplanation";
+import ReportHistory from "./ReportHistory";
+import { formatDateTime, formatNumber } from "../../i18n/format";
+import { healthLabel, riskLabel } from "../../i18n/labels";
+import i18n from "../../i18n";
 import type {
   AIReportData,
   RiskExplanationData,
@@ -53,7 +58,7 @@ const SEVERITY_STYLE: Record<
 
 function formatHours(value: number | null): string {
   if (value == null || Number.isNaN(value)) return "—";
-  return `${Math.round(value).toLocaleString("fr-FR")} h`;
+  return `${formatNumber(Math.round(value))} ${i18n.t("common.hoursShort")}`;
 }
 
 function computeGap(planned: number, predicted: number | null): number | null {
@@ -79,6 +84,7 @@ function SectionTitle({
 }
 
 export default function ProjectRiskSection({ project, onChange }: Props) {
+  const { t } = useTranslation();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,8 +105,8 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
     } catch (err) {
       setError(
         axios.isAxiosError(err)
-          ? err.response?.data?.message || "Impossible de générer le bilan AI."
-          : "Impossible de générer le bilan AI."
+          ? err.response?.data?.message || t("chef.projects.reportError")
+          : t("chef.projects.reportError")
       );
     } finally {
       setGenerating(false);
@@ -113,9 +119,9 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
       <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-6 backdrop-blur-xl sm:p-8">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold">Résultat du modèle de risque</h2>
+            <h2 className="text-sm font-semibold">{t("risk.section.title")}</h2>
             <p className="text-xs text-slate-600">
-              Estimation d'effort calculée par le modèle ML
+              {t("risk.section.subtitle")}
             </p>
           </div>
 
@@ -125,33 +131,33 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
                 RISK_STYLE[project.risk_level] ?? RISK_STYLE["Indéterminé"]
               }`}
             >
-              Risque {project.risk_level}
+              {t("risk.section.riskBadge", { level: riskLabel(project.risk_level) })}
             </span>
           )}
         </div>
 
         {project.predicted_effort == null ? (
           <p className="text-sm text-slate-500">
-            Aucune prédiction enregistrée pour ce projet.
+            {t("risk.section.noPrediction")}
           </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-white/[0.06] bg-black/10 p-4">
-              <p className="text-xs text-slate-600">Effort planifié</p>
+              <p className="text-xs text-slate-600">{t("chef.projects.plannedEffort")}</p>
               <p className="mt-2 text-lg font-semibold text-white">
                 {formatHours(project.planned_effort)}
               </p>
             </div>
 
             <div className="rounded-2xl border border-white/[0.06] bg-black/10 p-4">
-              <p className="text-xs text-slate-600">Effort estimé par le modèle</p>
+              <p className="text-xs text-slate-600">{t("risk.section.modelEffort")}</p>
               <p className="mt-2 text-lg font-semibold text-cyan-300">
                 {formatHours(project.predicted_effort)}
               </p>
             </div>
 
             <div className="rounded-2xl border border-white/[0.06] bg-black/10 p-4">
-              <p className="text-xs text-slate-600">Écart</p>
+              <p className="text-xs text-slate-600">{t("chef.projects.gap")}</p>
               <p
                 className={`mt-2 text-lg font-semibold ${
                   gap == null
@@ -166,9 +172,9 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
             </div>
 
             <div className="rounded-2xl border border-white/[0.06] bg-black/10 p-4">
-              <p className="text-xs text-slate-600">Niveau de risque</p>
+              <p className="text-xs text-slate-600">{t("chef.tester.riskLevel")}</p>
               <p className="mt-2 text-lg font-semibold text-white">
-                {project.risk_level ?? "—"}
+                {riskLabel(project.risk_level)}
               </p>
             </div>
           </div>
@@ -184,9 +190,9 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
             </div>
 
             <div>
-              <h2 className="text-sm font-semibold">Bilan explicable</h2>
+              <h2 className="text-sm font-semibold">{t("risk.section.report")}</h2>
               <p className="text-xs text-slate-600">
-                Analyse complète rédigée par NEXUS AI à partir du modèle
+                {t("risk.section.reportHint")}
               </p>
             </div>
           </div>
@@ -206,10 +212,10 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
                 <Sparkles className="h-4 w-4" />
               )}
               {generating
-                ? "Analyse en cours…"
+                ? t("chef.tester.running")
                 : report
-                ? "Régénérer le bilan"
-                : "Générer le bilan"}
+                ? t("risk.section.regenerate")
+                : t("risk.section.generate")}
             </button>
           )}
         </div>
@@ -222,16 +228,14 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
 
         {!report && !generating && !error && (
           <p className="text-sm leading-6 text-slate-500">
-            Aucun bilan n'a encore été généré pour ce projet. Le bilan explique
-            pourquoi le modèle estime cet effort, quels facteurs pèsent le plus,
-            les risques et les recommandations.
+            {t("risk.section.noReport")}
           </p>
         )}
 
         {generating && (
           <div className="py-10 text-center">
             <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-cyan-400" />
-            <p className="text-sm text-slate-500">NEXUS AI prépare le bilan…</p>
+            <p className="text-sm text-slate-500">{t("chef.projects.preparing")}</p>
           </div>
         )}
 
@@ -244,7 +248,7 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
                   HEALTH_STYLE[report.health]
                 }`}
               >
-                Santé du projet : {report.health}
+                {t("risk.section.healthBadge", { health: healthLabel(report.health) })}
               </span>
 
               <p className="max-w-3xl text-sm leading-7 text-slate-300">
@@ -261,7 +265,7 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
             {/* POINTS FORTS */}
             {report.strengths.length > 0 && (
               <section>
-                <SectionTitle>Points forts</SectionTitle>
+                <SectionTitle>{t("chef.projects.strengths")}</SectionTitle>
                 <ul className="space-y-2.5">
                   {report.strengths.map((s, i) => (
                     <li key={i} className="flex gap-3 text-sm leading-6 text-slate-300">
@@ -278,7 +282,7 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
             {/* RISQUES */}
             {report.risks.length > 0 && (
               <section>
-                <SectionTitle accent="bg-rose-400/60">Risques identifiés</SectionTitle>
+                <SectionTitle accent="bg-rose-400/60">{t("chef.projects.risks")}</SectionTitle>
                 <div className="space-y-3">
                   {report.risks.map((risk, i) => (
                     <div
@@ -292,7 +296,7 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
                             SEVERITY_STYLE[risk.severity]
                           }`}
                         >
-                          {risk.severity}
+                          {riskLabel(risk.severity)}
                         </span>
                       </div>
                       <p className="text-xs leading-6 text-slate-400">{risk.description}</p>
@@ -305,7 +309,7 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
             {/* RECOMMANDATIONS */}
             {report.recommendations.length > 0 && (
               <section>
-                <SectionTitle>Recommandations</SectionTitle>
+                <SectionTitle>{t("chef.projects.recommendations")}</SectionTitle>
                 <ol className="space-y-3">
                   {report.recommendations.map((r, i) => (
                     <li key={i} className="flex gap-4 text-sm leading-6 text-slate-300">
@@ -322,7 +326,7 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
             {/* ANALYSE DE L'ÉCART */}
             {report.effort_analysis && (
               <section>
-                <SectionTitle accent="bg-blue-400/60">Analyse de l'écart d'effort</SectionTitle>
+                <SectionTitle accent="bg-blue-400/60">{t("risk.section.effortGap")}</SectionTitle>
                 <p className="max-w-3xl text-sm leading-7 text-slate-400">
                   {report.effort_analysis}
                 </p>
@@ -331,7 +335,7 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
 
             {/* VERDICT */}
             <section className="border-t border-white/[0.06] pt-7">
-              <SectionTitle accent="bg-violet-400/60">Verdict final</SectionTitle>
+              <SectionTitle accent="bg-violet-400/60">{t("chef.projects.verdict")}</SectionTitle>
               <p className="max-w-3xl text-base font-medium leading-7 text-white">
                 {report.final_verdict}
               </p>
@@ -339,10 +343,11 @@ export default function ProjectRiskSection({ project, onChange }: Props) {
 
             {project.ai_report_generated_at && (
               <p className="border-t border-white/[0.05] pt-4 text-xs text-slate-600">
-                Bilan généré le{" "}
-                {new Date(project.ai_report_generated_at).toLocaleString("fr-FR")}
+                {t("chef.projects.generatedAt", { date: formatDateTime(project.ai_report_generated_at) })}
               </p>
             )}
+
+            <ReportHistory projectId={project.id} refreshKey={project.ai_report_generated_at ? Date.parse(project.ai_report_generated_at) : 0} />
           </div>
         )}
       </section>

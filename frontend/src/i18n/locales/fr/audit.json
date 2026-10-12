@@ -1,0 +1,53 @@
+{
+  "title": "Journal d'audit",
+  "subtitle": "Historique des actions sensibles de votre entreprise : connexions, invitations, projets et sécurité.",
+  "loadError": "Impossible de charger le journal d'audit.",
+  "empty": "Aucune action enregistrée.",
+  "filter": "Filtrer par type",
+  "date": "Date",
+  "user": "Utilisateur",
+  "action": "Action",
+  "page": "Page {{page}} / {{total}}",
+  "filters": {
+    "all": "Toutes les actions",
+    "auth": "Connexions",
+    "account": "Compte et sécurité",
+    "invitation": "Invitations",
+    "project": "Projets",
+    "company": "Entreprise",
+    "ticket": "Support"
+  },
+  "actions": {
+    "auth": {
+      "login": "Connexion",
+      "login_failed": "Échec de connexion (mot de passe incorrect)",
+      "2fa_failed": "Code de double authentification invalide",
+      "logout": "Déconnexion",
+      "registered": "Création de compte"
+    },
+    "account": {
+      "password_changed": "Mot de passe modifié",
+      "2fa_enabled": "Double authentification activée",
+      "2fa_disabled": "Double authentification désactivée"
+    },
+    "invitation": {
+      "sent": "Invitation envoyée",
+      "resent": "Invitation renvoyée",
+      "cancelled": "Invitation annulée",
+      "accepted": "Invitation acceptée"
+    },
+    "project": {
+      "created": "Projet créé",
+      "updated": "Projet modifié",
+      "deleted": "Projet supprimé",
+      "report_generated": "Bilan IA généré"
+    },
+    "company": {
+      "created": "Entreprise créée",
+      "updated": "Informations de l'entreprise modifiées"
+    },
+    "ticket": {
+      "resolved": "Ticket résolu"
+    }
+  }
+}

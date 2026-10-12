@@ -1,0 +1,23 @@
+{
+  "saveError": "Impossible d'enregistrer l'entreprise pour le moment.",
+  "setupBadge": "Configuration de l'espace",
+  "initialSetup": "Configuration initiale",
+  "eyebrow": "Intelligence d'entreprise",
+  "welcome": "Bienvenue",
+  "welcomeName": "Bienvenue, {{name}}",
+  "subtitle": "Configurez votre entreprise pour activer votre espace intelligent NEXUS AI.",
+  "companyProfile": "Profil de l'entreprise",
+  "name": "Nom de l'entreprise",
+  "namePlaceholder": "Ex. Anypli",
+  "email": "Email",
+  "emailPlaceholder": "contact@entreprise.com",
+  "phone": "Téléphone",
+  "address": "Adresse",
+  "addressPlaceholder": "Adresse de l'entreprise",
+  "industry": "Secteur d'activité",
+  "industryPlaceholder": "Agence digitale",
+  "employees": "Nombre d'employés",
+  "submitting": "Initialisation...",
+  "submit": "Accéder à mon tableau de bord",
+  "footer": "Environnement sécurisé · NEXUS AI"
+}

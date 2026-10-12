@@ -1,4 +1,5 @@
 
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import {
   Activity,
@@ -15,6 +16,7 @@ import {
 
 import axios from "axios";
 import { api } from "../../lib/api";
+import i18n from "../../i18n";
 
 type FinancialData = {
   current_ratio: number;
@@ -65,75 +67,48 @@ const initialData: FinancialData = {
   cash_flow_total_assets: 0,
 };
 
+// Libellés / descriptions : finance.fields.<key>.label / .desc
 const fields = [
-  {
-    key: "current_ratio",
-    label: "Current Ratio",
-    description: "Capacité à couvrir les dettes à court terme",
-  },
-  {
-    key: "cash_total_assets",
-    label: "Cash / Total Assets",
-    description: "Part des actifs détenue sous forme de liquidités",
-  },
-  {
-    key: "roa_before_interest_depreciation",
-    label: "ROA avant intérêts et dépréciation",
-    description: "Rentabilité des actifs",
-  },
-  {
-    key: "operating_profit_rate",
-    label: "Operating Profit Rate",
-    description: "Taux de profit opérationnel",
-  },
-  {
-    key: "debt_ratio",
-    label: "Debt Ratio",
-    description: "Niveau d'endettement",
-  },
-  {
-    key: "net_worth_assets",
-    label: "Net Worth / Assets",
-    description: "Poids des capitaux propres",
-  },
-  {
-    key: "working_capital_total_assets",
-    label: "Working Capital / Assets",
-    description: "Poids du fonds de roulement",
-  },
-  {
-    key: "net_income_total_assets",
-    label: "Net Income / Assets",
-    description: "Rentabilité nette des actifs",
-  },
-  {
-    key: "total_asset_turnover",
-    label: "Total Asset Turnover",
-    description: "Efficacité d'utilisation des actifs",
-  },
-  {
-    key: "retained_earnings_total_assets",
-    label: "Retained Earnings / Assets",
-    description: "Bénéfices conservés par rapport aux actifs",
-  },
-  {
-    key: "interest_coverage_ratio",
-    label: "Interest Coverage Ratio",
-    description: "Capacité à couvrir les intérêts",
-  },
-  {
-    key: "equity_liability",
-    label: "Equity / Liability",
-    description: "Rapport capitaux propres / passifs",
-  },
-  {
-    key: "cash_flow_total_assets",
-    label: "Cash Flow / Assets",
-    description: "Flux de trésorerie généré par les actifs",
-  },
+  { key: "current_ratio" },
+  { key: "cash_total_assets" },
+  { key: "roa_before_interest_depreciation" },
+  { key: "operating_profit_rate" },
+  { key: "debt_ratio" },
+  { key: "net_worth_assets" },
+  { key: "working_capital_total_assets" },
+  { key: "net_income_total_assets" },
+  { key: "total_asset_turnover" },
+  { key: "retained_earnings_total_assets" },
+  { key: "interest_coverage_ratio" },
+  { key: "equity_liability" },
+  { key: "cash_flow_total_assets" },
 ] as const;
 
+// Noms des variables renvoyés par le modèle (même ordre que fields)
+const MODEL_FEATURES = [
+  "Current Ratio",
+  "Cash/Total Assets",
+  "ROA(C) before interest and depreciation before interest",
+  "Operating Profit Rate",
+  "Debt ratio %",
+  "Net worth/Assets",
+  "Working Capital to Total Assets",
+  "Net Income to Total Assets",
+  "Total Asset Turnover",
+  "Retained Earnings to Total Assets",
+  "Interest Coverage Ratio (Interest expense to EBIT)",
+  "Equity to Liability",
+  "Cash Flow to Total Assets",
+];
+
+// Libellé traduit d'une variable SHAP, ou son nom brut si inconnue
+function featureLabel(feature: string): string {
+  const index = MODEL_FEATURES.indexOf(feature.trim());
+  return index >= 0 ? i18n.t(`finance.fields.${fields[index].key}.label`) : feature;
+}
+
 export default function FinancialHealthPage() {
+  const { t } = useTranslation();
   const [form, setForm] =
     useState<FinancialData>(initialData);
 
@@ -215,7 +190,7 @@ export default function FinancialHealthPage() {
 
       if (!prediction) {
         throw new Error(
-          "La réponse du service de prédiction est invalide."
+          t("finance.invalidResponse")
         );
       }
 
@@ -303,14 +278,14 @@ export default function FinancialHealthPage() {
         typeof savedReport.id !== "number"
       ) {
         throw new Error(
-          "Le rapport a peut-être été enregistré, mais son identifiant n'a pas été retourné par le serveur."
+          t("finance.missingReportId")
         );
       }
 
       setReportId(savedReport.id);
 
       setSuccessMessage(
-        `Analyse terminée et rapport #${savedReport.id} enregistré.`
+        t("finance.saved", { id: savedReport.id })
       );
 
     } catch (err: unknown) {
@@ -324,14 +299,14 @@ export default function FinancialHealthPage() {
           err.response?.data?.message ||
           err.response?.data?.detail ||
           err.message ||
-          "Impossible de contacter le service de santé financière.";
+          t("finance.serviceError");
 
         setError(message);
       } else if (err instanceof Error) {
         setError(err.message);
       } else {
         setError(
-          "Une erreur inattendue est survenue pendant l'analyse."
+          t("finance.analysisError")
         );
       }
     } finally {
@@ -348,7 +323,7 @@ export default function FinancialHealthPage() {
   const handleDownloadPdf = async () => {
     if (!reportId) {
       setError(
-        "Aucun rapport disponible pour le téléchargement."
+        t("finance.noReport")
       );
 
       return;
@@ -395,7 +370,7 @@ export default function FinancialHealthPage() {
          * sous forme de Blob.
          */
         let serverMessage =
-          "Le serveur n'a pas retourné un PDF valide.";
+          t("finance.invalidPdf");
 
         try {
           const text =
@@ -467,13 +442,13 @@ export default function FinancialHealthPage() {
       if (axios.isAxiosError(err)) {
         setError(
           err.response?.data?.message ||
-            "Impossible de télécharger le rapport PDF."
+            t("finance.downloadError")
         );
       } else if (err instanceof Error) {
         setError(err.message);
       } else {
         setError(
-          "Une erreur est survenue pendant le téléchargement du PDF."
+          t("finance.downloadError")
         );
       }
     } finally {
@@ -521,12 +496,11 @@ export default function FinancialHealthPage() {
           <div>
 
             <h1 className="text-2xl font-bold">
-              Santé financière
+              {t("director.sidebar.analytics")}
             </h1>
 
             <p className="mt-1 text-sm text-slate-400">
-              Analyse prédictive de la santé
-              financière de votre entreprise
+              {t("finance.subtitle")}
             </p>
 
           </div>
@@ -592,14 +566,13 @@ export default function FinancialHealthPage() {
               />
 
               <h2 className="text-lg font-semibold">
-                Indicateurs financiers
+                {t("finance.indicators")}
               </h2>
 
             </div>
 
             <p className="mt-1 text-sm text-slate-500">
-              Entrez les indicateurs utilisés
-              par le modèle ML.
+              {t("finance.indicatorsHint")}
             </p>
 
           </div>
@@ -611,7 +584,7 @@ export default function FinancialHealthPage() {
               <div key={field.key}>
 
                 <label className="mb-1.5 block text-sm font-medium text-slate-300">
-                  {field.label}
+                  {t(`finance.fields.${field.key}.label`)}
                 </label>
 
                 <input
@@ -639,7 +612,7 @@ export default function FinancialHealthPage() {
                 />
 
                 <p className="mt-1 text-[11px] text-slate-600">
-                  {field.description}
+                  {t(`finance.fields.${field.key}.desc`)}
                 </p>
 
               </div>
@@ -676,7 +649,7 @@ export default function FinancialHealthPage() {
                   className="h-4 w-4 animate-spin"
                 />
 
-                Analyse en cours...
+                {t("chef.tester.running")}
               </>
 
             ) : (
@@ -686,7 +659,7 @@ export default function FinancialHealthPage() {
                   className="h-4 w-4"
                 />
 
-                Analyser la santé financière
+                {t("finance.analyze")}
               </>
 
             )}
@@ -725,7 +698,7 @@ export default function FinancialHealthPage() {
                     className="h-4 w-4 animate-spin"
                   />
 
-                  Génération du PDF...
+                  {t("finance.generatingPdf")}
                 </>
 
               ) : (
@@ -735,7 +708,7 @@ export default function FinancialHealthPage() {
                     className="h-4 w-4"
                   />
 
-                  Télécharger le rapport PDF
+                  {t("finance.downloadPdf")}
                 </>
 
               )}
@@ -758,7 +731,7 @@ export default function FinancialHealthPage() {
 
           <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6">
 
-            <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-cyan-500/10 blur-3xl" />
+            <div className="pointer-events-none absolute -end-20 -top-20 h-48 w-48 rounded-full bg-cyan-500/10 blur-3xl" />
 
             <div className="relative">
 
@@ -767,11 +740,11 @@ export default function FinancialHealthPage() {
                 <div>
 
                   <p className="text-sm text-slate-400">
-                    Score de santé
+                    {t("finance.healthScore")}
                   </p>
 
                   <p className="mt-1 text-xs text-slate-600">
-                    Calculé par le modèle IA
+                    {t("finance.computedByAi")}
                   </p>
 
                 </div>
@@ -849,9 +822,7 @@ export default function FinancialHealthPage() {
 
                       )}
 
-                      {isAtRisk
-                        ? "Entreprise à risque"
-                        : "Situation financière saine"}
+                      {isAtRisk ? t("finance.atRisk") : t("finance.healthy")}
 
                     </span>
 
@@ -863,8 +834,7 @@ export default function FinancialHealthPage() {
 
                 <div className="flex h-32 items-center justify-center text-sm text-slate-600">
 
-                  Lancez une analyse pour obtenir
-                  le score.
+                  {t("finance.runHint")}
 
                 </div>
 
@@ -881,7 +851,7 @@ export default function FinancialHealthPage() {
           <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6">
 
             <p className="text-sm text-slate-400">
-              Probabilité de faillite
+              {t("finance.probability")}
             </p>
 
             <div className="mt-3 flex items-end justify-between">
@@ -896,7 +866,7 @@ export default function FinancialHealthPage() {
 
                 <span className="text-xs text-slate-500">
 
-                  Seuil :{" "}
+                  {t("finance.threshold")}{" "}
 
                   {(
                     result.decision_threshold *
@@ -949,11 +919,11 @@ export default function FinancialHealthPage() {
               <div>
 
                 <h2 className="text-base font-semibold">
-                  Facteurs explicatifs
+                  {t("finance.factors")}
                 </h2>
 
                 <p className="text-xs text-slate-500">
-                  Analyse SHAP du modèle
+                  {t("finance.shap")}
                 </p>
 
               </div>
@@ -968,7 +938,7 @@ export default function FinancialHealthPage() {
                   className="h-4 w-4 animate-spin"
                 />
 
-                Analyse des facteurs...
+                {t("finance.analyzingFactors")}
 
               </div>
 
@@ -981,7 +951,7 @@ export default function FinancialHealthPage() {
                   .map((item, index) => (
 
                     <div
-                      key={`${item.feature}-${index}`}
+                      key={`$                          {featureLabel(item.feature)}-${index}`}
                       className="flex items-center justify-between rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-3"
                     >
 
@@ -1014,13 +984,13 @@ export default function FinancialHealthPage() {
                         </div>
 
                         <span className="truncate text-xs text-slate-300">
-                          {item.feature}
+                          {featureLabel(item.feature)}
                         </span>
 
                       </div>
 
                       <span
-                        className={`ml-3 text-xs font-semibold ${
+                        className={`ms-3 text-xs font-semibold ${
                           item.impact ===
                           "increases_risk"
                             ? "text-red-400"
@@ -1046,8 +1016,7 @@ export default function FinancialHealthPage() {
 
               <p className="text-sm text-slate-600">
 
-                Les facteurs explicatifs
-                apparaîtront après l'analyse.
+                {t("finance.factorsHint")}
 
               </p>
 

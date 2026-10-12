@@ -1,0 +1,14 @@
+{
+  "title": "Notifications",
+  "empty": "No notifications yet.",
+  "markAllRead": "Mark all as read",
+  "types": {
+    "task_late": "Late task: \"{{task}}\" ({{project}}) — due {{due_date}}",
+    "task_due_soon": "Due soon: \"{{task}}\" ({{project}}) on {{due_date}}",
+    "project_high_risk": "{{risk_level}} risk detected on project \"{{project}}\"",
+    "project_late_tasks": "{{count}} late task(s) on \"{{project}}\"",
+    "invitation_accepted": "{{name}} accepted their invitation ({{role}})",
+    "ticket_critical": "Critical ticket waiting: \"{{title}}\"",
+    "ai_report_auto": "AI report automatically regenerated for \"{{project}}\""
+  }
+}

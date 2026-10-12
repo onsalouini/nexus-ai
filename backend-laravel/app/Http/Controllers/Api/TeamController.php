@@ -83,6 +83,6 @@ class TeamController extends Controller
         $this->own($request, $team);
         $team->projects()->update(['team_id' => null]);
         $team->delete();
-        return response()->json(['message' => 'Équipe supprimée.']);
+        return response()->json(['message' => __('Équipe supprimée.')]);
     }
 }

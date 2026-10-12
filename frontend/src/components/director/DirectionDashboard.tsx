@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import {
   Building2,
@@ -16,8 +17,10 @@ import {
   getDirectorDashboard,
   type DirectorDashboardData,
 } from "../../services/directorService";
+import GlobalHealthCard from "./GlobalHealthCard";
 
 export default function DirectionDashboard() {
+  const { t } = useTranslation();
   const [data, setData] = useState<DirectorDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +38,7 @@ export default function DirectionDashboard() {
         console.error("Erreur chargement dashboard direction :", err);
 
         setError(
-          "Impossible de charger les informations de votre espace de direction."
+          t("director.home.loadError")
         );
       } finally {
         setLoading(false);
@@ -43,7 +46,7 @@ export default function DirectionDashboard() {
     };
 
     loadDashboard();
-  }, []);
+  }, [t]);
 
   /*
    * --------------------------------------------------------------------------
@@ -55,8 +58,8 @@ export default function DirectionDashboard() {
     return (
       <div className="relative min-h-full overflow-hidden bg-[#030712] text-white">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-40 -top-40 h-[420px] w-[420px] rounded-full bg-cyan-500/[0.06] blur-[120px]" />
-          <div className="absolute right-[-160px] top-[20%] h-[420px] w-[420px] rounded-full bg-violet-500/[0.05] blur-[120px]" />
+          <div className="absolute -start-40 -top-40 h-[420px] w-[420px] rounded-full bg-cyan-500/[0.06] blur-[120px]" />
+          <div className="absolute end-[-160px] top-[20%] h-[420px] w-[420px] rounded-full bg-violet-500/[0.05] blur-[120px]" />
         </div>
 
         <div className="relative flex min-h-[70vh] items-center justify-center">
@@ -67,7 +70,7 @@ export default function DirectionDashboard() {
             </div>
 
             <p className="mt-5 text-sm text-slate-500">
-              Initialisation de votre espace NEXUS...
+              {t("director.home.initializing")}
             </p>
           </div>
         </div>
@@ -85,7 +88,7 @@ export default function DirectionDashboard() {
     return (
       <div className="relative min-h-full overflow-hidden bg-[#030712] text-white">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-40 -top-40 h-[420px] w-[420px] rounded-full bg-cyan-500/[0.05] blur-[120px]" />
+          <div className="absolute -start-40 -top-40 h-[420px] w-[420px] rounded-full bg-cyan-500/[0.05] blur-[120px]" />
         </div>
 
         <div className="relative flex min-h-[70vh] items-center justify-center px-6">
@@ -95,19 +98,18 @@ export default function DirectionDashboard() {
             </div>
 
             <h2 className="mt-5 text-xl font-semibold">
-              Impossible de charger le dashboard
+              {t("director.home.loadErrorTitle")}
             </h2>
 
             <p className="mt-3 text-sm leading-6 text-slate-500">
-              {error ||
-                "Une erreur est survenue lors de la récupération des données."}
+              {error || t("common.genericError")}
             </p>
 
             <button
               onClick={() => window.location.reload()}
               className="mt-6 inline-flex items-center rounded-xl border border-cyan-400/20 bg-cyan-400/[0.08] px-5 py-2.5 text-sm font-medium text-cyan-300 transition hover:bg-cyan-400/[0.14]"
             >
-              Réessayer
+              {t("common.retry")}
             </button>
           </div>
         </div>
@@ -122,10 +124,7 @@ export default function DirectionDashboard() {
   }`;
 
   const jobTitle =
-    director.job_title ||
-    (director.role === "direction"
-      ? "Direction"
-      : director.role || "Administrateur");
+    director.job_title || t(`common.roles.${director.role || "direction"}`);
 
   return (
     <div className="relative min-h-full overflow-hidden bg-[#030712] text-white">
@@ -134,11 +133,11 @@ export default function DirectionDashboard() {
       {/* ------------------------------------------------------------------ */}
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-48 -top-48 h-[520px] w-[520px] rounded-full bg-cyan-500/[0.055] blur-[140px]" />
+        <div className="absolute -start-48 -top-48 h-[520px] w-[520px] rounded-full bg-cyan-500/[0.055] blur-[140px]" />
 
-        <div className="absolute -right-48 top-[20%] h-[520px] w-[520px] rounded-full bg-violet-500/[0.045] blur-[140px]" />
+        <div className="absolute -end-48 top-[20%] h-[520px] w-[520px] rounded-full bg-violet-500/[0.045] blur-[140px]" />
 
-        <div className="absolute bottom-[-300px] left-[40%] h-[500px] w-[500px] rounded-full bg-blue-500/[0.035] blur-[140px]" />
+        <div className="absolute bottom-[-300px] start-[40%] h-[500px] w-[500px] rounded-full bg-blue-500/[0.035] blur-[140px]" />
       </div>
 
       <main className="relative px-5 py-7 sm:px-8 lg:px-10 lg:py-10">
@@ -156,27 +155,26 @@ export default function DirectionDashboard() {
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.7)]" />
 
                   <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-400/90">
-                    NEXUS / Direction
+                    NEXUS / {t("common.roles.direction")}
                   </span>
                 </div>
 
                 <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                  Bonjour,{" "}
+                  {t("director.home.hello")}{" "}
                   <span className="bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-transparent">
                     {director.first_name}
                   </span>
                 </h1>
 
                 <p className="mt-3 max-w-xl text-sm leading-6 text-slate-500">
-                  Pilotez votre organisation depuis une vue centralisée de
-                  votre environnement NEXUS.
+                  {t("director.home.subtitle")}
                 </p>
               </div>
 
               {/* Director profile */}
 
               <div className="flex items-center gap-3">
-                <div className="hidden text-right sm:block">
+                <div className="hidden text-end sm:block">
                   <p className="text-sm font-medium text-slate-200">
                     {director.first_name} {director.last_name}
                   </p>
@@ -195,6 +193,11 @@ export default function DirectionDashboard() {
             </div>
           </header>
 
+          {/* Enterprise Health Score : projets + support + finance */}
+          <div className="pt-9">
+            <GlobalHealthCard />
+          </div>
+
           {/* ================================================================ */}
           {/* ORGANISATION                                                     */}
           {/* ================================================================ */}
@@ -204,11 +207,11 @@ export default function DirectionDashboard() {
             <div className="mb-7 flex items-end justify-between gap-6">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                  Organisation
+                  {t("director.home.organization")}
                 </p>
 
                 <h2 className="mt-2 text-xl font-semibold tracking-tight text-white sm:text-2xl">
-                  Votre entreprise
+                  {t("director.home.yourCompany")}
                 </h2>
               </div>
 
@@ -216,7 +219,7 @@ export default function DirectionDashboard() {
                 <CheckCircle2 className="h-4 w-4 text-emerald-400" />
 
                 <span className="text-xs font-medium text-emerald-400">
-                  Organisation active
+                  {t("director.home.activeOrg")}
                 </span>
               </div>
             </div>
@@ -244,7 +247,7 @@ export default function DirectionDashboard() {
 
                     <div>
                       <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-600">
-                        Entreprise associée
+                        {t("director.home.linkedCompany")}
                       </p>
 
                       <h3 className="mt-1 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
@@ -279,12 +282,12 @@ export default function DirectionDashboard() {
                       <Mail className="h-4 w-4 text-cyan-400/80" />
 
                       <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
-                        Email
+                        {t("auth.email")}
                       </span>
                     </div>
 
                     <p className="break-all text-sm font-medium text-slate-300">
-                      {company.email || "Non renseigné"}
+                      {company.email || t("director.home.notProvided")}
                     </p>
                   </div>
 
@@ -295,12 +298,12 @@ export default function DirectionDashboard() {
                       <Phone className="h-4 w-4 text-blue-400/80" />
 
                       <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
-                        Téléphone
+                        {t("onboarding.phone")}
                       </span>
                     </div>
 
                     <p className="text-sm font-medium text-slate-300">
-                      {company.phone || "Non renseigné"}
+                      {company.phone || t("director.home.notProvided")}
                     </p>
                   </div>
 
@@ -311,19 +314,15 @@ export default function DirectionDashboard() {
                       <Users className="h-4 w-4 text-violet-400/80" />
 
                       <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
-                        Effectif
+                        {t("onboarding.employees")}
                       </span>
                     </div>
 
                     <p className="text-sm font-medium text-slate-300">
                       {company.employees_count !== null &&
                       company.employees_count !== undefined
-                        ? `${company.employees_count} ${
-                            company.employees_count > 1
-                              ? "collaborateurs"
-                              : "collaborateur"
-                          }`
-                        : "Non renseigné"}
+                        ? t("director.home.employees", { count: company.employees_count })
+                        : t("director.home.notProvided")}
                     </p>
                   </div>
 
@@ -334,12 +333,12 @@ export default function DirectionDashboard() {
                       <MapPin className="h-4 w-4 text-cyan-400/80" />
 
                       <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
-                        Localisation
+                        {t("director.home.location")}
                       </span>
                     </div>
 
                     <p className="text-sm font-medium leading-5 text-slate-300">
-                      {company.address || "Non renseignée"}
+                      {company.address || t("director.home.notProvided")}
                     </p>
                   </div>
                 </div>
@@ -354,7 +353,7 @@ export default function DirectionDashboard() {
           <section className="mt-10">
             <div className="relative overflow-hidden rounded-2xl border border-cyan-400/[0.08] bg-gradient-to-r from-cyan-400/[0.045] via-white/[0.02] to-violet-500/[0.045]">
 
-              <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-cyan-400/[0.06] blur-[80px]" />
+              <div className="absolute end-0 top-0 h-40 w-40 rounded-full bg-cyan-400/[0.06] blur-[80px]" />
 
               <div className="relative flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
 
@@ -369,13 +368,11 @@ export default function DirectionDashboard() {
                     </p>
 
                     <h3 className="mt-1 text-sm font-semibold text-white sm:text-base">
-                      Votre environnement de pilotage intelligent
+                      {t("director.home.envTitle")}
                     </h3>
 
                     <p className="mt-1.5 max-w-2xl text-xs leading-5 text-slate-500 sm:text-sm">
-                      NEXUS centralise progressivement vos données afin de
-                      vous offrir une vision claire de vos équipes, projets et
-                      performances.
+                      {t("director.home.envText")}
                     </p>
                   </div>
                 </div>

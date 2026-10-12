@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use App\Http\Middleware\SetLocaleFromHeader;
+use App\Models\AuditLog;
+use App\Services\TotpService;
 
 class AccountController extends Controller
 {
@@ -57,11 +61,12 @@ class AccountController extends Controller
         $user = $request->user();
 
         if (!Hash::check($data['current_password'], $user->password)) {
-            return response()->json(['message' => 'Mot de passe actuel incorrect.', 'errors' => ['current_password' => ['Mot de passe actuel incorrect.']]], 422);
+            return response()->json(['message' => __('Mot de passe actuel incorrect.'), 'errors' => ['current_password' => [__('Mot de passe actuel incorrect.')]]], 422);
         }
 
         $user->update(['password' => $data['password']]);
-        return response()->json(['message' => 'Mot de passe mis à jour.']);
+        AuditLog::record($user, 'account.password_changed', [], $request);
+        return response()->json(['message' => __('Mot de passe mis à jour.')]);
     }
 
     /** Paramètres de l'entreprise (direction uniquement). */
@@ -79,6 +84,79 @@ class AccountController extends Controller
             'employees_count' => 'nullable|integer|min:0',
         ]);
         $user->company->update($data);
+        AuditLog::record($user, 'company.updated', ['name' => $data['name']], $request);
+
+        return response()->json(['user' => $this->payload($user->fresh())]);
+    }
+
+    /** Langue d'interface mémorisée sur le profil (suit l'utilisateur sur tous ses appareils). */
+    public function updateLocale(Request $request)
+    {
+        $data = $request->validate([
+            'locale' => ['required', Rule::in(SetLocaleFromHeader::SUPPORTED)],
+        ]);
+        $request->user()->update($data);
+
+        return response()->json(['user' => $this->payload($request->user()->fresh())]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Double authentification (TOTP)
+    |--------------------------------------------------------------------------
+    | 1. setup  : génère un secret (non actif) et l'URI à scanner
+    | 2. enable : active la 2FA après vérification d'un premier code
+    | 3. disable: désactive avec mot de passe + code
+    */
+    public function setupTwoFactor(Request $request, TotpService $totp)
+    {
+        $user = $request->user();
+
+        if ($user->two_factor_enabled) {
+            return response()->json(['message' => __('La double authentification est déjà active.')], 422);
+        }
+
+        $secret = $totp->generateSecret();
+        $user->update(['two_factor_secret' => $secret]);
+
+        return response()->json([
+            'secret' => $secret,
+            'otpauth_uri' => $totp->otpauthUri($secret, $user->email),
+        ]);
+    }
+
+    public function enableTwoFactor(Request $request, TotpService $totp)
+    {
+        $data = $request->validate(['code' => 'required|string']);
+        $user = $request->user();
+
+        if (! $user->two_factor_secret || ! $totp->verify($user->two_factor_secret, $data['code'])) {
+            return response()->json(['message' => __('Code de vérification invalide.')], 422);
+        }
+
+        $user->update(['two_factor_enabled_at' => now()]);
+        AuditLog::record($user, 'account.2fa_enabled', [], $request);
+
+        return response()->json(['user' => $this->payload($user->fresh())]);
+    }
+
+    public function disableTwoFactor(Request $request, TotpService $totp)
+    {
+        $data = $request->validate([
+            'password' => 'required|string',
+            'code' => 'required|string',
+        ]);
+        $user = $request->user();
+
+        if (! Hash::check($data['password'], $user->password)) {
+            return response()->json(['message' => __('Mot de passe actuel incorrect.')], 422);
+        }
+        if (! $user->two_factor_secret || ! $totp->verify($user->two_factor_secret, $data['code'])) {
+            return response()->json(['message' => __('Code de vérification invalide.')], 422);
+        }
+
+        $user->update(['two_factor_secret' => null, 'two_factor_enabled_at' => null]);
+        AuditLog::record($user, 'account.2fa_disabled', [], $request);
 
         return response()->json(['user' => $this->payload($user->fresh())]);
     }

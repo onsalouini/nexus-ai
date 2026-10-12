@@ -21,7 +21,7 @@ class AIChatController extends Controller
 
         if ($reply === null) {
             return response()->json([
-                'message' => 'NEXUS AI est temporairement indisponible.'
+                'message' => __('NEXUS AI est temporairement indisponible.')
             ], 503);
         }
 

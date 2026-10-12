@@ -1,5 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "../../lib/api";
+import i18n from "../../i18n";
+import { errMsg } from "../ui-nexus/kit";
 
 type Props = {
   open: boolean;
@@ -29,6 +32,7 @@ type Feedback = {
 };
 
 export default function TeamModal({ open, onClose }: Props) {
+  const { t } = useTranslation();
   const [members, setMembers] = useState<Invitation[]>([]);
   const [projects, setProjects] = useState<ProjectOption[]>([]);
 
@@ -79,7 +83,7 @@ export default function TeamModal({ open, onClose }: Props) {
 
       setFeedback({
         type: "error",
-        text: "Impossible de charger les données de l'équipe.",
+        text: i18n.t("chef.teamModal.loadError"),
       });
     } finally {
       setLoading(false);
@@ -111,7 +115,7 @@ export default function TeamModal({ open, onClose }: Props) {
     if (!form.email.trim()) {
       setFeedback({
         type: "error",
-        text: "Veuillez renseigner une adresse email.",
+        text: t("chef.teamModal.emailRequired"),
       });
 
       return;
@@ -133,7 +137,7 @@ export default function TeamModal({ open, onClose }: Props) {
 
       setFeedback({
         type: "success",
-        text: `Invitation envoyée à ${form.email}`,
+        text: t("chef.teamModal.sent", { email: form.email }),
       });
 
       setForm({
@@ -149,7 +153,7 @@ export default function TeamModal({ open, onClose }: Props) {
 
       setFeedback({
         type: "error",
-        text: "Impossible d'envoyer l'invitation.",
+        text: errMsg(error, t("chef.teamModal.sendError")),
       });
     } finally {
       setSending(false);
@@ -220,7 +224,7 @@ export default function TeamModal({ open, onClose }: Props) {
         className="
           pointer-events-none
           absolute
-          left-[20%]
+          start-[20%]
           top-[15%]
           h-[350px]
           w-[350px]
@@ -237,7 +241,7 @@ export default function TeamModal({ open, onClose }: Props) {
           pointer-events-none
           absolute
           bottom-[10%]
-          right-[15%]
+          end-[15%]
           h-[350px]
           w-[350px]
           rounded-full
@@ -286,8 +290,8 @@ export default function TeamModal({ open, onClose }: Props) {
           className="
             pointer-events-none
             absolute
-            left-[15%]
-            right-[15%]
+            start-[15%]
+            end-[15%]
             top-0
             h-20
             bg-white/[0.035]
@@ -343,11 +347,12 @@ export default function TeamModal({ open, onClose }: Props) {
                     text-white
                   "
                 >
-                  Mon équipe
+                  {t("chef.teamModal.title")}
+
                 </div>
 
                 <p className="mt-0.5 text-xs text-slate-500">
-                  Gérez les membres de votre projet
+                  {t("chef.teamModal.subtitle")}
                 </p>
               </div>
             </div>
@@ -357,7 +362,7 @@ export default function TeamModal({ open, onClose }: Props) {
             <button
               type="button"
               onClick={onClose}
-              aria-label="Fermer"
+              aria-label={t("common.close")}
               className="
                 flex
                 h-9
@@ -415,7 +420,7 @@ export default function TeamModal({ open, onClose }: Props) {
                 text-[#67E8F9]
               "
             >
-              Team Management
+              {t("chef.teamModal.badge")}
             </span>
           </div>
         </div>
@@ -432,15 +437,15 @@ export default function TeamModal({ open, onClose }: Props) {
           <div className="mb-6">
             <div className="mb-3">
               <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#22D3EE]">
-                Nouvelle invitation
+                {t("chef.teamModal.newInvitation")}
               </p>
 
               <h3 className="mt-1 text-sm font-semibold text-white">
-                Ajouter un membre
+                {t("chef.teamModal.addMember")}
               </h3>
 
               <p className="mt-1 text-xs leading-5 text-slate-500">
-                Le membre recevra un email pour créer son compte NEXUS AI.
+                {t("chef.teamModal.addMemberHint")}
               </p>
             </div>
 
@@ -477,7 +482,7 @@ export default function TeamModal({ open, onClose }: Props) {
 
                 <input
                   type="text"
-                  placeholder="Prénom"
+                  placeholder={t("auth.signup.step1.firstName")}
                   className={inputClass}
                   value={form.first_name}
                   onChange={(event) =>
@@ -492,7 +497,7 @@ export default function TeamModal({ open, onClose }: Props) {
 
                 <input
                   type="text"
-                  placeholder="Poste · Développeur"
+                  placeholder={t("chef.teamModal.jobPlaceholder")}
                   className={inputClass}
                   value={form.job_title}
                   onChange={(event) =>
@@ -509,7 +514,7 @@ export default function TeamModal({ open, onClose }: Props) {
               <input
                 type="email"
                 required
-                placeholder="Adresse email"
+                placeholder={t("authFlow.complete.email")}
                 className={`mt-3 ${inputClass}`}
                 value={form.email}
                 onChange={(event) =>
@@ -533,7 +538,8 @@ export default function TeamModal({ open, onClose }: Props) {
                 }
               >
                 <option value="" className="bg-[#071021]">
-                  Aucun projet
+                  {t("chef.teamModal.noProject")}
+
                 </option>
 
                 {projects.map((project) => (
@@ -579,7 +585,7 @@ export default function TeamModal({ open, onClose }: Props) {
                 "
               >
                 <span className="relative z-10">
-                  {sending ? "Envoi en cours..." : "Inviter le membre"}
+                  {sending ? t("chef.teamModal.sending") : t("chef.teamModal.invite")}
                 </span>
 
                 <span
@@ -628,11 +634,12 @@ export default function TeamModal({ open, onClose }: Props) {
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#8B5CF6]">
-                  Team
+                  {t("chef.teamModal.teamEyebrow")}
+
                 </p>
 
                 <h3 className="mt-1 text-sm font-semibold text-white">
-                  Membres de l'équipe
+                  {t("chef.teamModal.members")}
                 </h3>
               </div>
 
@@ -678,7 +685,7 @@ export default function TeamModal({ open, onClose }: Props) {
                   />
 
                   <p className="mt-3 text-xs text-slate-600">
-                    Chargement de l'équipe...
+                    {t("chef.teamModal.loading")}
                   </p>
                 </div>
               ) : members.length === 0 ? (
@@ -702,11 +709,11 @@ export default function TeamModal({ open, onClose }: Props) {
                   </div>
 
                   <p className="mt-3 text-sm text-slate-400">
-                    Aucun membre pour l'instant.
+                    {t("chef.teamModal.empty")}
                   </p>
 
                   <p className="mt-1 text-[11px] text-slate-600">
-                    Envoyez votre première invitation ci-dessus.
+                    {t("chef.teamModal.emptyHint")}
                   </p>
                 </div>
               ) : (
@@ -757,7 +764,7 @@ export default function TeamModal({ open, onClose }: Props) {
                         </p>
 
                         <p className="mt-0.5 truncate text-[10px] text-slate-600">
-                          {member.job_title ?? "Poste non renseigné"}
+                          {member.job_title ?? t("chef.teamModal.noJob")}
 
                           {member.project?.name && (
                             <>
@@ -788,8 +795,8 @@ export default function TeamModal({ open, onClose }: Props) {
                       `}
                     >
                       {member.accepted_at
-                        ? "Actif"
-                        : "En attente"}
+                        ? t("chef.teamModal.active")
+                        : t("chef.teamModal.pending")}
                     </span>
                   </div>
                 ))

@@ -54,7 +54,14 @@
       "passwordPlaceholder": "••••••••",
       "connecting": "Connexion...",
       "loginError": "Impossible de se connecter. Vérifie ton email et ton mot de passe.",
-      "createCompanyAccount": "Créer le compte de mon entreprise"
+      "createCompanyAccount": "Créer le compte de mon entreprise",
+      "tooManyAttempts": "Trop de tentatives de connexion. Réessayez dans une minute."
+    },
+    "twoFactor": {
+      "prompt": "La double authentification est active sur ce compte. Saisissez le code affiché dans votre application.",
+      "code": "Code de vérification",
+      "verify": "Vérifier",
+      "back": "← Utiliser un autre compte"
     }
   },
   "dashboard": {

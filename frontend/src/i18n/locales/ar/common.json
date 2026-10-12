@@ -1,0 +1,80 @@
+{
+  "brandTagline": "ذكاء المؤسسات",
+  "home": "الرئيسية",
+  "close": "إغلاق",
+  "cancel": "إلغاء",
+  "save": "حفظ",
+  "saving": "جارٍ الحفظ...",
+  "delete": "حذف",
+  "edit": "تعديل",
+  "create": "إنشاء",
+  "add": "إضافة",
+  "search": "بحث...",
+  "refresh": "تحديث",
+  "retry": "إعادة المحاولة",
+  "back": "رجوع",
+  "next": "التالي",
+  "previous": "السابق",
+  "confirm": "تأكيد",
+  "all": "الكل",
+  "none": "لا شيء",
+  "yes": "نعم",
+  "no": "لا",
+  "loading": "جارٍ التحميل...",
+  "logout": "تسجيل الخروج",
+  "genericError": "حدث خطأ ما.",
+  "noData": "لا توجد بيانات متاحة.",
+  "notDefined": "غير محدد",
+  "language": "اللغة",
+  "changeLanguage": "تغيير اللغة",
+  "closeLanguageMenu": "إغلاق قائمة اللغات",
+  "roles": {
+    "direction": "الإدارة",
+    "chef_de_projet": "مدير مشروع",
+    "agent_support": "وكيل دعم",
+    "membre_equipe": "عضو فريق",
+    "client": "عميل",
+    "employee": "موظف"
+  },
+  "projectStatus": {
+    "planifie": "مخطط",
+    "en_cours": "قيد التنفيذ",
+    "termine": "مكتمل",
+    "suspendu": "معلّق"
+  },
+  "risk": {
+    "low": "منخفض",
+    "medium": "متوسط",
+    "high": "مرتفع",
+    "critical": "حرج"
+  },
+  "employee": {
+    "hello": "مرحبًا {{name}}",
+    "text": "حسابك نشط. ستتوفر مساحة عملك هنا قريبًا."
+  },
+  "notFound": {
+    "eyebrow": "خطأ",
+    "title": "الصفحة غير موجودة",
+    "text": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
+    "backHome": "العودة إلى الرئيسية",
+    "backDashboard": "العودة إلى مساحتي"
+  },
+  "riskLevel": {
+    "low": "منخفض",
+    "medium": "متوسط",
+    "high": "مرتفع",
+    "critical": "حرج",
+    "unknown": "غير محدد"
+  },
+  "health": {
+    "good": "جيدة",
+    "average": "متوسطة",
+    "concerning": "مقلقة",
+    "critical": "حرجة"
+  },
+  "hoursShort": "س",
+  "months": "أشهر",
+  "networkError": "تعذّر الوصول إلى الخادم. تحقق من اتصالك.",
+  "forbidden": "ليس لديك صلاحية الوصول إلى هذا المورد.",
+  "serverError": "خطأ في الخادم. أعد المحاولة بعد قليل."
+}

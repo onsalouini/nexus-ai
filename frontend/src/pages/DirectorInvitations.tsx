@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useState, FormEvent } from "react";
 import {
   Check,
@@ -14,6 +15,13 @@ import {
 
 import { api as apiClient } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import { roleLabel } from "../i18n/labels";
+import { formatDate } from "../i18n/format";
+import { normalizeLanguage, SUPPORTED_LANGUAGES } from "../i18n";
+import { workspaceApi } from "../services/workspaceApi";
+import { toast } from "../lib/toast";
+import { errMsg } from "../components/ui-nexus/kit";
+import { SkeletonRows } from "../components/ui-nexus/Skeleton";
 
 type Invitation = {
   id: number;
@@ -22,12 +30,16 @@ type Invitation = {
   role: string;
   accepted_at: string | null;
   expires_at: string;
+  status?: "pending" | "accepted" | "expired";
+  locale?: string | null;
 };
 
 type Tab = "invite" | "list";
 
 export default function DirectorInvitations() {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const [actionId, setActionId] = useState<number | null>(null);
 
   const [activeTab, setActiveTab] = useState<Tab>("invite");
   const [invitations, setInvitations] = useState<Invitation[]>([]);
@@ -37,6 +49,7 @@ export default function DirectorInvitations() {
     first_name: "",
     email: "",
     role: "chef_de_projet",
+    locale: normalizeLanguage(i18n.language) as string,
   });
 
   const [sending, setSending] = useState(false);
@@ -53,7 +66,7 @@ export default function DirectorInvitations() {
       const { data } = await apiClient.get("/invitations");
       setInvitations(data);
     } catch (err) {
-      console.error("Erreur chargement invitations", err);
+      toast.error(errMsg(err));
     } finally {
       setLoading(false);
     }
@@ -74,14 +87,10 @@ export default function DirectorInvitations() {
 
       setFeedback({
         type: "success",
-        text: `Invitation envoyée à ${form.email}`,
+        text: t("chef.teamModal.sent", { email: form.email }),
       });
 
-      setForm({
-        first_name: "",
-        email: "",
-        role: "chef_de_projet",
-      });
+      setForm((f) => ({ ...f, first_name: "", email: "", role: "chef_de_projet" }));
 
       await loadInvitations();
     } catch (err) {
@@ -100,7 +109,7 @@ export default function DirectorInvitations() {
 
       setFeedback({
         type: "error",
-        text: message ?? "Impossible d'envoyer l'invitation.",
+        text: message ?? t("chef.teamModal.sendError"),
       });
     } finally {
       setSending(false);
@@ -108,6 +117,33 @@ export default function DirectorInvitations() {
   }
 
   const pending = invitations.filter((i) => !i.accepted_at).length;
+
+  async function resend(inv: Invitation) {
+    setActionId(inv.id);
+    try {
+      await workspaceApi.resendInvitation(inv.id);
+      toast.success(t("director.invitations.resent", { email: inv.email }));
+      await loadInvitations();
+    } catch (err) {
+      toast.error(errMsg(err));
+    } finally {
+      setActionId(null);
+    }
+  }
+
+  async function cancel(inv: Invitation) {
+    if (!window.confirm(t("director.invitations.confirmCancel", { email: inv.email }))) return;
+    setActionId(inv.id);
+    try {
+      await workspaceApi.cancelInvitation(inv.id);
+      toast.success(t("director.invitations.cancelled"));
+      setInvitations((prev) => prev.filter((i) => i.id !== inv.id));
+    } catch (err) {
+      toast.error(errMsg(err));
+    } finally {
+      setActionId(null);
+    }
+  }
   const accepted = invitations.filter((i) => i.accepted_at).length;
 
   return (
@@ -117,11 +153,11 @@ export default function DirectorInvitations() {
       {/* ================================================================ */}
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.06] blur-[120px]" />
+        <div className="absolute -start-40 -top-40 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.06] blur-[120px]" />
 
-        <div className="absolute right-[-180px] top-[15%] h-[500px] w-[500px] rounded-full bg-violet-600/[0.07] blur-[130px]" />
+        <div className="absolute end-[-180px] top-[15%] h-[500px] w-[500px] rounded-full bg-violet-600/[0.07] blur-[130px]" />
 
-        <div className="absolute bottom-[-200px] left-[35%] h-[450px] w-[450px] rounded-full bg-blue-600/[0.05] blur-[120px]" />
+        <div className="absolute bottom-[-200px] start-[35%] h-[450px] w-[450px] rounded-full bg-blue-600/[0.05] blur-[120px]" />
       </div>
 
       {/* ================================================================ */}
@@ -143,20 +179,19 @@ export default function DirectorInvitations() {
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
 
                   <span className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400">
-                    NEXUS • Équipe
+                    NEXUS • {t("director.sidebar.team")}
                   </span>
                 </div>
 
                 <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                  Votre{" "}
+                  {t("director.invitations.title1")}{" "}
                   <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                    équipe
+                    {t("director.invitations.title2")}
                   </span>
                 </h1>
 
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-                  Invitez les collaborateurs de votre organisation et
-                  gérez leurs accès à l'environnement NEXUS.
+                  {t("director.invitations.subtitle")}
                 </p>
               </div>
 
@@ -168,11 +203,11 @@ export default function DirectorInvitations() {
 
                 <div>
                   <p className="text-xs text-slate-500">
-                    Organisation
+                    {t("director.home.organization")}
                   </p>
 
                   <p className="mt-0.5 text-sm font-medium text-white">
-                    {user?.company?.name ?? "Votre entreprise"}
+                    {user?.company?.name ?? t("director.home.yourCompany")}
                   </p>
                 </div>
               </div>
@@ -186,7 +221,7 @@ export default function DirectorInvitations() {
           <section className="relative mb-7 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] shadow-2xl backdrop-blur-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.07] via-transparent to-violet-500/[0.08]" />
 
-            <div className="absolute right-[-80px] top-[-100px] h-64 w-64 rounded-full bg-cyan-500/[0.08] blur-3xl" />
+            <div className="absolute end-[-80px] top-[-100px] h-64 w-64 rounded-full bg-cyan-500/[0.08] blur-3xl" />
 
             <div className="relative p-6 sm:p-8">
               <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
@@ -201,18 +236,16 @@ export default function DirectorInvitations() {
                       <Sparkles className="h-3.5 w-3.5 text-violet-400" />
 
                       <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300/80">
-                        Team Management
+                        {t("chef.teamModal.badge")}
                       </span>
                     </div>
 
                     <h2 className="text-xl font-semibold text-white sm:text-2xl">
-                      Construisez votre équipe NEXUS
+                      {t("director.invitations.buildTeam")}
                     </h2>
 
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                      Ajoutez les membres de votre organisation afin de leur
-                      permettre d'accéder aux outils et espaces qui leur sont
-                      dédiés.
+                      {t("director.invitations.buildTeamHint")}
                     </p>
                   </div>
                 </div>
@@ -221,13 +254,13 @@ export default function DirectorInvitations() {
                 <div className="flex gap-3">
                   <MiniStat
                     value={pending}
-                    label="En attente"
+                    label={t("chef.teamModal.pending")}
                     icon={<Clock3 className="h-4 w-4" />}
                   />
 
                   <MiniStat
                     value={accepted}
-                    label="Actifs"
+                    label={t("director.invitations.activeCount")}
                     icon={<Check className="h-4 w-4" />}
                   />
                 </div>
@@ -251,7 +284,7 @@ export default function DirectorInvitations() {
             >
               <UserPlus className="h-4 w-4" />
 
-              Inviter un membre
+              {t("director.invitations.inviteTab")}
             </button>
 
             <button
@@ -267,7 +300,7 @@ export default function DirectorInvitations() {
             >
               <Mail className="h-4 w-4" />
 
-              Invitations
+              {t("director.sidebar.invitations")}
 
               {invitations.length > 0 && (
                 <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] text-slate-400">
@@ -284,7 +317,7 @@ export default function DirectorInvitations() {
           {activeTab === "invite" && (
             <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] shadow-2xl backdrop-blur-2xl">
 
-              <div className="absolute right-[-100px] top-[-100px] h-72 w-72 rounded-full bg-cyan-500/[0.06] blur-3xl" />
+              <div className="absolute end-[-100px] top-[-100px] h-72 w-72 rounded-full bg-cyan-500/[0.06] blur-3xl" />
 
               <div className="relative p-6 sm:p-8 lg:p-10">
 
@@ -294,23 +327,21 @@ export default function DirectorInvitations() {
                   </div>
 
                   <h3 className="text-xl font-semibold text-white">
-                    Inviter un collaborateur
+                    {t("director.invitations.inviteTitle")}
                   </h3>
 
                   <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
-                    Envoyez une invitation sécurisée à un membre de votre
-                    organisation. Il pourra ensuite compléter son profil et
-                    accéder à son espace NEXUS.
+                    {t("director.invitations.inviteHint")}
                   </p>
                 </div>
 
                 <form onSubmit={handleInvite}>
-                  <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+                  <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-5">
 
                     {/* First name */}
                     <div>
                       <label className="mb-2.5 block text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Prénom
+                        {t("auth.signup.step1.firstName")}
                       </label>
 
                       <input
@@ -321,7 +352,7 @@ export default function DirectorInvitations() {
                             first_name: e.target.value,
                           }))
                         }
-                        placeholder="Ex. Mohamed"
+                        placeholder={t("director.invitations.firstNamePlaceholder")}
                         className="h-12 w-full rounded-xl border border-white/10 bg-[#020817]/70 px-4 text-sm text-white outline-none placeholder:text-slate-700 transition focus:border-cyan-400/40 focus:bg-cyan-400/[0.025] focus:ring-1 focus:ring-cyan-400/20"
                       />
                     </div>
@@ -329,11 +360,11 @@ export default function DirectorInvitations() {
                     {/* Email */}
                     <div>
                       <label className="mb-2.5 block text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Adresse email
+                        {t("authFlow.complete.email")}
                       </label>
 
                       <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
+                        <Mail className="absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
 
                         <input
                           type="email"
@@ -345,8 +376,8 @@ export default function DirectorInvitations() {
                               email: e.target.value,
                             }))
                           }
-                          placeholder="membre@entreprise.com"
-                          className="h-12 w-full rounded-xl border border-white/10 bg-[#020817]/70 pl-11 pr-4 text-sm text-white outline-none placeholder:text-slate-700 transition focus:border-cyan-400/40 focus:bg-cyan-400/[0.025] focus:ring-1 focus:ring-cyan-400/20"
+                          placeholder={t("director.invitations.emailPlaceholder")}
+                          className="h-12 w-full rounded-xl border border-white/10 bg-[#020817]/70 ps-11 pe-4 text-sm text-white outline-none placeholder:text-slate-700 transition focus:border-cyan-400/40 focus:bg-cyan-400/[0.025] focus:ring-1 focus:ring-cyan-400/20"
                         />
                       </div>
                     </div>
@@ -354,7 +385,7 @@ export default function DirectorInvitations() {
                     {/* Role */}
                     <div>
                       <label className="mb-2.5 block text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Fonction
+                        {t("director.invitations.roleLabel")}
                       </label>
 
                       <select
@@ -371,15 +402,41 @@ export default function DirectorInvitations() {
                           value="chef_de_projet"
                           className="bg-[#020817]"
                         >
-                          Chef de projet
+                          {t("common.roles.chef_de_projet")}
                         </option>
 
                         <option
                           value="agent_support"
                           className="bg-[#020817]"
                         >
-                          Agent support
+                          {t("common.roles.agent_support")}
                         </option>
+
+                        <option
+                          value="membre_equipe"
+                          className="bg-[#020817]"
+                        >
+                          {t("common.roles.membre_equipe")}
+                        </option>
+                      </select>
+                    </div>
+
+                    {/* Langue de l'email d'invitation */}
+                    <div>
+                      <label className="mb-2.5 block text-xs font-medium uppercase tracking-wider text-slate-500">
+                        {t("director.invitations.emailLanguage")}
+                      </label>
+
+                      <select
+                        value={form.locale}
+                        onChange={(e) => setForm((f) => ({ ...f, locale: e.target.value }))}
+                        className="h-12 w-full rounded-xl border border-white/10 bg-[#020817]/70 px-4 text-sm text-white outline-none transition focus:border-violet-400/40 focus:ring-1 focus:ring-violet-400/20"
+                      >
+                        {SUPPORTED_LANGUAGES.map((code) => (
+                          <option key={code} value={code} className="bg-[#020817]">
+                            {t(`settings.languages.${code}`)}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -390,9 +447,9 @@ export default function DirectorInvitations() {
                         disabled={sending}
                         className="group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 px-5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(34,211,238,0.15)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_35px_rgba(34,211,238,0.25)] disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                        <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:rotate-180" />
 
-                        {sending ? "Envoi..." : "Envoyer l'invitation"}
+                        {sending ? t("chef.teamModal.sending") : t("director.invitations.send")}
 
                         {!sending && (
                           <ArrowRight className="h-4 w-4 opacity-50 transition-transform group-hover:translate-x-0.5" />
@@ -426,8 +483,7 @@ export default function DirectorInvitations() {
                   <ShieldCheck className="h-4 w-4 text-cyan-400/50" />
 
                   <p className="text-xs text-slate-600">
-                    Les invitations sont sécurisées et automatiquement
-                    rattachées à votre organisation.
+                    {t("director.invitations.secureNote")}
                   </p>
                 </div>
               </div>
@@ -446,21 +502,21 @@ export default function DirectorInvitations() {
 
                 <StatCard
                   icon={<Mail className="h-4 w-4" />}
-                  label="Invitations envoyées"
+                  label={t("director.invitations.sent")}
                   value={invitations.length}
                   accent="cyan"
                 />
 
                 <StatCard
                   icon={<Clock3 className="h-4 w-4" />}
-                  label="En attente"
+                  label={t("chef.teamModal.pending")}
                   value={pending}
                   accent="violet"
                 />
 
                 <StatCard
                   icon={<Check className="h-4 w-4" />}
-                  label="Membres activés"
+                  label={t("director.invitations.activated")}
                   value={accepted}
                   accent="emerald"
                 />
@@ -473,12 +529,11 @@ export default function DirectorInvitations() {
 
                   <div>
                     <h3 className="text-base font-semibold text-white">
-                      Historique des invitations
+                      {t("director.invitations.history")}
                     </h3>
 
                     <p className="mt-1 text-xs text-slate-600">
-                      Suivez les invitations envoyées aux membres de votre
-                      organisation.
+                      {t("director.invitations.historyHint")}
                     </p>
                   </div>
 
@@ -488,12 +543,8 @@ export default function DirectorInvitations() {
                 </div>
 
                 {loading && (
-                  <div className="flex flex-col items-center px-6 py-16 text-center">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-cyan-400" />
-
-                    <p className="mt-4 text-sm text-slate-600">
-                      Chargement des invitations...
-                    </p>
+                  <div className="p-6">
+                    <SkeletonRows count={4} />
                   </div>
                 )}
 
@@ -505,12 +556,11 @@ export default function DirectorInvitations() {
                     </div>
 
                     <h4 className="mt-5 text-sm font-semibold text-slate-300">
-                      Aucune invitation
+                      {t("director.invitations.empty")}
                     </h4>
 
                     <p className="mx-auto mt-2 max-w-sm text-xs leading-5 text-slate-600">
-                      Les invitations que vous envoyez aux collaborateurs de
-                      votre organisation apparaîtront ici.
+                      {t("director.invitations.emptyHint")}
                     </p>
                   </div>
                 )}
@@ -538,8 +588,16 @@ export default function DirectorInvitations() {
                               {inv.email}
                             </p>
 
-                            <p className="mt-1 text-xs capitalize text-slate-600">
-                              {inv.role.replace(/_/g, " ")}
+                            <p className="mt-1 text-xs text-slate-600">
+                              {roleLabel(inv.role)}
+                              {!inv.accepted_at && (
+                                <span className={inv.status === "expired" ? "text-red-300" : ""}>
+                                  {" · "}
+                                  {t(inv.status === "expired" ? "director.invitations.expiredOn" : "director.invitations.expiresOn", {
+                                    date: formatDate(inv.expires_at),
+                                  })}
+                                </span>
+                              )}
                             </p>
                           </div>
 
@@ -549,13 +607,38 @@ export default function DirectorInvitations() {
                           {inv.accepted_at ? (
                             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/15 bg-emerald-400/[0.05] px-3 py-1.5 text-xs font-medium text-emerald-300">
                               <Check className="h-3 w-3" />
-                              Compte activé
+                              {t("director.invitations.accountActive")}
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/15 bg-violet-400/[0.05] px-3 py-1.5 text-xs font-medium text-violet-300">
-                              <Clock3 className="h-3 w-3" />
-                              En attente
-                            </span>
+                            <div className="flex flex-wrap items-center gap-2">
+                              {inv.status === "expired" ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-red-400/15 bg-red-400/[0.05] px-3 py-1.5 text-xs font-medium text-red-300">
+                                  <Clock3 className="h-3 w-3" />
+                                  {t("director.invitations.expired")}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/15 bg-violet-400/[0.05] px-3 py-1.5 text-xs font-medium text-violet-300">
+                                  <Clock3 className="h-3 w-3" />
+                                  {t("chef.teamModal.pending")}
+                                </span>
+                              )}
+                              <button
+                                type="button"
+                                disabled={actionId === inv.id}
+                                onClick={() => resend(inv)}
+                                className="rounded-full border border-cyan-400/20 px-3 py-1.5 text-xs text-cyan-300 transition hover:bg-cyan-400/10 disabled:opacity-50"
+                              >
+                                {t("director.invitations.resend")}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={actionId === inv.id}
+                                onClick={() => cancel(inv)}
+                                className="rounded-full border border-red-400/20 px-3 py-1.5 text-xs text-red-300 transition hover:bg-red-400/10 disabled:opacity-50"
+                              >
+                                {t("common.cancel")}
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -637,7 +720,7 @@ function StatCard({
     <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-xl">
 
       <div
-        className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${styles[accent].glow}`}
+        className={`absolute -end-10 -top-10 h-28 w-28 rounded-full blur-3xl ${styles[accent].glow}`}
       />
 
       <div className="relative">

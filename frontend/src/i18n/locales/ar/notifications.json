@@ -1,0 +1,14 @@
+{
+  "title": "الإشعارات",
+  "empty": "لا توجد إشعارات حاليًا.",
+  "markAllRead": "تحديد الكل كمقروء",
+  "types": {
+    "task_late": "مهمة متأخرة: «{{task}}» ({{project}}) — الموعد {{due_date}}",
+    "task_due_soon": "موعد قريب: «{{task}}» ({{project}}) في {{due_date}}",
+    "project_high_risk": "تم رصد مخاطر {{risk_level}} في المشروع «{{project}}»",
+    "project_late_tasks": "{{count}} مهمة متأخرة في «{{project}}»",
+    "invitation_accepted": "قبل {{name}} دعوته ({{role}})",
+    "ticket_critical": "تذكرة حرجة في الانتظار: «{{title}}»",
+    "ai_report_auto": "تمت إعادة إنشاء التقرير الذكي تلقائيًا لـ «{{project}}»"
+  }
+}

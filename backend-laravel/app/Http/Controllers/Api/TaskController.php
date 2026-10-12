@@ -138,6 +138,6 @@ class TaskController extends Controller
         $project->recalculateProgress();
         $this->log($project, $request, 'task_deleted', "Tâche « {$title} » supprimée");
 
-        return response()->json(['message' => 'Tâche supprimée.']);
+        return response()->json(['message' => __('Tâche supprimée.')]);
     }
 }

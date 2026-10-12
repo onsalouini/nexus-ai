@@ -119,7 +119,7 @@ class FinancialHealthController extends Controller
             if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Utilisateur non authentifié.',
+                    'message' => __('Utilisateur non authentifié.'),
                 ], 401);
             }
 
@@ -134,7 +134,7 @@ class FinancialHealthController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' =>
-                        'Aucune entreprise associée à cet utilisateur.',
+                        __('Aucune entreprise associée à cet utilisateur.'),
                 ], 422);
             }
 
@@ -273,7 +273,7 @@ class FinancialHealthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Rapport financier enregistré.',
+                'message' => __('Rapport financier enregistré.'),
                 'data' => $report,
             ]);
         } catch (Exception $e) {
@@ -334,7 +334,7 @@ class FinancialHealthController extends Controller
         if ($report->user_id !== $request->user()->id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Accès non autorisé.',
+                'message' => __('Accès non autorisé.'),
             ], 403);
         }
 
@@ -367,7 +367,7 @@ class FinancialHealthController extends Controller
         if ($report->user_id !== $request->user()->id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Accès non autorisé.',
+                'message' => __('Accès non autorisé.'),
             ], 403);
         }
 

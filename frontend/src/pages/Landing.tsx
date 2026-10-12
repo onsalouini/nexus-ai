@@ -43,9 +43,9 @@ function NexusBackground() {
       />
       <div className="absolute inset-0 bg-[#050817]/55" />
       <div className="absolute inset-0 bg-gradient-to-b from-[#050817]/35 via-[#050817]/30 to-[#050817]/95" />
-      <div className="absolute -left-[180px] top-[12%] h-[500px] w-[500px] rounded-full bg-[#22D3EE]/10 blur-[150px]" />
-      <div className="absolute -right-[180px] top-[25%] h-[600px] w-[600px] rounded-full bg-[#8B5CF6]/10 blur-[170px]" />
-      <div className="absolute left-[35%] top-[60%] h-[450px] w-[450px] rounded-full bg-[#3B82F6]/10 blur-[150px]" />
+      <div className="absolute -start-[180px] top-[12%] h-[500px] w-[500px] rounded-full bg-[#22D3EE]/10 blur-[150px]" />
+      <div className="absolute -end-[180px] top-[25%] h-[600px] w-[600px] rounded-full bg-[#8B5CF6]/10 blur-[170px]" />
+      <div className="absolute start-[35%] top-[60%] h-[450px] w-[450px] rounded-full bg-[#3B82F6]/10 blur-[150px]" />
       <SignalParticles />
       <div className="absolute inset-x-0 top-0 h-[250px] bg-gradient-to-b from-[#02040D]/45 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-[350px] bg-gradient-to-t from-[#050817] to-transparent" />
@@ -83,10 +83,10 @@ function Navbar() {
   ];
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 px-4 pt-4 sm:px-6 lg:px-10">
+    <header className="fixed start-0 end-0 top-0 z-50 px-4 pt-4 sm:px-6 lg:px-10">
 
       <div
-        className={`pointer-events-none absolute left-4 right-4 top-4 h-[76px] rounded-[22px] transition-all duration-500 sm:left-6 sm:right-6 lg:left-10 lg:right-10 ${
+        className={`pointer-events-none absolute start-4 end-4 top-4 h-[76px] rounded-[22px] transition-all duration-500 sm:start-6 sm:end-6 lg:start-10 lg:end-10 ${
           scrolled
             ? "bg-[#22D3EE]/[0.04] blur-2xl"
             : "bg-[#8B5CF6]/[0.025] blur-3xl"
@@ -112,9 +112,9 @@ function Navbar() {
       >
 
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-        <div className="pointer-events-none absolute left-[10%] right-[10%] top-0 h-12 bg-gradient-to-b from-white/[0.06] to-transparent blur-xl" />
-        <div className="pointer-events-none absolute -left-20 top-0 h-20 w-60 bg-[#22D3EE]/[0.06] blur-3xl" />
-        <div className="pointer-events-none absolute -right-20 top-0 h-20 w-60 bg-[#8B5CF6]/[0.06] blur-3xl" />
+        <div className="pointer-events-none absolute start-[10%] end-[10%] top-0 h-12 bg-gradient-to-b from-white/[0.06] to-transparent blur-xl" />
+        <div className="pointer-events-none absolute -start-20 top-0 h-20 w-60 bg-[#22D3EE]/[0.06] blur-3xl" />
+        <div className="pointer-events-none absolute -end-20 top-0 h-20 w-60 bg-[#8B5CF6]/[0.06] blur-3xl" />
 
         <div className="relative flex h-[72px] items-center justify-between px-5 lg:px-7">
 
@@ -137,7 +137,7 @@ function Navbar() {
               </div>
 
               <div className="hidden text-[7px] font-medium uppercase tracking-[0.22em] text-slate-500 sm:block">
-                Enterprise Intelligence
+                {t("common.brandTagline")}
               </div>
             </div>
           </Link>
@@ -247,7 +247,7 @@ function HealthEnginePreview() {
       <div className="relative overflow-hidden rounded-[30px] border border-white/[0.11] bg-[#080E20]/80 p-7 shadow-[0_40px_100px_rgba(0,0,0,.55)] backdrop-blur-2xl">
 
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#22D3EE]/70 to-transparent" />
-        <div className="absolute left-[15%] right-[15%] top-0 h-20 bg-white/[0.025] blur-xl" />
+        <div className="absolute start-[15%] end-[15%] top-0 h-20 bg-white/[0.025] blur-xl" />
 
         <div className="relative flex items-start justify-between">
           <div>
@@ -272,7 +272,7 @@ function HealthEnginePreview() {
           <div className="relative flex h-[150px] w-[150px] shrink-0 items-center justify-center">
             <div className="absolute inset-0 rounded-full border-[10px] border-white/[0.035]" />
             <div
-              className="absolute inset-0 rounded-full border-[10px] border-transparent border-t-[#22D3EE] border-r-[#3B82F6] border-b-[#8B5CF6] transition-transform duration-[1400ms] ease-out"
+              className="absolute inset-0 rounded-full border-[10px] border-transparent border-t-[#22D3EE] border-e-[#3B82F6] border-b-[#8B5CF6] transition-transform duration-[1400ms] ease-out"
               style={{ transform: inView ? "rotate(335deg)" : "rotate(0deg)" }}
             />
             <div className="text-center">
@@ -322,7 +322,7 @@ function HealthEnginePreview() {
           </div>
         </div>
 
-        <div className="absolute right-5 top-[120px] rounded-xl border border-[#8B5CF6]/20 bg-[#10172D]/90 px-3 py-2 shadow-[0_0_30px_rgba(139,92,246,.15)] backdrop-blur-xl">
+        <div className="absolute end-5 top-[120px] rounded-xl border border-[#8B5CF6]/20 bg-[#10172D]/90 px-3 py-2 shadow-[0_0_30px_rgba(139,92,246,.15)] backdrop-blur-xl">
           <span className="font-mono text-[8px] font-bold text-[#C4B5FD]">
             {t("landing.healthEngine.shapBadge")}
           </span>
@@ -417,7 +417,7 @@ function Hero() {
 
       </div>
 
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#050817] to-transparent" />
+      <div className="pointer-events-none absolute bottom-0 start-0 end-0 h-40 bg-gradient-to-t from-[#050817] to-transparent" />
 
     </section>
   );
@@ -626,7 +626,7 @@ function MethodSection() {
 
         <div ref={methodRef} className="relative mt-20 grid gap-5 md:grid-cols-4">
           <div
-            className="absolute left-[12%] right-[12%] top-8 hidden h-px origin-left bg-gradient-to-r from-[#22D3EE]/30 via-[#3B82F6]/30 to-[#8B5CF6]/30 transition-transform duration-[1500ms] ease-out md:block"
+            className="absolute start-[12%] end-[12%] top-8 hidden h-px origin-left bg-gradient-to-r from-[#22D3EE]/30 via-[#3B82F6]/30 to-[#8B5CF6]/30 transition-transform duration-[1500ms] ease-out md:block"
             style={{ transform: methodInView ? "scaleX(1)" : "scaleX(0)" }}
           />
 
@@ -729,7 +729,7 @@ function SecuritySection() {
 
         <div className="rounded-[32px] border border-white/[0.08] bg-[#080E20]/75 p-8 shadow-[0_30px_80px_rgba(0,0,0,.25)] backdrop-blur-2xl md:p-12">
 
-          <div className="pointer-events-none absolute left-[20%] right-[20%] h-20 bg-white/[0.025] blur-3xl" />
+          <div className="pointer-events-none absolute start-[20%] end-[20%] h-20 bg-white/[0.025] blur-3xl" />
 
           <div className="relative grid gap-12 lg:grid-cols-[.7fr_1.3fr]">
 

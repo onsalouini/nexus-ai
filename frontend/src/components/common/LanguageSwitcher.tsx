@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../context/AuthContext";
+import type { AppLanguage } from "../../i18n";
 
 const LANGUAGES = [
   { code: "fr", label: "Français", flag: "🇫🇷" },
@@ -10,6 +12,7 @@ const LANGUAGES = [
 
 export default function LanguageSwitcher() {
   const { i18n } = useTranslation();
+  const { changeLanguage: saveLanguage } = useAuth();
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -28,8 +31,9 @@ export default function LanguageSwitcher() {
     setOpen((v) => !v);
   }
 
+  // Applique la langue et la mémorise sur le profil si l'utilisateur est connecté
   function changeLanguage(code: string) {
-    i18n.changeLanguage(code);
+    void saveLanguage(code as AppLanguage);
     setOpen(false);
   }
 
@@ -52,7 +56,7 @@ export default function LanguageSwitcher() {
         ref={buttonRef}
         onClick={toggleOpen}
         className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-300 transition hover:border-[#22D3EE]/30 hover:text-white"
-        aria-label="Changer de langue"
+        aria-label={i18n.t("common.changeLanguage")}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
@@ -66,7 +70,7 @@ export default function LanguageSwitcher() {
           <>
             <button
               type="button"
-              aria-label="Fermer le menu des langues"
+              aria-label={i18n.t("common.closeLanguageMenu")}
               className="fixed inset-0 z-[9998]"
               onClick={() => setOpen(false)}
             />
@@ -79,13 +83,13 @@ export default function LanguageSwitcher() {
                   type="button"
                   key={lang.code}
                   onClick={() => changeLanguage(lang.code)}
-                  className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-white/[0.05] ${
+                  className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-start text-sm transition hover:bg-white/[0.05] ${
                     lang.code === current.code ? "text-[#22D3EE]" : "text-gray-300"
                   }`}
                 >
                   <span>{lang.flag}</span>
                   {lang.label}
-                  {lang.code === current.code && <span className="ml-auto text-xs">✓</span>}
+                  {lang.code === current.code && <span className="ms-auto text-xs">✓</span>}
                 </button>
               ))}
             </div>

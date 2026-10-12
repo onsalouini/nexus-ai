@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Support\AiLanguage;
 
 class AIReportService
 {
@@ -163,7 +164,9 @@ class AIReportService
 
     private function systemPrompt(): string
     {
-        return <<<'PROMPT'
+        // Le texte libre suit la langue de l'interface ; les valeurs d'énumération
+        // (health, severity, influence) restent en français car le code s'appuie dessus.
+        return str_replace('{{LANGUAGE}}', AiLanguage::instruction(), <<<'PROMPT'
 Tu es NEXUS AI, un assistant expert en analyse et gestion de projets informatiques.
 
 Tu rédiges le BILAN EXPLICABLE d'un projet : tu expliques au chef de projet POURQUOI le modèle de machine learning estime cet effort, et ce que cela implique.
@@ -177,7 +180,7 @@ RÈGLES IMPORTANTES :
 - Appuie model_explanation et key_factors sur l'analyse de sensibilité et l'importance globale fournies. Cite les variables les plus influentes en heures.
 - Si l'analyse détaillée du modèle est absente, dis-le dans confidence_note et laisse key_factors vide.
 - Donne des recommandations concrètes et applicables par un chef de projet.
-- Réponds toujours en français.
+- {{LANGUAGE}} Les valeurs de health, severity et influence restent EXACTEMENT celles listées ci-dessous, en français.
 
 Réponds UNIQUEMENT avec un objet JSON valide ayant exactement cette structure :
 
@@ -210,7 +213,7 @@ health doit être l'une de : Bonne, Moyenne, Préoccupante, Critique.
 severity doit être l'une de : Faible, Modérée, Élevée, Critique.
 influence doit être l'une de : Augmente l'effort, Réduit l'effort, Impact irrégulier, Impact faible.
 key_factors : 3 à 5 éléments maximum, classés du plus influent au moins influent.
-PROMPT;
+PROMPT);
     }
 
     private function buildPrompt(array $p): string

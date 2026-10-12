@@ -1,0 +1,16 @@
+{
+  "title_zero": "Historique des bilans",
+  "title_one": "Historique des bilans ({{count}})",
+  "title_two": "Historique des bilans ({{count}})",
+  "title_few": "Historique des bilans ({{count}})",
+  "title_many": "Historique des bilans ({{count}})",
+  "title_other": "Historique des bilans ({{count}})",
+  "hint": "Sélectionnez deux bilans pour les comparer. Un bilan est régénéré automatiquement quand les données du projet changent.",
+  "compare": "Comparaison",
+  "generated": "Généré le",
+  "trigger": "Déclenchement",
+  "triggers": {
+    "manual": "Manuel",
+    "auto": "Automatique"
+  }
+}

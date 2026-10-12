@@ -1,0 +1,24 @@
+{
+  "suggestions": {
+    "0": "Comment répartir les tâches dans une équipe de 5 développeurs ?",
+    "1": "Quels sont les principaux risques d'un projet qui dépasse son budget d'effort ?",
+    "2": "Aide-moi à planifier un projet de 6 mois en sprints.",
+    "3": "Comment prioriser mon backlog quand tout semble urgent ?"
+  },
+  "loadError": "Impossible de charger cette conversation.",
+  "pdfOnly": "Seuls les fichiers PDF sont acceptés.",
+  "pdfTooLarge": "Le PDF ne doit pas dépasser 10 Mo.",
+  "pdfError": "Impossible d'analyser ce PDF.",
+  "unavailable": "NEXUS AI est temporairement indisponible. Réessayez dans un instant.",
+  "new": "Nouvelle conversation",
+  "empty": "Aucune conversation pour le moment.",
+  "conversations": "Conversations",
+  "subtitle": "Assistant gestion de projets & équipes",
+  "welcome": "Comment puis-je vous aider ?",
+  "welcomeHint": "Planification, tâches, équipe, risques… Vous pouvez aussi joindre un PDF (cahier des charges, planning) à analyser.",
+  "analyzed": "analysé",
+  "attach": "Joindre un PDF",
+  "placeholder": "Écrivez votre message…",
+  "send": "Envoyer",
+  "hint": "Entrée pour envoyer · Maj+Entrée pour un retour à la ligne"
+}

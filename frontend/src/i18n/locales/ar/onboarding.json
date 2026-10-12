@@ -1,0 +1,23 @@
+{
+  "saveError": "تعذّر حفظ الشركة حاليًا.",
+  "setupBadge": "إعداد مساحة العمل",
+  "initialSetup": "الإعداد الأولي",
+  "eyebrow": "ذكاء مساحة العمل",
+  "welcome": "مرحبًا",
+  "welcomeName": "مرحبًا، {{name}}",
+  "subtitle": "قم بإعداد شركتك لتفعيل مساحتك الذكية في NEXUS AI.",
+  "companyProfile": "ملف الشركة",
+  "name": "اسم الشركة",
+  "namePlaceholder": "مثال: Anypli",
+  "email": "البريد الإلكتروني",
+  "emailPlaceholder": "contact@company.com",
+  "phone": "الهاتف",
+  "address": "العنوان",
+  "addressPlaceholder": "عنوان الشركة",
+  "industry": "قطاع النشاط",
+  "industryPlaceholder": "وكالة رقمية",
+  "employees": "عدد الموظفين",
+  "submitting": "جارٍ الإعداد...",
+  "submit": "الانتقال إلى لوحة القيادة",
+  "footer": "بيئة آمنة · NEXUS AI"
+}

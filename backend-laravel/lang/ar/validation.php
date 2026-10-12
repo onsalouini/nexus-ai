@@ -1,0 +1,66 @@
+<?php
+
+// رسائل التحقق باللغة العربية (القواعد المستخدمة في واجهة NEXUS البرمجية).
+// القواعد غير الموجودة هنا تعود إلى لغة الاحتياط (الإنجليزية).
+return [
+    'accepted' => 'يجب قبول حقل :attribute.',
+    'after_or_equal' => 'يجب أن يكون حقل :attribute تاريخًا لاحقًا أو مساويًا لـ :date.',
+    'array' => 'يجب أن يكون حقل :attribute مصفوفة.',
+    'between' => [
+        'numeric' => 'يجب أن تكون قيمة :attribute بين :min و :max.',
+        'string' => 'يجب أن يحتوي :attribute على عدد أحرف بين :min و :max.',
+    ],
+    'boolean' => 'يجب أن تكون قيمة :attribute صحيحة أو خاطئة.',
+    'confirmed' => 'تأكيد :attribute غير متطابق.',
+    'current_password' => 'كلمة المرور غير صحيحة.',
+    'date' => 'حقل :attribute ليس تاريخًا صالحًا.',
+    'digits' => 'يجب أن يحتوي :attribute على :digits أرقام.',
+    'email' => 'يجب أن يكون :attribute بريدًا إلكترونيًا صالحًا.',
+    'exists' => 'قيمة :attribute المحددة غير صالحة.',
+    'file' => 'يجب أن يكون :attribute ملفًا.',
+    'image' => 'يجب أن يكون :attribute صورة.',
+    'in' => 'قيمة :attribute غير صالحة.',
+    'integer' => 'يجب أن يكون :attribute عددًا صحيحًا.',
+    'max' => [
+        'array' => 'يجب ألا يحتوي :attribute على أكثر من :max عناصر.',
+        'file' => 'يجب ألا يتجاوز حجم الملف :attribute :max كيلوبايت.',
+        'numeric' => 'يجب ألا تكون قيمة :attribute أكبر من :max.',
+        'string' => 'يجب ألا يتجاوز :attribute :max حرفًا.',
+    ],
+    'mimes' => 'يجب أن يكون الملف :attribute من نوع: :values.',
+    'min' => [
+        'array' => 'يجب أن يحتوي :attribute على :min عناصر على الأقل.',
+        'file' => 'يجب أن يكون حجم الملف :attribute على الأقل :min كيلوبايت.',
+        'numeric' => 'يجب أن تكون قيمة :attribute مساوية لـ :min أو أكبر.',
+        'string' => 'يجب أن يحتوي :attribute على :min أحرف على الأقل.',
+    ],
+    'numeric' => 'يجب أن يكون :attribute رقمًا.',
+    'required' => 'حقل :attribute مطلوب.',
+    'size' => [
+        'string' => 'يجب أن يحتوي :attribute على :size أحرف.',
+    ],
+    'string' => 'يجب أن يكون :attribute نصًا.',
+    'unique' => 'قيمة :attribute مستخدمة من قبل.',
+
+    'attributes' => [
+        'first_name' => 'الاسم الأول',
+        'last_name' => 'اسم العائلة',
+        'email' => 'البريد الإلكتروني',
+        'password' => 'كلمة المرور',
+        'current_password' => 'كلمة المرور الحالية',
+        'name' => 'الاسم',
+        'title' => 'العنوان',
+        'description' => 'الوصف',
+        'phone' => 'الهاتف',
+        'address' => 'العنوان',
+        'role' => 'الدور',
+        'deadline' => 'الموعد النهائي',
+        'start_date' => 'تاريخ البداية',
+        'due_date' => 'تاريخ الاستحقاق',
+        'planned_effort' => 'الجهد المخطط',
+        'project_id' => 'المشروع',
+        'file' => 'الملف',
+        'avatar' => 'الصورة',
+        'code' => 'الرمز',
+    ],
+];

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Support\AiLanguage;
 
 class GroqService
 {
@@ -18,6 +19,7 @@ class GroqService
         $roleLabel = match ($role) {
             'chef_de_projet' => 'chef de projet',
             'agent_support' => 'agent support',
+            'membre_equipe' => "membre d'équipe",
             default => $role,
         };
 
@@ -36,7 +38,7 @@ class GroqService
                                 'role' => 'system',
                                 'content' =>
                                     'Tu ecris une seule phrase courte, '
-                                    . 'chaleureuse et professionnelle en francais '
+                                    . 'chaleureuse et professionnelle ' . AiLanguage::instruction() . ' '
                                     . 'pour introduire un email d\'invitation. '
                                     . 'Pas de guillemets, pas de signature, '
                                     . 'une seule phrase.',
@@ -101,7 +103,8 @@ class GroqService
         $messages = [
             [
                 'role' => 'system',
-                'content' => <<<'PROMPT'
+                // Consigne de langue injectée selon la langue de l'interface
+                'content' => str_replace('{{LANGUAGE}}', AiLanguage::instruction(), <<<'PROMPT'
 Tu es NEXUS AI, l'assistant intelligent de la plateforme NEXUS AI.
 
 Ton domaine est exclusivement la gestion d'entreprise et la gestion de projets informatiques.
@@ -124,7 +127,7 @@ Tu aides principalement les chefs de projet avec :
 
 RÈGLES IMPORTANTES :
 
-1. Réponds toujours en français.
+1. {{LANGUAGE}} Si l'utilisateur écrit dans une autre langue, réponds dans sa langue.
 2. Sois professionnel, clair et concret.
 3. Donne des recommandations directement applicables.
 4. Ne prétends jamais connaître des données auxquelles tu n'as pas accès.
@@ -158,7 +161,7 @@ Si une information demandée n'existe pas dans le document, indique clairement q
 Les informations provenant du document doivent être distinguées des informations générales que tu proposes.
 
 Réponds de manière naturelle et conversationnelle.
-PROMPT
+PROMPT),
             ],
         ];
 

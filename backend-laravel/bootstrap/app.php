@@ -12,7 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+        ]);
+
+        // Langue de l'interface (Accept-Language) pour les messages API et l'IA
+        $middleware->api(append: [
+            \App\Http\Middleware\SetLocaleFromHeader::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -21,7 +21,7 @@ class AIAttachmentController extends Controller
         // à l'utilisateur connecté.
         if ($conversation->user_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Accès non autorisé.'
+                'message' => __('Accès non autorisé.')
             ], 403);
         }
 
@@ -74,7 +74,7 @@ class AIAttachmentController extends Controller
             $conversation->touch();
 
             return response()->json([
-                'message' => 'PDF uploadé et analysé avec succès.',
+                'message' => __('PDF uploadé et analysé avec succès.'),
                 'attachment' => $attachment,
                 'text_length' => mb_strlen($extractedText),
             ], 201);
@@ -82,7 +82,7 @@ class AIAttachmentController extends Controller
         } catch (\Throwable $e) {
 
             return response()->json([
-                'message' => 'Impossible d’analyser le PDF.',
+                'message' => __('Impossible d’analyser le PDF.'),
                 'error' => $e->getMessage(),
             ], 500);
         }

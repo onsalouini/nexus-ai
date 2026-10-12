@@ -1,0 +1,53 @@
+{
+  "title": "Audit log",
+  "subtitle": "History of your company's sensitive actions: sign-ins, invitations, projects and security.",
+  "loadError": "Unable to load the audit log.",
+  "empty": "No recorded actions.",
+  "filter": "Filter by type",
+  "date": "Date",
+  "user": "User",
+  "action": "Action",
+  "page": "Page {{page}} / {{total}}",
+  "filters": {
+    "all": "All actions",
+    "auth": "Sign-ins",
+    "account": "Account & security",
+    "invitation": "Invitations",
+    "project": "Projects",
+    "company": "Company",
+    "ticket": "Support"
+  },
+  "actions": {
+    "auth": {
+      "login": "Sign-in",
+      "login_failed": "Failed sign-in (wrong password)",
+      "2fa_failed": "Invalid two-factor code",
+      "logout": "Sign-out",
+      "registered": "Account created"
+    },
+    "account": {
+      "password_changed": "Password changed",
+      "2fa_enabled": "Two-factor authentication enabled",
+      "2fa_disabled": "Two-factor authentication disabled"
+    },
+    "invitation": {
+      "sent": "Invitation sent",
+      "resent": "Invitation resent",
+      "cancelled": "Invitation cancelled",
+      "accepted": "Invitation accepted"
+    },
+    "project": {
+      "created": "Project created",
+      "updated": "Project updated",
+      "deleted": "Project deleted",
+      "report_generated": "AI report generated"
+    },
+    "company": {
+      "created": "Company created",
+      "updated": "Company details updated"
+    },
+    "ticket": {
+      "resolved": "Ticket resolved"
+    }
+  }
+}

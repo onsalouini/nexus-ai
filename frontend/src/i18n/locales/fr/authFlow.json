@@ -1,0 +1,142 @@
+{
+  "signin": {
+    "notMember": "Pas encore membre ?",
+    "createAccount": "Créer un compte",
+    "badge": "Accès sécurisé",
+    "title1": "Content de vous",
+    "title2": "revoir.",
+    "subtitle": "Connectez-vous pour accéder à votre espace, vos projets et toute l'intelligence de NEXUS AI.",
+    "cardEyebrow": "Authentification",
+    "cardTitle": "Informations de connexion",
+    "secureNote": "Votre connexion est sécurisée et protégée par NEXUS AI.",
+    "guide": {
+      "title": "Comment fonctionne NEXUS ?",
+      "badge": "GUIDE",
+      "subtitle": "Suivez simplement ces étapes pour accéder à votre environnement NEXUS AI.",
+      "currentStep": "Vous êtes actuellement à l'étape",
+      "currentStepName": "Connexion",
+      "open": "Afficher le guide NEXUS AI",
+      "steps": {
+        "0": {
+          "title": "Ouvrir votre session",
+          "text": "Connectez-vous à votre espace."
+        },
+        "1": {
+          "title": "Accéder au dashboard",
+          "text": "Retrouvez vos données et projets."
+        },
+        "2": {
+          "title": "Explorer NEXUS AI",
+          "text": "Analysez vos signaux intelligents."
+        },
+        "3": {
+          "title": "Piloter votre entreprise",
+          "text": "Prenez de meilleures décisions."
+        }
+      }
+    }
+  },
+  "signup": {
+    "alreadyMember": "Déjà membre ?",
+    "signIn": "Se connecter",
+    "badge": "Création d'espace entreprise",
+    "title1": "Construisez votre",
+    "title2": "intelligence d'entreprise.",
+    "subtitle": "Créez votre espace Direction pour commencer à connecter vos projets, votre support client et vos données financières dans NEXUS AI.",
+    "stepLabel": "Étape 01",
+    "cardTitle": "Informations de l'entreprise",
+    "secureNote": "Votre espace est sécurisé et créé sous contrôle des invitations NEXUS AI.",
+    "guide": {
+      "subtitle": "Suivez simplement ces étapes pour commencer votre parcours dans NEXUS AI.",
+      "currentStepName": "Création du compte",
+      "steps": {
+        "0": {
+          "title": "Créer votre compte",
+          "text": "Configurez votre espace Direction."
+        },
+        "1": {
+          "title": "Inviter votre équipe",
+          "text": "Ajoutez les chefs de projet et agents."
+        },
+        "2": {
+          "title": "Connecter vos données",
+          "text": "Projets, tickets et données financières."
+        },
+        "3": {
+          "title": "Activer l'intelligence",
+          "text": "NEXUS analyse vos signaux."
+        }
+      }
+    }
+  },
+  "invitation": {
+    "welcome": "Bienvenue",
+    "initializing": "Initialisation NEXUS AI",
+    "accessDenied": "Accès refusé",
+    "invalidTitle": "Invitation invalide",
+    "invalidText": "Cette invitation est invalide ou a expiré. Demandez un nouveau lien à la personne qui vous a invité.",
+    "workspace": "Espace intelligent",
+    "secure": "Invitation sécurisée",
+    "accessGranted": "Accès accordé",
+    "yourSpace": "Votre espace NEXUS",
+    "ready": "Votre environnement intelligent est prêt. Découvrez les fonctionnalités disponibles selon votre rôle.",
+    "capabilities": "Fonctionnalités",
+    "continue": "Continuer vers mon espace",
+    "footer": "Invitation sécurisée · NEXUS AI",
+    "tagline": "Intelligence projet · analyse prédictive · IA",
+    "roles": {
+      "chef_de_projet": {
+        "title": "Bienvenue, futur Chef de projet",
+        "points": {
+          "0": "Créez vos projets et suivez leur risque de dérive, prédit et expliqué par IA",
+          "1": "Constituez votre équipe et assignez qui fait quoi sur chaque projet",
+          "2": "Invitez vos clients à suivre l'avancement de leur projet",
+          "3": "Recevez des alertes avant qu'un problème ne devienne critique"
+        }
+      },
+      "agent_support": {
+        "title": "Bienvenue, futur Agent Support",
+        "points": {
+          "0": "Traitez une file de tickets déjà triée par urgence et sentiment",
+          "1": "Corrigez les classifications si besoin — vos retours améliorent le modèle",
+          "2": "Suivez vos statistiques de résolution"
+        }
+      },
+      "membre_equipe": {
+        "title": "Bienvenue dans l'équipe",
+        "points": {
+          "0": "Retrouvez les projets auxquels vous êtes affecté",
+          "1": "Suivez vos tâches et leurs échéances",
+          "2": "Collaborez avec votre chef de projet en temps réel"
+        }
+      }
+    }
+  },
+  "complete": {
+    "stepBadge": "Étape {{number}}",
+    "steps": {
+      "info": "Vos informations",
+      "verify": "Vérification de l'email",
+      "password": "Sécurisez votre compte"
+    },
+    "createError": "Impossible de créer le compte.",
+    "badge": "Configuration du profil",
+    "title1": "Finalisez votre",
+    "title2": "espace NEXUS AI.",
+    "subtitle": "Complétez vos informations pour accéder à votre espace intelligent et rejoindre votre organisation.",
+    "preview": "Aperçu",
+    "photo": "Photo de profil",
+    "photoHint": "Ajoutez une photo pour personnaliser votre profil.",
+    "choosePhoto": "Choisir une photo",
+    "firstNamePlaceholder": "Votre prénom",
+    "lastNamePlaceholder": "Votre nom",
+    "email": "Adresse email",
+    "emailPlaceholder": "vous@entreprise.com",
+    "codeSent": "Un code à 6 chiffres a été envoyé à",
+    "cv": "CV",
+    "cvOptional": "(PDF, optionnel)",
+    "uploadCv": "Importer votre CV",
+    "pdfOnly": "Format PDF uniquement",
+    "secureNote": "Vos données sont protégées et votre accès est sécurisé par NEXUS AI."
+  }
+}
