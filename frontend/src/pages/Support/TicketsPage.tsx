@@ -118,10 +118,10 @@ export default function TicketsPage() {
 
       {stats && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat label={t("support.stats.open")} value={stats.open} />
-          <Stat label={t("support.stats.inProgress")} value={stats.in_progress} />
-          <Stat label={t("support.stats.critical")} value={<span className={stats.critical_open ? "text-red-400" : ""}>{stats.critical_open}</span>} />
-          <Stat label={t("support.stats.resolved")} value={stats.resolved} />
+          <Stat tone="sky" label={t("support.stats.open")} value={stats.open} />
+          <Stat tone="violet" label={t("support.stats.inProgress")} value={stats.in_progress} />
+          <Stat tone="rose" label={t("support.stats.critical")} value={<span className={stats.critical_open ? "text-red-400" : ""}>{stats.critical_open}</span>} />
+          <Stat tone="emerald" label={t("support.stats.resolved")} value={stats.resolved} />
         </div>
       )}
 

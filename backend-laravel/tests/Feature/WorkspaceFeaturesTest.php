@@ -347,4 +347,47 @@ class WorkspaceFeaturesTest extends TestCase
         Sanctum::actingAs($this->user('direction'));
         $this->getJson("/api/projects/{$project->id}/reports")->assertOk()->assertJsonCount(2);
     }
+
+    /* ---------------- Assignation des tâches ---------------- */
+
+    public function test_auto_assign_never_gives_tasks_to_the_chef_and_balances_load(): void
+    {
+        $chef = $this->user('chef_de_projet');
+        $a = $this->user('membre_equipe', ['manager_id' => $chef->id, 'weekly_capacity' => 40]);
+        $b = $this->user('agent_support', ['manager_id' => $chef->id, 'weekly_capacity' => 40]);
+        $project = $this->project($chef);
+        // Le chef fait partie de l'équipe du projet : il ne doit rien recevoir
+        $project->team()->attach([$chef->id]);
+        foreach (range(1, 4) as $i) {
+            Task::create(['project_id' => $project->id, 'title' => "T{$i}", 'estimated_hours' => 10]);
+        }
+
+        Sanctum::actingAs($chef);
+        $this->postJson("/api/projects/{$project->id}/auto-assign")->assertOk()->assertJsonCount(4, 'assigned');
+
+        $assignees = Task::where('project_id', $project->id)->pluck('assigned_to');
+        $this->assertFalse($assignees->contains($chef->id));
+        $this->assertSame(2, $assignees->filter(fn ($id) => $id === $a->id)->count());
+        $this->assertSame(2, $assignees->filter(fn ($id) => $id === $b->id)->count());
+        // Les membres assignés rejoignent l'équipe du projet
+        $this->assertTrue($project->team()->where('users.id', $a->id)->exists());
+    }
+
+    public function test_manual_assignment_to_team_member_or_self(): void
+    {
+        $chef = $this->user('chef_de_projet');
+        $member = $this->user('membre_equipe', ['manager_id' => $chef->id]);
+        $stranger = $this->user('membre_equipe');
+        $project = $this->project($chef);
+        $task = Task::create(['project_id' => $project->id, 'title' => 'T']);
+
+        Sanctum::actingAs($chef);
+        $this->putJson("/api/tasks/{$task->id}", ['assigned_to' => $member->id])
+            ->assertOk()->assertJsonPath('assignee.id', $member->id);
+        $this->assertTrue($project->team()->where('users.id', $member->id)->exists());
+
+        $this->putJson("/api/tasks/{$task->id}", ['assigned_to' => $chef->id])->assertOk();
+        $this->putJson("/api/tasks/{$task->id}", ['assigned_to' => $stranger->id])->assertStatus(422);
+        $this->putJson("/api/tasks/{$task->id}", ['assigned_to' => null])->assertOk()->assertJsonPath('assigned_to', null);
+    }
 }

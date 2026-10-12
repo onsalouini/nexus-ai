@@ -14,13 +14,13 @@ class TaskController extends Controller
     private function ownProject(Request $request, int $projectId): Project
     {
         $project = Project::findOrFail($projectId);
-        abort_if($project->chef_de_projet_id !== $request->user()->id, 403, 'Projet non autorisé.');
+        abort_if($project->chef_de_projet_id !== $request->user()->id, 403, __('Projet non autorisé.'));
         return $project;
     }
 
     private function ownTask(Request $request, Task $task): Task
     {
-        abort_if($task->project->chef_de_projet_id !== $request->user()->id, 403, 'Tâche non autorisée.');
+        abort_if($task->project->chef_de_projet_id !== $request->user()->id, 403, __('Tâche non autorisée.'));
         return $task;
     }
 
@@ -32,7 +32,7 @@ class TaskController extends Controller
             ->merge($request->user()->teamMembers()->pluck('id'))
             ->push($request->user()->id)
             ->unique();
-        abort_unless($allowed->contains($userId), 422, "Ce membre n'appartient pas à votre équipe.");
+        abort_unless($allowed->contains($userId), 422, __("Ce membre n'appartient pas à votre équipe."));
     }
 
     private function log(Project $project, Request $request, string $type, string $message): void
@@ -47,7 +47,7 @@ class TaskController extends Controller
 
     public function index(Request $request)
     {
-        $query = Task::with(['assignee:id,first_name,last_name,job_title', 'project:id,name'])
+        $query = Task::with(['assignee:id,first_name,last_name,job_title,avatar_path', 'project:id,name'])
             ->whereHas('project', fn ($q) => $q->where('chef_de_projet_id', $request->user()->id));
 
         if ($request->filled('project_id')) $query->where('project_id', $request->project_id);
@@ -83,9 +83,12 @@ class TaskController extends Controller
         ]);
 
         $project->recalculateProgress();
+        if ($task->assigned_to && $task->assigned_to !== $request->user()->id) {
+            $project->team()->syncWithoutDetaching([$task->assigned_to]);
+        }
         $this->log($project, $request, 'task_created', "Tâche « {$task->title} » créée");
 
-        return response()->json($task->load('assignee:id,first_name,last_name,job_title', 'project:id,name'), 201);
+        return response()->json($task->load('assignee:id,first_name,last_name,job_title,avatar_path', 'project:id,name'), 201);
     }
 
     public function update(Request $request, Task $task)
@@ -118,6 +121,11 @@ class TaskController extends Controller
         $task->update($data);
         $project->recalculateProgress();
 
+        // Un membre assigné fait partie de l'équipe du projet (suivi, charge, planning)
+        if ($task->assigned_to && $task->assigned_to !== $request->user()->id) {
+            $project->team()->syncWithoutDetaching([$task->assigned_to]);
+        }
+
         if ($oldStatus !== $task->status) {
             $this->log($project, $request, 'task_status', "« {$task->title} » : {$oldStatus} → {$task->status}");
         }
@@ -126,7 +134,7 @@ class TaskController extends Controller
             $this->log($project, $request, 'task_assigned', "« {$task->title} » assignée à {$name}");
         }
 
-        return response()->json($task->fresh()->load('assignee:id,first_name,last_name,job_title', 'project:id,name'));
+        return response()->json($task->fresh()->load('assignee:id,first_name,last_name,job_title,avatar_path', 'project:id,name'));
     }
 
     public function destroy(Request $request, Task $task)

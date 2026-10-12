@@ -4,6 +4,8 @@ import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import { roleLabel } from "../../i18n/labels";
 import TwoFactorSection from "../../components/account/TwoFactorSection";
+import Avatar from "../../components/ui-nexus/Avatar";
+import type { NexusUser } from "../../context/AuthContext";
 import { SUPPORTED_LANGUAGES, normalizeLanguage } from "../../i18n";
 import { Field, PageHeader, btnPrimary, cardCls, errMsg, inputCls } from "../../components/ui-nexus/kit";
 
@@ -27,7 +29,8 @@ function Banner({ msg }: { msg: Msg }) {
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  const { user, changeLanguage } = useAuth();
+  const { user, changeLanguage, setUser } = useAuth();
+  const [uploading, setUploading] = useState(false);
   const { i18n } = useTranslation();
   const activeLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
   const [acc, setAcc] = useState<Account | null>(null);
@@ -45,7 +48,11 @@ export default function SettingsPage() {
 
   const set = <K extends keyof Account>(k: K, v: Account[K]) => setAcc({ ...acc, [k]: v });
   const isDirection = acc.role === "direction";
-  const avatarUrl = acc.avatar_path ? `${(import.meta.env.VITE_API_URL ?? "http://localhost:8000/api").replace(/\/api$/, "")}/storage/${acc.avatar_path}` : null;
+
+  // Synchronise l'utilisateur global (sidebar, topbar) avec le compte mis à jour
+  function syncUser(updated: Account) {
+    if (user) setUser({ ...user, ...updated, role: user.role, company: user.company } as NexusUser);
+  }
 
   async function saveProfile() {
     setSaving(true);
@@ -56,6 +63,7 @@ export default function SettingsPage() {
         weekly_capacity: acc!.weekly_capacity || null,
       });
       setAcc(r.data.user);
+      syncUser(r.data.user);
       setProfileMsg({ type: "ok", text: t("settings.profileSaved") });
     } catch (e) {
       setProfileMsg({ type: "err", text: errMsg(e) });
@@ -65,14 +73,22 @@ export default function SettingsPage() {
   }
 
   async function uploadAvatar(file: File) {
+    if (!file.type.startsWith("image/") || file.size > 2 * 1024 * 1024) {
+      setProfileMsg({ type: "err", text: t("settings.photoInvalid") });
+      return;
+    }
     const fd = new FormData();
     fd.append("avatar", file);
+    setUploading(true);
     try {
       const r = await api.post<{ user: Account }>("/account/avatar", fd);
       setAcc(r.data.user);
+      syncUser(r.data.user);
       setProfileMsg({ type: "ok", text: t("settings.photoSaved") });
     } catch (e) {
       setProfileMsg({ type: "err", text: errMsg(e) });
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -127,13 +143,23 @@ export default function SettingsPage() {
       <section className={`${cardCls} space-y-4 p-6`}>
         <h2 className="text-base font-semibold text-white">{t("settings.profile")}</h2>
         <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 text-lg font-bold text-white">
-            {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : `${acc.first_name[0] ?? ""}${acc.last_name[0] ?? ""}`}
+          <Avatar key={acc.avatar_path ?? "none"} person={acc} size="xl" className={uploading ? "opacity-50" : ""} />
+          <div>
+            <label className="inline-flex cursor-pointer items-center rounded-xl border border-cyan-400/25 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-200 transition hover:bg-cyan-400/20">
+              {uploading ? t("common.saving") : t("settings.changePhoto")}
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                disabled={uploading}
+                onChange={(e) => {
+                  if (e.target.files?.[0]) void uploadAvatar(e.target.files[0]);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            <p className="mt-1.5 text-xs text-slate-500">{t("settings.photoHint")}</p>
           </div>
-          <label className="cursor-pointer text-sm text-cyan-300 hover:underline">
-            {t("settings.changePhoto")}
-            <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
-          </label>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label={t("auth.signup.step1.firstName")}><input className={inputCls} value={acc.first_name} onChange={(e) => set("first_name", e.target.value)} /></Field>

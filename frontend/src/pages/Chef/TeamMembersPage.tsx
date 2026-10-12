@@ -13,6 +13,9 @@ import {
   inputCls,
 } from "../../components/ui-nexus/kit";
 import { exportRows } from "../../utils/export";
+import Avatar from "../../components/ui-nexus/Avatar";
+import { roleLabel } from "../../i18n/labels";
+import { toast } from "../../lib/toast";
 import { SkeletonCards } from "../../components/ui-nexus/Skeleton";
 
 type MemberDraft = {
@@ -23,6 +26,7 @@ type MemberDraft = {
   job_title: string;
   phone: string;
   weekly_capacity: number;
+  role: "membre_equipe" | "agent_support";
 };
 type TeamDraft = { id?: number; name: string; description: string; color: string; member_ids: number[] };
 
@@ -37,6 +41,7 @@ export default function TeamMembersPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [memberDraft, setMemberDraft] = useState<MemberDraft | null>(null);
+  const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
   const [teamDraft, setTeamDraft] = useState<TeamDraft | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -68,6 +73,7 @@ export default function TeamMembersPage() {
         const r = await chefApi.createMember(payload);
         if (r.temporary_password) {
           setNotice(t("chef.members.createdWithPassword", { password: r.temporary_password }));
+          setCredentials({ email: payload.email, password: r.temporary_password });
         }
       }
       setMemberDraft(null);
@@ -153,7 +159,7 @@ export default function TeamMembersPage() {
           <button className={btnGhost} onClick={() => exportTeam("csv")} disabled={tab === "members" ? !members.length : !teams.length}>CSV</button>
           <button className={btnGhost} onClick={() => exportTeam("xlsx")} disabled={tab === "members" ? !members.length : !teams.length}>Excel</button>
           {tab === "members" ? (
-            <button className={btnPrimary} onClick={() => setMemberDraft({ first_name: "", last_name: "", email: "", job_title: "", phone: "", weekly_capacity: 40 })}>
+            <button className={btnPrimary} onClick={() => setMemberDraft({ first_name: "", last_name: "", email: "", job_title: "", phone: "", weekly_capacity: 40, role: "membre_equipe" })}>
               + {t("chef.teamModal.addMember")}
             </button>
           ) : (
@@ -170,9 +176,35 @@ export default function TeamMembersPage() {
           <span>{error}</span><button onClick={() => setError(null)}>✕</button>
         </div>
       )}
-      {notice && (
+      {notice && !credentials && (
         <div className="flex justify-between rounded-xl border border-emerald-400/20 bg-emerald-400/5 px-4 py-3 text-sm text-emerald-200">
           <span>{notice}</span><button onClick={() => setNotice(null)}>✕</button>
+        </div>
+      )}
+      {credentials && (
+        <div className="rounded-2xl border border-emerald-400/25 bg-gradient-to-r from-emerald-500/10 to-cyan-500/5 p-4 text-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-semibold text-emerald-200">{t("chef.members.credentialsTitle")}</p>
+              <p className="mt-1 text-xs text-slate-400">{t("chef.members.credentialsHint")}</p>
+            </div>
+            <button onClick={() => { setCredentials(null); setNotice(null); }} aria-label={t("common.close")} className="text-slate-400 hover:text-white">✕</button>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-center" dir="ltr">
+            <code className="rounded-lg bg-black/30 px-3 py-2 text-cyan-200">{window.location.origin}/signin</code>
+            <code className="rounded-lg bg-black/30 px-3 py-2 text-white">{credentials.email} · {credentials.password}</code>
+            <button
+              className={btnGhost}
+              onClick={() => {
+                void navigator.clipboard?.writeText(
+                  `${window.location.origin}/signin\n${credentials.email}\n${credentials.password}`
+                );
+                toast.success(t("chef.members.copied"));
+              }}
+            >
+              {t("chef.members.copy")}
+            </button>
+          </div>
         </div>
       )}
 
@@ -196,12 +228,10 @@ export default function TeamMembersPage() {
             {members.map((m) => (
               <div key={m.id} className={`${cardCls} p-5 transition hover:border-cyan-400/30`}>
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 text-sm font-bold text-white">
-                    {m.first_name?.charAt(0)}{m.last_name?.charAt(0)}
-                  </div>
+                  <Avatar person={m} size="lg" />
                   <div className="min-w-0">
                     <h3 className="truncate font-semibold text-white">{m.first_name} {m.last_name}</h3>
-                    <p className="truncate text-sm text-slate-400">{m.job_title || t(`common.roles.${m.role}`, { defaultValue: m.role })}</p>
+                    <p className="truncate text-sm text-slate-400">{m.job_title ? `${m.job_title} · ${roleLabel(m.role)}` : roleLabel(m.role)}</p>
                   </div>
                 </div>
                 <div className="mt-4 space-y-1 border-t border-white/[0.06] pt-3 text-sm text-slate-400">
@@ -223,6 +253,7 @@ export default function TeamMembersPage() {
                         job_title: m.job_title ?? "",
                         phone: m.phone ?? "",
                         weekly_capacity: m.weekly_capacity ?? 40,
+                        role: m.role === "agent_support" ? "agent_support" : "membre_equipe",
                       })
                     }
                   >
@@ -285,6 +316,18 @@ export default function TeamMembersPage() {
               <Field label={t("chef.members.job")}><input className={inputCls} value={memberDraft.job_title} onChange={(e) => setMemberDraft({ ...memberDraft, job_title: e.target.value })} /></Field>
               <Field label={t("onboarding.phone")}><input className={inputCls} value={memberDraft.phone} onChange={(e) => setMemberDraft({ ...memberDraft, phone: e.target.value })} /></Field>
             </div>
+            {!memberDraft.id && (
+              <Field label={t("director.team.role")}>
+                <select
+                  className={inputCls}
+                  value={memberDraft.role}
+                  onChange={(e) => setMemberDraft({ ...memberDraft, role: e.target.value as MemberDraft["role"] })}
+                >
+                  <option value="membre_equipe">{t("common.roles.membre_equipe")}</option>
+                  <option value="agent_support">{t("common.roles.agent_support")}</option>
+                </select>
+              </Field>
+            )}
             <Field label={t("chef.members.capacity")}>
               <input type="number" min={1} max={80} className={inputCls} value={memberDraft.weekly_capacity} onChange={(e) => setMemberDraft({ ...memberDraft, weekly_capacity: Number(e.target.value) })} />
             </Field>

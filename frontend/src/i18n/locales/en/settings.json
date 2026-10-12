@@ -22,5 +22,7 @@
   "confirmation": "Confirmation",
   "changePassword": "Change password",
   "company": "Company",
-  "saveCompany": "Save company"
+  "saveCompany": "Save company",
+  "photoInvalid": "Choose an image (JPG, PNG or WebP) of 2 MB maximum.",
+  "photoHint": "JPG, PNG or WebP · 2 MB max."
 }

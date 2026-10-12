@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CalendarClock, GripVertical, Scale, Sparkles, UserRound } from "lucide-react";
 import { formatDate } from "../../i18n/format";
 import { exportRows } from "../../utils/export";
+import { useAuth } from "../../context/AuthContext";
+import { toast } from "../../lib/toast";
+import Avatar from "../../components/ui-nexus/Avatar";
+import { SkeletonCards } from "../../components/ui-nexus/Skeleton";
 import {
   chefApi,
-  type Member,
   type ProjectLite,
   type Task,
   type TaskPriority,
@@ -17,25 +21,26 @@ import {
   btnDanger,
   btnGhost,
   btnPrimary,
-  cardCls,
   errMsg,
   inputCls,
 } from "../../components/ui-nexus/kit";
 
-// Libellés : chef.tasks.status.<key> / chef.tasks.priority.<key>
-const COLUMNS: { key: TaskStatus; dot: string }[] = [
-  { key: "todo", dot: "bg-slate-400" },
-  { key: "in_progress", dot: "bg-blue-400" },
-  { key: "review", dot: "bg-amber-400" },
-  { key: "done", dot: "bg-emerald-400" },
+// Chaque colonne a sa couleur (pastille, liseré, zone de dépôt)
+const COLUMNS: { key: TaskStatus; dot: string; accent: string; drop: string }[] = [
+  { key: "todo", dot: "bg-slate-400", accent: "from-slate-400/70", drop: "border-slate-400/40 bg-slate-400/[0.04]" },
+  { key: "in_progress", dot: "bg-sky-400", accent: "from-sky-400/80", drop: "border-sky-400/40 bg-sky-400/[0.05]" },
+  { key: "review", dot: "bg-amber-400", accent: "from-amber-400/80", drop: "border-amber-400/40 bg-amber-400/[0.05]" },
+  { key: "done", dot: "bg-emerald-400", accent: "from-emerald-400/80", drop: "border-emerald-400/40 bg-emerald-400/[0.05]" },
 ];
 
-const PRIORITY: Record<TaskPriority, { cls: string }> = {
-  low: { cls: "text-slate-300 bg-white/[0.05] border-white/10" },
-  medium: { cls: "text-cyan-300 bg-cyan-400/10 border-cyan-400/20" },
-  high: { cls: "text-amber-300 bg-amber-400/10 border-amber-400/20" },
-  critical: { cls: "text-red-300 bg-red-500/10 border-red-500/20" },
+const PRIORITY: Record<TaskPriority, { cls: string; bar: string }> = {
+  low: { cls: "text-slate-300 bg-white/[0.05] border-white/10", bar: "bg-slate-400" },
+  medium: { cls: "text-cyan-300 bg-cyan-400/10 border-cyan-400/20", bar: "bg-cyan-400" },
+  high: { cls: "text-amber-300 bg-amber-400/10 border-amber-400/25", bar: "bg-amber-400" },
+  critical: { cls: "text-rose-300 bg-rose-500/10 border-rose-500/25", bar: "bg-rose-500" },
 };
+
+type Person = { id: number; first_name: string; last_name: string; avatar_path?: string | null; job_title?: string | null };
 
 type Draft = {
   id?: number;
@@ -64,73 +69,112 @@ const emptyDraft = (projectId: number | ""): Draft => ({
 
 export default function TasksPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [projects, setProjects] = useState<ProjectLite[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
+  const [members, setMembers] = useState<Person[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projectId, setProjectId] = useState<number | "">("");
-  const [assigneeFilter, setAssigneeFilter] = useState<number | "">("");
+  const [assigneeFilter, setAssigneeFilter] = useState<number | "" | "none">("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
   const [dragId, setDragId] = useState<number | null>(null);
+  const [overColumn, setOverColumn] = useState<TaskStatus | null>(null);
+
+  // Numéro de la dernière requête : une réponse plus ancienne (serveur lent) ne doit pas
+  // écraser un état plus récent, par ex. une assignation faite entre-temps
+  const requestId = useRef(0);
 
   const load = useCallback(async () => {
+    const current = ++requestId.current;
     try {
-      setError(null);
       const [p, m, taskList] = await Promise.all([
         chefApi.projects(),
         chefApi.members(),
         chefApi.tasks(projectId ? { project_id: projectId } : undefined),
       ]);
+      if (current !== requestId.current) return;
       setProjects(p);
       setMembers(m);
       setTasks(taskList);
       if (projectId === "" && p.length > 0) setProjectId(p[0].id);
     } catch (e) {
-      setError(errMsg(e, t("chef.tasks.loadError")));
+      toast.error(errMsg(e, t("chef.tasks.loadError")));
     } finally {
       setLoading(false);
     }
   }, [projectId, t]);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
+  /*
+  | Personnes assignables : l'équipe du chef + le chef lui-même ("Moi")
+  | + toute personne déjà assignée qui n'en ferait pas partie (sinon le select
+  | affichait "Non assignée" pour une tâche pourtant assignée).
+  */
+  const assignees = useMemo(() => {
+    const map = new Map<number, Person>();
+    if (user) map.set(user.id, { id: user.id, first_name: user.first_name, last_name: user.last_name, avatar_path: user.avatar_path });
+    members.forEach((m) => map.set(m.id, m));
+    tasks.forEach((task) => {
+      if (task.assignee && !map.has(task.assignee.id)) map.set(task.assignee.id, task.assignee as Person);
+    });
+    return [...map.values()];
+  }, [members, tasks, user]);
+
+  const personLabel = (person: Person) =>
+    person.id === user?.id ? `${t("chef.tasks.me")} (${person.first_name} ${person.last_name})` : `${person.first_name} ${person.last_name}`;
+
   const visible = useMemo(
-    () => tasks.filter((task) => (assigneeFilter === "" ? true : task.assigned_to === assigneeFilter)),
+    () =>
+      tasks.filter((task) =>
+        assigneeFilter === "" ? true : assigneeFilter === "none" ? !task.assigned_to : task.assigned_to === assigneeFilter
+      ),
     [tasks, assigneeFilter]
   );
 
   const today = new Date().toISOString().slice(0, 10);
+  const unassignedCount = tasks.filter((task) => !task.assigned_to && task.status !== "done").length;
 
   async function move(task: Task, status: TaskStatus) {
     if (task.status === status) return;
-    setTasks((prev) => prev.map((task) => (task.id === task.id ? { ...task, status } : task)));
+    requestId.current++;
+    // Mise à jour optimiste de LA tâche déplacée uniquement
+    setTasks((prev) => prev.map((x) => (x.id === task.id ? { ...x, status } : x)));
     try {
       await chefApi.updateTask(task.id, { status });
       await load();
     } catch (e) {
-      setError(errMsg(e));
-      load();
+      toast.error(errMsg(e));
+      void load();
     }
   }
 
-  async function assign(task: Task, userId: string) {
+  async function assign(task: Task, value: string) {
+    requestId.current++; // invalide un chargement en cours
+    const userId = value === "" ? null : Number(value);
+    const person = assignees.find((p) => p.id === userId);
+    setTasks((prev) =>
+      prev.map((x) => (x.id === task.id ? { ...x, assigned_to: userId, assignee: person ?? null } : x))
+    );
     try {
-      await chefApi.updateTask(task.id, { assigned_to: userId === "" ? null : Number(userId) });
+      await chefApi.updateTask(task.id, { assigned_to: userId });
+      toast.success(
+        person ? t("chef.tasks.assignedTo", { title: task.title, name: `${person.first_name} ${person.last_name}` }) : t("chef.tasks.unassignedToast", { title: task.title })
+      );
       await load();
     } catch (e) {
-      setError(errMsg(e));
+      toast.error(errMsg(e));
+      void load();
     }
   }
 
   async function save() {
     if (!draft) return;
     if (!draft.title.trim() || draft.project_id === "") {
-      setError(t("chef.tasks.required"));
+      toast.error(t("chef.tasks.required"));
       return;
     }
     setBusy(true);
@@ -148,11 +192,11 @@ export default function TasksPage() {
       };
       if (draft.id) await chefApi.updateTask(draft.id, payload);
       else await chefApi.createTask(payload);
+      toast.success(t("chef.tasks.saved"));
       setDraft(null);
-      setError(null);
       await load();
     } catch (e) {
-      setError(errMsg(e));
+      toast.error(errMsg(e));
     } finally {
       setBusy(false);
     }
@@ -165,7 +209,7 @@ export default function TasksPage() {
       setDraft(null);
       await load();
     } catch (e) {
-      setError(errMsg(e));
+      toast.error(errMsg(e));
     }
   }
 
@@ -174,10 +218,20 @@ export default function TasksPage() {
     setBusy(true);
     try {
       const r = await chefApi.autoAssign(projectId);
-      setNotice(r.message);
+      const assigned = (r.assigned ?? []) as { user_id: number }[];
+      if (assigned.length === 0) {
+        toast.info(t("chef.tasks.nothingToAssign"));
+      } else {
+        // Résumé : "Amine : 2 · Aymen : 1"
+        const counts = assigned.reduce<Record<number, number>>((acc, a) => ({ ...acc, [a.user_id]: (acc[a.user_id] ?? 0) + 1 }), {});
+        const summary = Object.entries(counts)
+          .map(([id, count]) => `${assignees.find((p) => p.id === Number(id))?.first_name ?? "#" + id} : ${count}`)
+          .join(" · ");
+        toast.success(t("chef.tasks.autoAssigned", { count: assigned.length, summary }));
+      }
       await load();
     } catch (e) {
-      setError(errMsg(e));
+      toast.error(errMsg(e));
     } finally {
       setBusy(false);
     }
@@ -186,10 +240,10 @@ export default function TasksPage() {
   async function generate() {
     if (projectId === "") return;
     setBusy(true);
-    setNotice(t("chef.tasks.generating"));
+    toast.info(t("chef.tasks.generating"));
     try {
       const r = await chefApi.generateTasks(projectId, 6);
-      setNotice(
+      toast.success(
         t("chef.tasks.generated", {
           count: r.tasks.length,
           source: r.source === "groq" ? t("chef.tasks.sourceGroq") : t("chef.tasks.sourceStandard"),
@@ -197,8 +251,7 @@ export default function TasksPage() {
       );
       await load();
     } catch (e) {
-      setNotice(null);
-      setError(errMsg(e));
+      toast.error(errMsg(e));
     } finally {
       setBusy(false);
     }
@@ -219,9 +272,7 @@ export default function TasksPage() {
     ], visible);
   }
 
-  if (loading) {
-    return <div className={`${cardCls} p-8 text-center text-sm text-slate-400`}>{t("chef.tasks.loading")}</div>;
-  }
+  if (loading) return <SkeletonCards count={4} className="h-48" />;
 
   return (
     <div className="space-y-6">
@@ -230,11 +281,19 @@ export default function TasksPage() {
         subtitle={t("chef.tasks.subtitle")}
         action={
           <div className="flex flex-wrap gap-2">
-            <button className={btnGhost} onClick={generate} disabled={busy || projectId === ""}>
-              ✨ {t("chef.tasks.generate")}
+            <button className={`${btnGhost} border-violet-400/25 text-violet-200 hover:bg-violet-500/10`} onClick={generate} disabled={busy || projectId === ""}>
+              <Sparkles className="h-4 w-4" /> {t("chef.tasks.generate")}
             </button>
-            <button className={btnGhost} onClick={autoAssign} disabled={busy || projectId === ""}>
-              ⚖️ {t("chef.tasks.autoAssign")}
+            <button
+              className={`${btnGhost} border-emerald-400/25 text-emerald-200 hover:bg-emerald-500/10`}
+              onClick={autoAssign}
+              disabled={busy || projectId === "" || unassignedCount === 0}
+              title={unassignedCount === 0 ? t("chef.tasks.nothingToAssign") : undefined}
+            >
+              <Scale className="h-4 w-4" /> {t("chef.tasks.autoAssign")}
+              {unassignedCount > 0 && (
+                <span className="rounded-full bg-emerald-400/20 px-1.5 text-[11px] text-emerald-200">{unassignedCount}</span>
+              )}
             </button>
             <button className={btnGhost} onClick={() => exportTasks("csv")} disabled={!visible.length}>CSV</button>
             <button className={btnGhost} onClick={() => exportTasks("xlsx")} disabled={!visible.length}>Excel</button>
@@ -244,19 +303,6 @@ export default function TasksPage() {
           </div>
         }
       />
-
-      {error && (
-        <div className="flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-300">
-          <span>{error}</span>
-          <button onClick={() => setError(null)}>✕</button>
-        </div>
-      )}
-      {notice && (
-        <div className="flex items-center justify-between rounded-xl border border-cyan-400/20 bg-cyan-400/5 px-4 py-3 text-sm text-cyan-200">
-          <span>{notice}</span>
-          <button onClick={() => setNotice(null)}>✕</button>
-        </div>
-      )}
 
       <div className="grid gap-3 md:grid-cols-2">
         <Field label={t("chef.tasks.project")}>
@@ -268,29 +314,67 @@ export default function TasksPage() {
           </select>
         </Field>
         <Field label={t("chef.tasks.filterMember")}>
-          <select className={inputCls} value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value ? Number(e.target.value) : "")}>
+          <select
+            className={inputCls}
+            value={assigneeFilter}
+            onChange={(e) => setAssigneeFilter(e.target.value === "" || e.target.value === "none" ? (e.target.value as "" | "none") : Number(e.target.value))}
+          >
             <option value="">{t("chef.tasks.allMembers")}</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>
+            <option value="none">{t("chef.tasks.unassigned")}</option>
+            {assignees.map((m) => (
+              <option key={m.id} value={m.id}>{personLabel(m)}</option>
             ))}
           </select>
         </Field>
       </div>
 
+      {/* Charge par personne : qui a combien de tâches ouvertes */}
+      {assignees.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {assignees.map((person) => {
+            const open = tasks.filter((x) => x.assigned_to === person.id && x.status !== "done").length;
+            const active = assigneeFilter === person.id;
+            return (
+              <button
+                key={person.id}
+                type="button"
+                onClick={() => setAssigneeFilter(active ? "" : person.id)}
+                className={`flex items-center gap-2 rounded-full border py-1 pe-3 ps-1 text-xs transition ${
+                  active ? "border-cyan-400/50 bg-cyan-400/10 text-white" : "border-white/[0.08] bg-white/[0.02] text-slate-300 hover:border-white/20"
+                }`}
+              >
+                <Avatar person={person} size="xs" />
+                {person.id === user?.id ? t("chef.tasks.me") : person.first_name}
+                <span className="rounded-full bg-white/[0.08] px-1.5 text-[10px]">{open}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {COLUMNS.map((col) => {
           const items = visible.filter((task) => task.status === col.key);
+          const isOver = overColumn === col.key && dragId !== null;
           return (
             <div
               key={col.key}
-              className={`${cardCls} min-h-[260px] p-3`}
-              onDragOver={(e) => e.preventDefault()}
+              className={`relative min-h-[300px] overflow-hidden rounded-2xl border p-3 backdrop-blur-xl transition ${
+                isOver ? col.drop : "border-white/[0.08] bg-[#071021]/70"
+              }`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setOverColumn(col.key);
+              }}
+              onDragLeave={() => setOverColumn(null)}
               onDrop={() => {
                 const task = tasks.find((x) => x.id === dragId);
-                if (task) move(task, col.key);
+                if (task) void move(task, col.key);
                 setDragId(null);
+                setOverColumn(null);
               }}
             >
+              <div className={`pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${col.accent} to-transparent`} />
               <div className="mb-3 flex items-center justify-between px-1">
                 <div className="flex items-center gap-2 text-sm font-semibold text-white">
                   <span className={`h-2 w-2 rounded-full ${col.dot}`} />
@@ -301,17 +385,25 @@ export default function TasksPage() {
 
               <div className="space-y-3">
                 {items.map((task) => {
-                  const late = task.status !== "done" && task.due_date && task.due_date < today;
+                  const late = task.status !== "done" && !!task.due_date && task.due_date < today;
+                  const ratio = task.estimated_hours > 0 ? Math.min(100, (task.spent_hours / task.estimated_hours) * 100) : 0;
                   return (
                     <div
                       key={task.id}
                       draggable
                       onDragStart={() => setDragId(task.id)}
-                      className="cursor-grab rounded-xl border border-white/[0.08] bg-[#0B1628] p-3 transition hover:border-cyan-400/30"
+                      onDragEnd={() => {
+                        setDragId(null);
+                        setOverColumn(null);
+                      }}
+                      className={`group relative cursor-grab overflow-hidden rounded-xl border bg-gradient-to-br from-[#0d1a2f] to-[#0a1324] p-3 shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition hover:-translate-y-0.5 hover:border-cyan-400/30 active:cursor-grabbing ${
+                        late ? "border-rose-500/30" : "border-white/[0.08]"
+                      } ${dragId === task.id ? "opacity-40" : ""}`}
                     >
+                      <span className={`absolute inset-y-0 start-0 w-0.5 ${PRIORITY[task.priority].bar}`} />
                       <div className="flex items-start justify-between gap-2">
                         <button
-                          className="text-start text-sm font-medium text-white hover:text-cyan-300"
+                          className="text-start text-sm font-medium leading-5 text-white hover:text-cyan-300"
                           onClick={() =>
                             setDraft({
                               id: task.id,
@@ -329,34 +421,55 @@ export default function TasksPage() {
                         >
                           {task.title}
                         </button>
-                        <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] ${PRIORITY[task.priority].cls}`}>
+                        <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${PRIORITY[task.priority].cls}`}>
                           {t(`chef.tasks.priority.${task.priority}`)}
                         </span>
                       </div>
 
-                      <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
-                        <span>{task.spent_hours}/{task.estimated_hours} {t("common.hoursShort")}</span>
+                      <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
+                        <span>
+                          {task.spent_hours}/{task.estimated_hours} {t("common.hoursShort")}
+                        </span>
                         {task.due_date && (
-                          <span className={late ? "font-semibold text-red-400" : ""}>
-                            {late ? "⚠ " : ""}{formatDate(task.due_date)}
+                          <span className={`flex items-center gap-1 ${late ? "font-semibold text-rose-300" : ""}`}>
+                            <CalendarClock className="h-3 w-3" />
+                            {formatDate(task.due_date, { day: "2-digit", month: "short" })}
                           </span>
                         )}
                       </div>
+                      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+                        <div className={`h-full rounded-full ${ratio >= 100 ? "bg-emerald-400" : "bg-cyan-400/70"}`} style={{ width: `${ratio}%` }} />
+                      </div>
 
-                      <select
-                        className="mt-3 w-full rounded-lg border border-white/[0.08] bg-[#071021] px-2 py-1.5 text-xs text-slate-200 outline-none"
-                        value={task.assigned_to ?? ""}
-                        onChange={(e) => assign(task, e.target.value)}
-                      >
-                        <option value="">{t("chef.tasks.unassigned")}</option>
-                        {members.map((m) => (
-                          <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>
-                        ))}
-                      </select>
+                      <div className="mt-3 flex items-center gap-2">
+                        {task.assignee ? (
+                          <Avatar person={task.assignee as Person} size="sm" />
+                        ) : (
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-dashed border-white/20 text-slate-500">
+                            <UserRound className="h-4 w-4" />
+                          </span>
+                        )}
+                        <select
+                          aria-label={t("chef.tasks.assignee")}
+                          className="min-w-0 flex-1 rounded-lg border border-white/[0.08] bg-[#071021] px-2 py-1.5 text-xs text-slate-200 outline-none transition focus:border-cyan-400/40"
+                          value={task.assigned_to ?? ""}
+                          onChange={(e) => void assign(task, e.target.value)}
+                        >
+                          <option value="">{t("chef.tasks.unassigned")}</option>
+                          {assignees.map((m) => (
+                            <option key={m.id} value={m.id}>{personLabel(m)}</option>
+                          ))}
+                        </select>
+                        <GripVertical className="h-4 w-4 shrink-0 text-slate-600 opacity-0 transition group-hover:opacity-100" />
+                      </div>
                     </div>
                   );
                 })}
-                {items.length === 0 && <p className="px-1 py-6 text-center text-xs text-slate-600">{t("chef.tasks.dropHere")}</p>}
+                {items.length === 0 && (
+                  <p className="rounded-xl border border-dashed border-white/[0.06] px-1 py-8 text-center text-xs text-slate-600">
+                    {t("chef.tasks.dropHere")}
+                  </p>
+                )}
               </div>
             </div>
           );
@@ -381,7 +494,7 @@ export default function TasksPage() {
               <Field label={t("chef.tasks.assignee")}>
                 <select className={inputCls} value={draft.assigned_to} onChange={(e) => setDraft({ ...draft, assigned_to: e.target.value ? Number(e.target.value) : "" })}>
                   <option value="">{t("chef.tasks.unassigned")}</option>
-                  {members.map((m) => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
+                  {assignees.map((m) => <option key={m.id} value={m.id}>{personLabel(m)}</option>)}
                 </select>
               </Field>
               <Field label={t("chef.editProject.status")}>

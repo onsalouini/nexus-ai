@@ -22,5 +22,7 @@
   "confirmation": "Confirmation",
   "changePassword": "Changer le mot de passe",
   "company": "Entreprise",
-  "saveCompany": "Enregistrer l'entreprise"
+  "saveCompany": "Enregistrer l'entreprise",
+  "photoInvalid": "Choisissez une image (JPG, PNG ou WebP) de 2 Mo maximum.",
+  "photoHint": "JPG, PNG ou WebP · 2 Mo max."
 }

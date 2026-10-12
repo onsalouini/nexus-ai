@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { avatarUrl } from "../../lib/avatar";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -446,7 +447,7 @@ function Avatar({ member, cyan = false }: AvatarProps) {
     >
       {member.avatar_path ? (
         <img
-          src={member.avatar_path}
+          src={avatarUrl(member.avatar_path) ?? undefined}
           alt={`${member.first_name} ${member.last_name}`}
           className="h-full w-full object-cover"
         />

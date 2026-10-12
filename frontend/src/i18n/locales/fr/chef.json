@@ -214,7 +214,11 @@
     "color": "Couleur",
     "membersLabel": "Membres",
     "addMembersFirst": "Ajoutez d'abord des membres.",
-    "teams": "Équipes"
+    "teams": "Équipes",
+    "credentialsTitle": "Identifiants de connexion du nouveau membre",
+    "credentialsHint": "Transmettez-les au membre : il se connecte sur la page de connexion et arrive directement dans son espace. Il pourra changer son mot de passe et sa photo dans Paramètres.",
+    "copy": "Copier",
+    "copied": "Identifiants copiés."
   },
   "tasks": {
     "status": {
@@ -251,7 +255,13 @@
     "assignee": "Assignée à",
     "priorityLabel": "Priorité",
     "estimated": "Heures estimées",
-    "spent": "Heures passées"
+    "spent": "Heures passées",
+    "me": "Moi",
+    "assignedTo": "« {{title}} » assignée à {{name}}.",
+    "unassignedToast": "« {{title}} » n'est plus assignée.",
+    "saved": "Tâche enregistrée.",
+    "nothingToAssign": "Toutes les tâches de ce projet sont déjà assignées.",
+    "autoAssigned": "{{count}} tâche(s) réparties selon la charge : {{summary}}"
   },
   "trackingPage": {
     "loadError": "Impossible de charger le suivi.",

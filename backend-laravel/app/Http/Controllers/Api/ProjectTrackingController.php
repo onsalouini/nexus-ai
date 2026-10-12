@@ -255,12 +255,22 @@ class ProjectTrackingController extends Controller
     public function autoAssign(Request $request, Project $project)
     {
         $this->own($request, $project);
-        $members = $project->team()->get();
-        abort_if($members->isEmpty(), 422, "Ajoutez d'abord des membres au projet.");
+        $chef = $request->user();
 
-        $load = $members->mapWithKeys(fn ($u) => [$u->id => (float) Task::where('project_id', $project->id)
-            ->where('assigned_to', $u->id)->where('status', '!=', 'done')->sum('estimated_hours')]);
-        $cap = $members->mapWithKeys(fn ($u) => [$u->id => max($u->weekly_capacity, 1)]);
+        /*
+        | Candidats : membres du projet (hors chef de projet, qui en fait souvent partie),
+        | sinon toute l'équipe du chef. Auparavant le chef recevait lui-même des tâches.
+        */
+        $members = $project->team()->where('users.id', '!=', $chef->id)->get();
+        if ($members->isEmpty()) {
+            $members = $chef->teamMembers()->get();
+        }
+        abort_if($members->isEmpty(), 422, __("Ajoutez d'abord des membres à votre équipe."));
+
+        // Charge actuelle = heures ouvertes sur TOUS les projets, rapportée à la capacité hebdo
+        $load = $members->mapWithKeys(fn (User $u) => [$u->id => (float) Task::where('assigned_to', $u->id)
+            ->where('status', '!=', 'done')->sum('estimated_hours')])->all();
+        $capacity = $members->mapWithKeys(fn (User $u) => [$u->id => max((int) $u->weekly_capacity, 1)])->all();
 
         $pending = Task::where('project_id', $project->id)->whereNull('assigned_to')
             ->where('status', '!=', 'done')
@@ -269,20 +279,26 @@ class ProjectTrackingController extends Controller
 
         $assigned = [];
         foreach ($pending as $task) {
-            $uid = $load->keys()->sortBy(fn ($id) => $load[$id] / $cap[$id])->first();
+            // Le membre le moins chargé (proportionnellement à sa capacité) reçoit la tâche
+            $uid = collect(array_keys($load))->sortBy(fn ($id) => $load[$id] / $capacity[$id])->first();
             $task->update(['assigned_to' => $uid]);
             $load[$uid] += max($task->estimated_hours, 1);
             $assigned[] = ['task_id' => $task->id, 'title' => $task->title, 'user_id' => $uid];
         }
 
+        // Les membres qui reçoivent une tâche rejoignent l'équipe du projet
+        $project->team()->syncWithoutDetaching(collect($assigned)->pluck('user_id')->unique()->all());
+
         if ($assigned) {
             $this->log($project, $request, 'auto_assign', count($assigned) . ' tâche(s) réparties automatiquement');
         }
 
-        return response()->json(['assigned' => $assigned, 'message' => count($assigned) . ' tâche(s) assignée(s).']);
+        return response()->json([
+            'assigned' => $assigned,
+            'message' => trans_choice(':count tâche assignée.|:count tâches assignées.', count($assigned), ['count' => count($assigned)]),
+        ]);
     }
 
-    /** Génération de tâches par IA (Groq) avec repli déterministe si l'API est indisponible. */
     public function generateTasks(Request $request, Project $project)
     {
         $this->own($request, $project);

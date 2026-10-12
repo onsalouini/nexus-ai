@@ -22,5 +22,7 @@
   "confirmation": "التأكيد",
   "changePassword": "تغيير كلمة المرور",
   "company": "الشركة",
-  "saveCompany": "حفظ الشركة"
+  "saveCompany": "حفظ الشركة",
+  "photoInvalid": "اختر صورة (JPG أو PNG أو WebP) بحجم 2 ميغابايت كحد أقصى.",
+  "photoHint": "JPG أو PNG أو WebP · بحد أقصى 2 ميغابايت."
 }

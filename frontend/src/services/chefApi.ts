@@ -37,7 +37,7 @@ export type Task = {
   spent_hours: number;
   due_date?: string | null;
   assigned_to?: number | null;
-  assignee?: { id: number; first_name: string; last_name: string; job_title?: string | null } | null;
+  assignee?: { id: number; first_name: string; last_name: string; job_title?: string | null; avatar_path?: string | null } | null;
   project?: { id: number; name: string };
 };
 

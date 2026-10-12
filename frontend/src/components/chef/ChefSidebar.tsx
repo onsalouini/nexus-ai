@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { avatarUrl } from "../../lib/avatar";
 import { useTranslation } from "react-i18next";
 import {
   BrainCircuit,
@@ -367,7 +368,7 @@ export default function ChefSidebar() {
 
                   {user?.avatar_path ? (
                     <img
-                      src={user.avatar_path}
+                      src={avatarUrl(user.avatar_path) ?? undefined}
                       alt={fullName}
                       className="
                         relative

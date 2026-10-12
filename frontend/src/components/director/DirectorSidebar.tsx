@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { avatarUrl } from "../../lib/avatar";
 import { useEffect, useState } from "react";
 import {
   Activity,
@@ -474,7 +475,7 @@ export default function DirectorSidebar() {
 
                   {user?.avatar_path ? (
                     <img
-                      src={user.avatar_path}
+                      src={avatarUrl(user.avatar_path) ?? undefined}
                       alt={fullName}
                       className="
                         relative

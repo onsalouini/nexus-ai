@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { avatarUrl } from "../../lib/avatar";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -358,7 +359,7 @@ function Avatar({
     <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-cyan-400/10 bg-cyan-400/[0.06]">
       {member.avatar_path ? (
         <img
-          src={member.avatar_path}
+          src={avatarUrl(member.avatar_path) ?? undefined}
           alt=""
           className="h-full w-full object-cover"
         />

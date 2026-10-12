@@ -125,10 +125,10 @@ export default function TrackingPage() {
       {error && <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-300">{error}</div>}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat label={t("chef.trackingPage.stats.projects")} value={totals.projects} hint={t("chef.trackingPage.stats.projectsHint", { inProgress: totals.in_progress, completed: totals.completed })} />
-        <Stat label={t("chef.trackingPage.stats.avgProgress")} value={`${totals.avg_progress}%`} />
-        <Stat label={t("chef.trackingPage.stats.tasksDone")} value={`${totals.tasks_done}/${totals.tasks_total}`} />
-        <Stat label={t("chef.trackingPage.stats.tasksLate")} value={<span className={totals.tasks_late ? "text-red-400" : ""}>{totals.tasks_late}</span>} />
+        <Stat tone="cyan" label={t("chef.trackingPage.stats.projects")} value={totals.projects} hint={t("chef.trackingPage.stats.projectsHint", { inProgress: totals.in_progress, completed: totals.completed })} />
+        <Stat tone="violet" label={t("chef.trackingPage.stats.avgProgress")} value={`${totals.avg_progress}%`} />
+        <Stat tone="emerald" label={t("chef.trackingPage.stats.tasksDone")} value={`${totals.tasks_done}/${totals.tasks_total}`} />
+        <Stat tone="rose" label={t("chef.trackingPage.stats.tasksLate")} value={<span className={totals.tasks_late ? "text-red-400" : ""}>{totals.tasks_late}</span>} />
       </div>
 
       <div className="flex flex-wrap gap-2">

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { avatarUrl } from "../../lib/avatar";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../context/AuthContext";
@@ -187,7 +188,7 @@ export default function ChefTopbar({
                   "
                 >
                   <img
-                    src={user.avatar_path}
+                    src={avatarUrl(user.avatar_path) ?? undefined}
                     alt={fullName}
                     className="h-full w-full object-cover"
                   />
@@ -316,7 +317,7 @@ export default function ChefTopbar({
 
                       {user?.avatar_path ? (
                         <img
-                          src={user.avatar_path}
+                          src={avatarUrl(user.avatar_path) ?? undefined}
                           alt={fullName}
                           className="
                             h-9 w-9

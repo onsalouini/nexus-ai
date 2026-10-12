@@ -93,9 +93,9 @@ export default function MyTasksPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat label={t("employee.tasks.open")} value={counts.open} />
-        <Stat label={t("employee.tasks.late")} value={<span className={counts.late ? "text-red-400" : ""}>{counts.late}</span>} />
-        <Stat label={t("employee.tasks.done")} value={counts.done} />
+        <Stat tone="sky" label={t("employee.tasks.open")} value={counts.open} />
+        <Stat tone="rose" label={t("employee.tasks.late")} value={<span className={counts.late ? "text-red-400" : ""}>{counts.late}</span>} />
+        <Stat tone="emerald" label={t("employee.tasks.done")} value={counts.done} />
       </div>
 
       <div className="flex flex-wrap gap-2">

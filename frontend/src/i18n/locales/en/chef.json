@@ -214,7 +214,11 @@
     "color": "Color",
     "membersLabel": "Members",
     "addMembersFirst": "Add members first.",
-    "teams": "Teams"
+    "teams": "Teams",
+    "credentialsTitle": "New member's sign-in credentials",
+    "credentialsHint": "Share them with the member: they sign in on the sign-in page and land directly in their workspace. They can change their password and photo in Settings.",
+    "copy": "Copy",
+    "copied": "Credentials copied."
   },
   "tasks": {
     "status": {
@@ -251,7 +255,13 @@
     "assignee": "Assigned to",
     "priorityLabel": "Priority",
     "estimated": "Estimated hours",
-    "spent": "Hours spent"
+    "spent": "Hours spent",
+    "me": "Me",
+    "assignedTo": "\"{{title}}\" assigned to {{name}}.",
+    "unassignedToast": "\"{{title}}\" is no longer assigned.",
+    "saved": "Task saved.",
+    "nothingToAssign": "All tasks in this project are already assigned.",
+    "autoAssigned": "{{count}} task(s) distributed by workload: {{summary}}"
   },
   "trackingPage": {
     "loadError": "Unable to load tracking data.",
