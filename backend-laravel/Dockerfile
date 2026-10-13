@@ -11,5 +11,8 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
 
+# Plusieurs workers PHP : les requêtes (messagerie, notifications) ne s'attendent pas entre elles
+ENV PHP_CLI_SERVER_WORKERS=4
+
 EXPOSE 10000
 CMD php artisan config:cache && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000

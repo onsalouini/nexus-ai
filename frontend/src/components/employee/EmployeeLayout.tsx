@@ -1,25 +1,36 @@
 import { NavLink, Outlet } from "react-router";
 import { useTranslation } from "react-i18next";
-import { CalendarDays, CheckSquare, FolderKanban, LifeBuoy, LogOut, Settings } from "lucide-react";
+import { CalendarDays, CheckSquare, FolderKanban, LifeBuoy, LogOut, MessagesSquare, Settings } from "lucide-react";
 import { useAuth, getDashboardPath } from "../../context/AuthContext";
 import LanguageSwitcher from "../common/LanguageSwitcher";
 import NotificationBell from "../common/NotificationBell";
 import { roleLabel } from "../../i18n/labels";
+import Avatar from "../ui-nexus/Avatar";
+import UnreadMessagesBadge from "../common/UnreadMessagesBadge";
 
-/* Espace des employés : agents support (file de tickets) et membres d'équipe */
+/* Espace des employés (agents support, membres d'équipe) et des clients externes */
 export default function EmployeeLayout() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const base = getDashboardPath(user?.role ?? null);
   const isSupport = user?.role === "agent_support";
 
-  const items = [
-    ...(isSupport ? [{ to: base, label: t("employee.nav.tickets"), Icon: LifeBuoy, end: true }] : []),
-    { to: isSupport ? `${base}/tasks` : base, label: t("employee.nav.tasks"), Icon: CheckSquare, end: !isSupport },
-    { to: `${base}/projects`, label: t("employee.nav.projects"), Icon: FolderKanban },
-    { to: `${base}/planning`, label: t("employee.nav.planning"), Icon: CalendarDays },
-    { to: `${base}/settings`, label: t("chef.sidebar.settings"), Icon: Settings },
-  ];
+  const items =
+    user?.role === "client"
+      ? [
+          { to: base, label: t("client.nav.projects"), Icon: FolderKanban, end: true },
+          { to: `${base}/tickets`, label: t("client.nav.tickets"), Icon: LifeBuoy, end: false },
+          { to: `${base}/messages`, label: t("nav.messages"), Icon: MessagesSquare, end: false },
+          { to: `${base}/settings`, label: t("chef.sidebar.settings"), Icon: Settings, end: false },
+        ]
+      : [
+          ...(isSupport ? [{ to: base, label: t("employee.nav.tickets"), Icon: LifeBuoy, end: true }] : []),
+          { to: isSupport ? `${base}/tasks` : base, label: t("employee.nav.tasks"), Icon: CheckSquare, end: !isSupport },
+          { to: `${base}/projects`, label: t("employee.nav.projects"), Icon: FolderKanban, end: false },
+          { to: `${base}/planning`, label: t("employee.nav.planning"), Icon: CalendarDays, end: false },
+          { to: `${base}/messages`, label: t("nav.messages"), Icon: MessagesSquare, end: false },
+          { to: `${base}/settings`, label: t("chef.sidebar.settings"), Icon: Settings, end: false },
+        ];
 
   return (
     <div className="min-h-screen bg-[#020817] font-['Inter',sans-serif] text-white">
@@ -27,6 +38,7 @@ export default function EmployeeLayout() {
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
             <img src="/nexus-logo.jpg" alt="NEXUS AI" className="h-9 w-9 rounded-xl object-cover ring-1 ring-white/15" />
+            <Avatar person={user} size="sm" />
             <div>
               <p className="text-sm font-semibold">
                 {user?.first_name} {user?.last_name}
@@ -52,6 +64,7 @@ export default function EmployeeLayout() {
               >
                 <Icon className="h-4 w-4" />
                 {label}
+                {to.endsWith("/messages") && <UnreadMessagesBadge />}
               </NavLink>
             ))}
           </nav>

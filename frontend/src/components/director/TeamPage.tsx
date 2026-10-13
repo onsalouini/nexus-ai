@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-import { avatarUrl } from "../../lib/avatar";
 import { useEffect, useState } from "react";
 import {
   BriefcaseBusiness,
@@ -29,6 +28,7 @@ import { errMsg } from "../ui-nexus/kit";
 import { SkeletonRows } from "../ui-nexus/Skeleton";
 import { exportRows } from "../../utils/export";
 
+import NexusAvatar from "../ui-nexus/Avatar";
 export default function TeamPage() {
   const { t } = useTranslation();
   const [leaders, setLeaders] = useState<TeamLeader[]>([]);
@@ -679,11 +679,10 @@ function Avatar({
     first_name: string;
     last_name: string;
     avatar_path: string | null;
+    avatar_color?: string | null;
   };
   size?: "normal" | "large";
 }) {
-  const initials =
-    `${member.first_name?.[0] ?? ""}${member.last_name?.[0] ?? ""}`.toUpperCase();
 
   const sizeClass =
     size === "large"
@@ -694,17 +693,7 @@ function Avatar({
     <div
       className={`flex shrink-0 items-center justify-center overflow-hidden border border-cyan-400/10 bg-cyan-400/[0.06] ${sizeClass}`}
     >
-      {member.avatar_path ? (
-        <img
-          src={avatarUrl(member.avatar_path) ?? undefined}
-          alt={`${member.first_name} ${member.last_name}`}
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <span className="font-bold text-cyan-300">
-          {initials}
-        </span>
-      )}
+      <NexusAvatar person={member} rounded="rounded-none" ring={false} className="h-full! w-full! text-inherit" />
     </div>
   );
 }

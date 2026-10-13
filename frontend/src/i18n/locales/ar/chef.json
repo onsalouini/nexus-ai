@@ -12,7 +12,8 @@
     "openMenu": "فتح القائمة",
     "closeMenu": "إغلاق القائمة",
     "workspace": "مساحة العمل",
-    "planning": "التخطيط"
+    "planning": "التخطيط",
+    "changeRequests": "طلبات العملاء"
   },
   "topbar": {
     "openTeam": "فتح الفريق",

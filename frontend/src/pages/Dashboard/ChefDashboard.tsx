@@ -5,6 +5,7 @@ import { api } from "../../lib/api";
 import i18n from "../../i18n";
 import ProjectsGrid from "../../components/chef/ProjectsGrid.tsx";
 import { useOutletContext } from "react-router";
+import RiskAlertBanner from "../../components/common/RiskAlertBanner";
 
 type ChefLayoutContext = {
   refreshKey: number;
@@ -92,6 +93,7 @@ export default function ChefDashboard() {
 
   return (
     <section className="relative">
+      <RiskAlertBanner role="chef_de_projet" />
       {/* =========================================================
           HEADER
       ========================================================== */}

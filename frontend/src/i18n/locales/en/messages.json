@@ -1,0 +1,22 @@
+{
+  "title": "Messages",
+  "subtitle": "Talk directly with your team, management or clients.",
+  "new": "New conversation",
+  "conversations": "Conversations",
+  "empty": "No conversation yet.",
+  "you": "You",
+  "pick": "Pick a conversation or start a new one.",
+  "startHint": "Write the first message of the conversation.",
+  "seen": "Seen",
+  "placeholder": "Write a message…",
+  "enterHint": "Enter to send · Shift + Enter for a new line",
+  "search": "Search a contact",
+  "noContact": "No contact available.",
+  "who": {
+    "direction": "You can write to the company's project managers.",
+    "chef_de_projet": "You can write to management, your team members and your projects' clients.",
+    "membre_equipe": "You can write to your project manager.",
+    "agent_support": "You can write to your project manager.",
+    "client": "You can write to your projects' project manager."
+  }
+}

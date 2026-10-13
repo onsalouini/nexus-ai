@@ -25,8 +25,8 @@ class DirectorProjectController extends Controller
 
         $projects = Project::where('company_id', $user->company_id)
             ->with([
-                'chefDeProjet:id,first_name,last_name,email,job_title,avatar_path',
-                'team:id,first_name,last_name,email,job_title,avatar_path',
+                'chefDeProjet:id,first_name,last_name,email,job_title,avatar_path,avatar_color',
+                'team:id,first_name,last_name,email,job_title,avatar_path,avatar_color',
             ])
             ->latest()
             ->get();
@@ -51,8 +51,8 @@ class DirectorProjectController extends Controller
         }
 
         $project->load([
-            'chefDeProjet:id,first_name,last_name,email,job_title,avatar_path',
-            'team:id,first_name,last_name,email,job_title,avatar_path',
+            'chefDeProjet:id,first_name,last_name,email,job_title,avatar_path,avatar_color',
+            'team:id,first_name,last_name,email,job_title,avatar_path,avatar_color',
             'company',
         ]);
 

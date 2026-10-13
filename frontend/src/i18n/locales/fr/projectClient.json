@@ -1,0 +1,17 @@
+{
+  "title": "Client du projet",
+  "none": "Aucun client n'est encore rattaché. Invitez le propriétaire du projet : il suivra l'avancement et pourra vous écrire.",
+  "invite": "Inviter le client",
+  "inviteHint": "Le client reçoit un email pour créer son compte. Il verra uniquement l'avancement de ce projet (pas les données internes).",
+  "firstName": "Prénom",
+  "email": "Email du client",
+  "organization": "Société du client",
+  "send": "Envoyer l'invitation",
+  "invited": "Invitation envoyée à {{email}}.",
+  "pending": "Invitation envoyée à {{email}}, en attente de création du compte.",
+  "expires": "Le lien expire le {{date}}.",
+  "resend": "Renvoyer",
+  "resent": "Invitation renvoyée.",
+  "write": "Écrire",
+  "requests": "Demandes"
+}

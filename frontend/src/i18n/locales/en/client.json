@@ -1,0 +1,69 @@
+{
+  "nav": {
+    "projects": "My projects",
+    "tickets": "My tickets"
+  },
+  "projects": {
+    "title": "Hello {{name}} 👋",
+    "subtitle": "Follow your projects' progress in real time and contact support.",
+    "count": "Projects followed",
+    "avgProgress": "Average progress",
+    "openTickets": "Open tickets",
+    "emptyTitle": "No project yet",
+    "empty": "Your contact needs to link you to a project. You can already open a ticket if you have a question.",
+    "start": "Start",
+    "deadline": "Deadline",
+    "tasks": {
+      "total": "Tasks",
+      "in_progress": "In progress",
+      "done": "Done"
+    },
+    "recent": "Latest achievements",
+    "upcoming": "Next steps",
+    "noneYet": "Nothing yet.",
+    "report": "Report a problem",
+    "details": "Detailed tracking"
+  },
+  "schedule": {
+    "on_track": "On track",
+    "watch": "To watch",
+    "late": "Behind schedule",
+    "done": "Completed"
+  },
+  "tickets": {
+    "title": "Support",
+    "subtitle": "Your requests and conversations with the support team.",
+    "new": "New ticket",
+    "aiHint": "Our AI analyses your request as soon as it is sent (type, urgency, tone) to route it to the right person first.",
+    "openCount": "Open: {{n}}",
+    "empty": "You haven't opened any ticket yet.",
+    "project": "Related project",
+    "noProject": "General question",
+    "descriptionPlaceholder": "Describe the problem: what you were doing, what happened, since when…",
+    "send": "Send",
+    "created": "Ticket sent: the support team has been notified.",
+    "handledBy": "Handled by {{name}}",
+    "solved": "My problem is solved",
+    "closed": "Ticket closed. Thank you!",
+    "closedHint": "This ticket is closed. Open a new ticket if needed."
+  },
+  "detail": {
+    "tasksDone": "{{done}} / {{total}} steps done",
+    "yourContact": "Your project manager",
+    "writeChef": "Write to the project manager",
+    "evolution": "Project progress",
+    "evolutionHint": "Actual progress compared to the planned schedule.",
+    "planned": "Planned",
+    "actual": "Actual",
+    "timeline": "History",
+    "steps": "Project steps",
+    "event": {
+      "task_done": "Step completed",
+      "change_accepted": "Request accepted",
+      "change_in_progress": "Request in progress",
+      "change_done": "Request done",
+      "change_rejected": "Request rejected",
+      "change_pending": "Request pending"
+    }
+  }
+}

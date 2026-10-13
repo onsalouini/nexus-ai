@@ -9,6 +9,26 @@
     "project_late_tasks": "{{count}} مهمة متأخرة في «{{project}}»",
     "invitation_accepted": "قبل {{name}} دعوته ({{role}})",
     "ticket_critical": "تذكرة حرجة في الانتظار: «{{title}}»",
-    "ai_report_auto": "تمت إعادة إنشاء التقرير الذكي تلقائيًا لـ «{{project}}»"
+    "ai_report_auto": "تمت إعادة إنشاء التقرير الذكي تلقائيًا لـ «{{project}}»",
+    "task_assigned": "مهمة جديدة: «{{task}}» ({{project}})، أسندها {{by}}",
+    "task_completed": "أنهى {{name}} «{{task}}» ({{project}})",
+    "project_risk_alert": "خطر مرتفع في «{{project}}»: تجاوز متوقع للجهد بنسبة {{risk_score}} % (العتبة {{threshold}} %)",
+    "bankruptcy_alert": "خطر إفلاس مرتفع: احتمال {{probability}} % (العتبة {{threshold}} %)",
+    "ticket_new": "تذكرة جديدة ({{urgency}}): «{{title}}»",
+    "ticket_assigned": "أُسندت إليك التذكرة «{{title}}»",
+    "ticket_reply": "ردّ {{name}} على تذكرتك «{{title}}»",
+    "ticket_client_reply": "ردّ العميل {{name}} على «{{title}}»",
+    "ticket_in_progress": "تذكرتك «{{title}}» قيد المعالجة",
+    "ticket_resolved": "تم حل تذكرتك «{{title}}»",
+    "message_new": "رسالة جديدة من {{name}}: «{{preview}}»",
+    "change_request_new": "يطلب {{name}} تغييرًا في «{{project}}»: {{title}}",
+    "change_request_updated": "طلبك «{{title}}» ({{project}}): {{status}}"
+  },
+  "critical": "تنبيه",
+  "delete": "حذف",
+  "filters": {
+    "all": "الكل",
+    "unread": "غير مقروءة",
+    "alerts": "التنبيهات"
   }
 }

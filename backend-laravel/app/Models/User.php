@@ -29,6 +29,9 @@ class User extends Authenticatable
     'notifications_read_at',
     'two_factor_secret',
     'two_factor_enabled_at',
+    'avatar_color',
+    'email_alerts',
+    'organization',
 ];
 
     protected $hidden = [
@@ -53,6 +56,7 @@ class User extends Authenticatable
             'notifications_read_at' => 'datetime',
             'two_factor_enabled_at' => 'datetime',
             'two_factor_secret' => 'encrypted',
+            'email_alerts' => 'boolean',
         ];
     }
 
@@ -71,6 +75,16 @@ public function projects()
         'project_user'
     )->withTimestamps();
 }
+public function conversations()
+{
+    return $this->belongsToMany(Conversation::class)->withPivot('last_read_at', 'last_read_message_id');
+}
+
+public function clientProjects()
+{
+    return $this->hasMany(Project::class, 'client_id');
+}
+
 public function manager()
 {
     return $this->belongsTo(User::class, 'manager_id');

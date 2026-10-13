@@ -59,5 +59,19 @@
     "in_progress": "In progress",
     "resolved": "Resolved",
     "closed": "Closed"
+  },
+  "triage": {
+    "title": "Automatic triage source",
+    "ml": "ML model",
+    "groq": "Groq AI",
+    "keywords": "Keywords"
+  },
+  "model": {
+    "title": "Ticket triage model",
+    "version": "Version {{version}} · {{samples}} samples · {{feedback}} corrections included · accuracy on real tickets:",
+    "offline": "ML service unavailable: triage uses Groq AI or keywords.",
+    "retrain": "Retrain ({{n}} corrections)",
+    "training": "Training…",
+    "retrained": "Model retrained with {{n}} agent correction(s)."
   }
 }

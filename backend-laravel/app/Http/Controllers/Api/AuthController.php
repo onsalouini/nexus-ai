@@ -38,7 +38,11 @@ class AuthController extends Controller
     'password'   => 'required|string|min:8|confirmed',
     'invitation_token' => 'nullable|string',
     'avatar' => 'nullable|image|max:2048',
+    'avatar_color' => ['nullable', \Illuminate\Validation\Rule::in(\App\Services\AvatarService::COLORS)],
     'cv' => 'nullable|mimes:pdf|max:5120',
+    'phone' => 'nullable|string|max:30',
+    'organization' => 'nullable|string|max:150',
+    'job_title' => 'nullable|string|max:100',
 ]);
 
 if (!$codeService->isEmailRecentlyVerified($validated['email'])) {
@@ -51,9 +55,12 @@ if (!$codeService->isEmailRecentlyVerified($validated['email'])) {
         if (!$invitation || !$invitation->isValid()) {
             return response()->json(['message' => __('Invitation invalide ou expirée.')], 422);
         }
+        // Le compte est créé pour l'adresse invitée, pas une autre
+        if (mb_strtolower($invitation->email) !== mb_strtolower($validated['email'])) {
+            return response()->json(['message' => __("Utilisez l'adresse email à laquelle l'invitation a été envoyée.")], 422);
+        }
     }
 
-    $avatarPath = $request->hasFile('avatar') ? $request->file('avatar')->store('avatars', 'public') : null;
     $cvPath = $request->hasFile('cv') ? $request->file('cv')->store('cvs', 'public') : null;
 
     $user = User::create([
@@ -64,20 +71,37 @@ if (!$codeService->isEmailRecentlyVerified($validated['email'])) {
         'role'       => $invitation->role ?? 'direction',
         'company_id' => $invitation->company_id ?? null,
         'manager_id' => $invitation?->invited_by,
-        'avatar_path' => $avatarPath,
+        'avatar_color' => $validated['avatar_color'] ?? null,
         'cv_path' => $cvPath,
         'email_verified_at' => now(),
-        'job_title' => $invitation?->job_title,
+        'job_title' => $invitation?->job_title ?: ($validated['job_title'] ?? null),
+        'phone' => $validated['phone'] ?? null,
+        'organization' => $validated['organization'] ?? $invitation?->organization,
         'locale' => $invitation?->locale ?? app()->getLocale(),
     ]);
 
     if ($invitation) {
-        $invitation->update(['accepted_at' => now()]);
+        $invitation->forceFill(['accepted_at' => now()])->save();
 
         // Le membre invité sur un projet précis y est affecté directement
         if ($invitation->project_id) {
-            $user->projects()->syncWithoutDetaching([$invitation->project_id]);
+            // Un client suit le projet ; un employé rejoint son équipe
+            if ($user->role === 'client') {
+                \App\Models\Project::where('id', $invitation->project_id)
+                    ->where('company_id', $invitation->company_id)
+                    ->update(['client_id' => $user->id]);
+            } else {
+                $user->projects()->syncWithoutDetaching([$invitation->project_id]);
+            }
         }
+
+        app(\App\Services\NotificationService::class)->invitationAccepted($invitation, $user);
+    }
+
+    // Photo de profil enregistrée en base de données
+    if ($request->hasFile('avatar')) {
+        app(\App\Services\AvatarService::class)->store($user, $request->file('avatar'));
+        $user->refresh();
     }
 
     AuditLog::record($user, $invitation ? 'invitation.accepted' : 'auth.registered', ['email' => $user->email]);

@@ -9,7 +9,8 @@
     "product": "Product",
     "ai": "AI Intelligence",
     "method": "Method",
-    "security": "Security"
+    "security": "Security",
+    "messages": "Messages"
   },
   "auth": {
     "welcomeBack": "Hi {{name}}, welcome back",

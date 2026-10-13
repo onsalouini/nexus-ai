@@ -50,7 +50,10 @@ export default function DirectorInvitations() {
     email: "",
     role: "chef_de_projet",
     locale: normalizeLanguage(i18n.language) as string,
+    project_id: "",
   });
+  // Projets de l'entreprise : un client est rattaché au projet qu'il suivra
+  const [projects, setProjects] = useState<{ id: number; name: string; client_id?: number | null }[]>([]);
 
   const [sending, setSending] = useState(false);
 
@@ -74,6 +77,7 @@ export default function DirectorInvitations() {
 
   useEffect(() => {
     loadInvitations();
+    apiClient.get("/director/projects").then(({ data }) => setProjects(Array.isArray(data) ? data : [])).catch(() => undefined);
   }, []);
 
   async function handleInvite(e: FormEvent) {
@@ -83,14 +87,17 @@ export default function DirectorInvitations() {
     setFeedback(null);
 
     try {
-      await apiClient.post("/invitations", form);
+      await apiClient.post("/invitations", {
+        ...form,
+        project_id: form.role === "client" && form.project_id ? Number(form.project_id) : undefined,
+      });
 
       setFeedback({
         type: "success",
         text: t("chef.teamModal.sent", { email: form.email }),
       });
 
-      setForm((f) => ({ ...f, first_name: "", email: "", role: "chef_de_projet" }));
+      setForm((f) => ({ ...f, first_name: "", email: "", role: "chef_de_projet", project_id: "" }));
 
       await loadInvitations();
     } catch (err) {
@@ -418,8 +425,36 @@ export default function DirectorInvitations() {
                         >
                           {t("common.roles.membre_equipe")}
                         </option>
+
+                        <option value="client" className="bg-[#020817]">
+                          {t("common.roles.client")}
+                        </option>
                       </select>
                     </div>
+
+                    {/* Client externe : projet qu'il pourra suivre */}
+                    {form.role === "client" && (
+                      <div>
+                        <label className="mb-2.5 block text-xs font-medium uppercase tracking-wider text-slate-500">
+                          {t("director.invitations.clientProject")}
+                        </label>
+                        <select
+                          value={form.project_id}
+                          onChange={(e) => setForm((f) => ({ ...f, project_id: e.target.value }))}
+                          className="h-12 w-full rounded-xl border border-amber-400/20 bg-[#020817]/70 px-4 text-sm text-white outline-none transition focus:border-amber-400/40 focus:ring-1 focus:ring-amber-400/20"
+                        >
+                          <option value="" className="bg-[#020817]">
+                            {t("director.invitations.noProject")}
+                          </option>
+                          {projects.map((p) => (
+                            <option key={p.id} value={p.id} className="bg-[#020817]">
+                              {p.name}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="mt-1.5 text-[11px] text-slate-500">{t("director.invitations.clientHint")}</p>
+                      </div>
+                    )}
 
                     {/* Langue de l'email d'invitation */}
                     <div>

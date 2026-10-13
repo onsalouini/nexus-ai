@@ -109,6 +109,14 @@
           "1": "Track your tasks and their deadlines",
           "2": "Collaborate with your project manager in real time"
         }
+      },
+      "client": {
+        "title": "Welcome to your client space",
+        "points": {
+          "0": "Follow your projects' progress in real time",
+          "1": "Open tickets, automatically triaged by our AI",
+          "2": "Talk directly with the support team"
+        }
       }
     }
   },
@@ -137,6 +145,16 @@
     "cvOptional": "(PDF, optional)",
     "uploadCv": "Upload your resume",
     "pdfOnly": "PDF format only",
-    "secureNote": "Your data is protected and your access is secured by NEXUS AI."
+    "secureNote": "Your data is protected and your access is secured by NEXUS AI.",
+    "clientWelcome": "{{company}} invites you to follow your project on NEXUS AI.",
+    "memberWelcome": "You are joining {{company}}'s workspace.",
+    "projectLabel": "Project",
+    "invitedBy": "Invited by {{name}}",
+    "emailLocked": "This is the address the invitation was sent to.",
+    "phone": "Phone",
+    "jobTitle": "Job title",
+    "jobTitlePlaceholder": "Manager, marketing director…",
+    "organization": "Company / organisation",
+    "organizationPlaceholder": "Your company name"
   }
 }

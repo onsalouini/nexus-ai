@@ -1,0 +1,26 @@
+{
+  "settingsTitle": "Alerts and notifications",
+  "settingsHint": "Receive critical alerts (high project risk, bankruptcy risk, critical ticket) in real time.",
+  "email": "Email alerts",
+  "emailHint": "Critical alerts are also sent to your email address.",
+  "emailOn": "Email alerts enabled.",
+  "emailOff": "Email alerts disabled.",
+  "desktop": "Browser notifications",
+  "enableDesktop": "Enable",
+  "desktopTest": "NEXUS AI notifications are enabled.",
+  "thresholds": "Company alert thresholds",
+  "riskThreshold": "Project risk: predicted effort overrun",
+  "bankruptcyThreshold": "Bankruptcy probability",
+  "thresholdsHint": "Above these thresholds, the project manager and management receive a critical alert (notification + email). A \"High\" level project always triggers an alert.",
+  "saveThresholds": "Save thresholds",
+  "thresholdsSaved": "Alert thresholds saved.",
+  "bannerTitle": "Active risk alerts",
+  "bannerHint": "Thresholds: effort overrun ≥ {{risk}} % · bankruptcy probability ≥ {{bankruptcy}} %.",
+  "bankruptcyChip": "Bankruptcy risk: {{probability}} %",
+  "desktopState": {
+    "granted": "Enabled: alerts show up even when the tab is in the background.",
+    "denied": "Blocked by the browser: allow them in the site settings.",
+    "default": "Not enabled on this device.",
+    "unsupported": "Not supported by this browser."
+  }
+}

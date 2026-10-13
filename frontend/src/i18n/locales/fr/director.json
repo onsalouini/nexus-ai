@@ -131,7 +131,10 @@
     "resent": "Invitation renvoyée à {{email}} (nouveau lien valable 7 jours).",
     "confirmCancel": "Annuler l'invitation envoyée à {{email}} ? Le lien ne fonctionnera plus.",
     "cancelled": "Invitation annulée.",
-    "loadError": "Impossible de charger les invitations."
+    "loadError": "Impossible de charger les invitations.",
+    "clientProject": "Projet suivi par le client",
+    "noProject": "Aucun pour l'instant",
+    "clientHint": "Le client verra l'avancement de ce projet (sans les données internes) et pourra ouvrir des tickets."
   },
   "health": {
     "eyebrow": "Enterprise Health Engine",

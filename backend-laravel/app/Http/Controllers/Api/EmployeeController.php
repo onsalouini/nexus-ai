@@ -50,6 +50,10 @@ class EmployeeController extends Controller
         $task->update($data);
         $task->project->recalculateProgress();
 
+        if ($oldStatus !== $task->status && $task->status === 'done') {
+            app(\App\Services\NotificationService::class)->taskCompleted($task, $request->user());
+        }
+
         if ($oldStatus !== $task->status) {
             ProjectActivity::create([
                 'project_id' => $task->project_id,

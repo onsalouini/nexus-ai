@@ -4,7 +4,9 @@ import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import { roleLabel } from "../../i18n/labels";
 import TwoFactorSection from "../../components/account/TwoFactorSection";
-import Avatar from "../../components/ui-nexus/Avatar";
+import AvatarPicker from "../../components/ui-nexus/AvatarPicker";
+import AlertSettingsSection from "../../components/account/AlertSettingsSection";
+import type { AvatarChoice, AvatarColor } from "../../lib/avatar";
 import type { NexusUser } from "../../context/AuthContext";
 import { SUPPORTED_LANGUAGES, normalizeLanguage } from "../../i18n";
 import { Field, PageHeader, btnPrimary, cardCls, errMsg, inputCls } from "../../components/ui-nexus/kit";
@@ -12,7 +14,8 @@ import { Field, PageHeader, btnPrimary, cardCls, errMsg, inputCls } from "../../
 type Account = {
   id: number; first_name: string; last_name: string; email: string; role: string;
   phone?: string | null; job_title?: string | null; bio?: string | null;
-  weekly_capacity?: number | null; avatar_path?: string | null;
+  weekly_capacity?: number | null; avatar_path?: string | null; avatar_color?: string | null;
+  email_alerts?: boolean;
   company?: { id: number; name: string; email?: string | null; phone?: string | null; address?: string | null; industry?: string | null; employees_count?: number | null } | null;
 };
 
@@ -39,6 +42,8 @@ export default function SettingsPage() {
   const [companyMsg, setCompanyMsg] = useState<Msg>(null);
   const [pwd, setPwd] = useState({ current_password: "", password: "", password_confirmation: "" });
   const [saving, setSaving] = useState(false);
+  // Mode affiché dans le sélecteur d'avatar (photo / initiales), avant enregistrement
+  const [avatarMode, setAvatarMode] = useState<AvatarChoice["mode"] | null>(null);
 
   useEffect(() => {
     api.get<{ user: Account }>("/account").then((r) => setAcc(r.data.user)).catch((e) => setProfileMsg({ type: "err", text: errMsg(e) }));
@@ -72,24 +77,45 @@ export default function SettingsPage() {
     }
   }
 
-  async function uploadAvatar(file: File) {
-    if (!file.type.startsWith("image/") || file.size > 2 * 1024 * 1024) {
-      setProfileMsg({ type: "err", text: t("settings.photoInvalid") });
-      return;
-    }
-    const fd = new FormData();
-    fd.append("avatar", file);
+  const avatarChoice: AvatarChoice = {
+    mode: avatarMode ?? (acc.avatar_path ? "photo" : "initials"),
+    file: null,
+    color: (acc.avatar_color as AvatarColor) || "cyan",
+  };
+
+  async function saveAvatar(request: () => Promise<{ data: { user: Account } }>, success: string) {
     setUploading(true);
     try {
-      const r = await api.post<{ user: Account }>("/account/avatar", fd);
+      const r = await request();
       setAcc(r.data.user);
       syncUser(r.data.user);
-      setProfileMsg({ type: "ok", text: t("settings.photoSaved") });
+      setAvatarMode(null);
+      setProfileMsg({ type: "ok", text: success });
     } catch (e) {
       setProfileMsg({ type: "err", text: errMsg(e) });
     } finally {
       setUploading(false);
     }
+  }
+
+  function changeAvatar(next: AvatarChoice) {
+    if (next.file) {
+      const fd = new FormData();
+      fd.append("avatar", next.file);
+      void saveAvatar(() => api.post<{ user: Account }>("/account/avatar", fd), t("settings.photoSaved"));
+      return;
+    }
+    setAvatarMode(next.mode);
+    // Sans photo enregistrée, une nouvelle couleur s'applique tout de suite
+    if (next.mode === "initials" && !acc!.avatar_path && next.color !== acc!.avatar_color) {
+      void saveAvatar(() => api.put<{ user: Account }>("/account/preferences", { avatar_color: next.color }), t("avatar.saved"));
+    } else if (next.mode === "initials" && acc!.avatar_path && next.color !== avatarChoice.color) {
+      setAcc({ ...acc!, avatar_color: next.color });
+    }
+  }
+
+  function useInitials() {
+    void saveAvatar(() => api.delete<{ user: Account }>("/account/avatar", { data: { avatar_color: avatarChoice.color } }), t("avatar.saved"));
   }
 
   async function savePassword() {
@@ -142,32 +168,29 @@ export default function SettingsPage() {
 
       <section className={`${cardCls} space-y-4 p-6`}>
         <h2 className="text-base font-semibold text-white">{t("settings.profile")}</h2>
-        <div className="flex items-center gap-4">
-          <Avatar key={acc.avatar_path ?? "none"} person={acc} size="xl" className={uploading ? "opacity-50" : ""} />
-          <div>
-            <label className="inline-flex cursor-pointer items-center rounded-xl border border-cyan-400/25 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-200 transition hover:bg-cyan-400/20">
-              {uploading ? t("common.saving") : t("settings.changePhoto")}
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                className="hidden"
-                disabled={uploading}
-                onChange={(e) => {
-                  if (e.target.files?.[0]) void uploadAvatar(e.target.files[0]);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-            <p className="mt-1.5 text-xs text-slate-500">{t("settings.photoHint")}</p>
+        <AvatarPicker
+          firstName={acc.first_name}
+          lastName={acc.last_name}
+          value={avatarChoice}
+          onChange={changeAvatar}
+          currentPath={acc.avatar_path}
+          busy={uploading}
+        />
+        {avatarChoice.mode === "initials" && acc.avatar_path && (
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3">
+            <p className="flex-1 text-sm text-amber-100">{t("avatar.replaceHint")}</p>
+            <button type="button" className={btnPrimary} onClick={useInitials} disabled={uploading}>
+              {t("avatar.useInitials")}
+            </button>
           </div>
-        </div>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <Field label={t("auth.signup.step1.firstName")}><input className={inputCls} value={acc.first_name} onChange={(e) => set("first_name", e.target.value)} /></Field>
           <Field label={t("chef.editProject.name")}><input className={inputCls} value={acc.last_name} onChange={(e) => set("last_name", e.target.value)} /></Field>
           <Field label={t("auth.email")}><input type="email" className={inputCls} value={acc.email} onChange={(e) => set("email", e.target.value)} /></Field>
           <Field label={t("onboarding.phone")}><input className={inputCls} value={acc.phone ?? ""} onChange={(e) => set("phone", e.target.value)} /></Field>
           <Field label={t("chef.members.job")}><input className={inputCls} value={acc.job_title ?? ""} onChange={(e) => set("job_title", e.target.value)} /></Field>
-          {!isDirection && (
+          {!isDirection && acc.role !== "client" && (
             <Field label={t("settings.capacity")}><input type="number" className={inputCls} value={acc.weekly_capacity ?? 40} onChange={(e) => set("weekly_capacity", Number(e.target.value))} /></Field>
           )}
         </div>
@@ -188,6 +211,15 @@ export default function SettingsPage() {
       </section>
 
       <TwoFactorSection />
+
+      <AlertSettingsSection
+        emailAlerts={acc.email_alerts !== false}
+        onEmailAlertsChange={(value) => {
+          set("email_alerts", value);
+          if (user) setUser({ ...user, email_alerts: value } as NexusUser);
+        }}
+        isDirection={isDirection}
+      />
 
       {isDirection && acc.company && (
         <section className={`${cardCls} space-y-4 p-6`}>

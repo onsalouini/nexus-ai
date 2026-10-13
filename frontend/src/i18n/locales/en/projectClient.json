@@ -1,0 +1,17 @@
+{
+  "title": "Project client",
+  "none": "No client linked yet. Invite the project owner: they will follow progress and can write to you.",
+  "invite": "Invite the client",
+  "inviteHint": "The client receives an email to create their account. They only see this project's progress (no internal data).",
+  "firstName": "First name",
+  "email": "Client email",
+  "organization": "Client company",
+  "send": "Send invitation",
+  "invited": "Invitation sent to {{email}}.",
+  "pending": "Invitation sent to {{email}}, waiting for account creation.",
+  "expires": "The link expires on {{date}}.",
+  "resend": "Resend",
+  "resent": "Invitation resent.",
+  "write": "Write",
+  "requests": "Requests"
+}

@@ -9,6 +9,7 @@ const ROLE_POINTS: Record<string, number> = {
   chef_de_projet: 4,
   agent_support: 3,
   membre_equipe: 3,
+  client: 3,
 };
 
 export default function InvitationWelcome() {

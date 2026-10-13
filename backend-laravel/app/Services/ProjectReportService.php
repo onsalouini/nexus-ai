@@ -113,6 +113,7 @@ class ProjectReportService
                 'risk_score' => isset($prediction['gap_percent']) ? (int) round($prediction['gap_percent']) : null,
                 'risk_explanation' => $prediction['explanation'] ?? null,
             ]);
+            app(RiskAlertService::class)->checkProject($project);
         }
     }
 }

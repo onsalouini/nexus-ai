@@ -1,0 +1,40 @@
+{
+  "title": "Change requests",
+  "new": "Request a change",
+  "hint": "Describe the change you want: your project manager is notified immediately and will answer here.",
+  "fields": {
+    "title": "Subject",
+    "description": "Description",
+    "descriptionPlaceholder": "What you want to change, why, and by when if it matters…",
+    "priority": "Priority"
+  },
+  "priority": {
+    "low": "Low",
+    "normal": "Normal",
+    "high": "High"
+  },
+  "status": {
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "in_progress": "In progress",
+    "done": "Done",
+    "rejected": "Rejected"
+  },
+  "send": "Send request",
+  "sent": "Request sent to your project manager.",
+  "emptyClient": "No request yet.",
+  "chef": "Project manager",
+  "chefTitle": "Client requests",
+  "chefSubtitle": "Changes requested by your projects' clients: accept, schedule or reject with an explanation.",
+  "filters": {
+    "open": "To handle",
+    "all": "All"
+  },
+  "emptyChef": "No client request to handle.",
+  "decision": "Decision",
+  "response": "Answer to the client",
+  "responsePlaceholder": "Explain your decision, the timing or the impact on the schedule…",
+  "writeClient": "Write to the client",
+  "sendAnswer": "Send answer",
+  "answered": "Answer sent: the client has been notified."
+}

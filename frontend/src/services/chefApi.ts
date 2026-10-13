@@ -1,3 +1,4 @@
+import type { ProjectClientInfo } from "../components/chef/ProjectClientCard";
 import { api } from "../lib/api";
 
 export type Member = {
@@ -63,6 +64,9 @@ export type Tracking = {
   };
   workload: { id: number; name: string; job_title?: string | null; tasks_total: number; tasks_done: number; open_hours: number; capacity: number }[];
   burndown: { date: string; ideal: number; actual: number | null }[];
+  client?: ProjectClientInfo["client"];
+  client_invitation?: ProjectClientInfo["client_invitation"];
+  change_requests_pending?: number;
   forecast: {
     velocity_per_day: number; remaining_hours: number; eta: string | null;
     deadline: string | null; days_late: number | null; on_track: boolean | null;

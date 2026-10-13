@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Invitation extends Model
 {
     // job_title et project_id manquaient : ils étaient ignorés à la création
-    protected $fillable = ['email', 'first_name', 'role', 'job_title', 'project_id', 'token', 'company_id', 'invited_by', 'expires_at', 'locale'];
+    protected $fillable = ['email', 'first_name', 'role', 'job_title', 'project_id', 'token', 'company_id', 'invited_by', 'expires_at', 'locale', 'organization'];
 
     protected $casts = [
         'expires_at' => 'datetime',

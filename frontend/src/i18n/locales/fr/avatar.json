@@ -1,0 +1,13 @@
+{
+  "label": "Photo de profil",
+  "photo": "Photo",
+  "initials": "Initiales",
+  "choose": "Choisir une photo",
+  "change": "Changer la photo",
+  "hint": "JPG, PNG ou WebP · recadrée et enregistrée dans la base de données.",
+  "colorLabel": "Couleur de vos initiales",
+  "invalid": "Choisissez une image JPG, PNG ou WebP de 2 Mo maximum.",
+  "replaceHint": "Votre photo actuelle sera supprimée et remplacée par vos initiales.",
+  "useInitials": "Utiliser mes initiales",
+  "saved": "Avatar mis à jour."
+}

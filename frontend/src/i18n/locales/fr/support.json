@@ -59,5 +59,19 @@
     "in_progress": "En traitement",
     "resolved": "Résolu",
     "closed": "Fermé"
+  },
+  "triage": {
+    "title": "Origine du tri automatique",
+    "ml": "Modèle ML",
+    "groq": "IA Groq",
+    "keywords": "Mots-clés"
+  },
+  "model": {
+    "title": "Modèle de tri des tickets",
+    "version": "Version {{version}} · {{samples}} exemples · {{feedback}} corrections intégrées · précision sur des tickets réels :",
+    "offline": "Service ML indisponible : le tri utilise l'IA Groq ou les mots-clés.",
+    "retrain": "Ré-entraîner ({{n}} corrections)",
+    "training": "Entraînement…",
+    "retrained": "Modèle ré-entraîné avec {{n}} correction(s) des agents."
   }
 }

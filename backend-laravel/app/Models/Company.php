@@ -18,6 +18,8 @@ class Company extends Model
         'address',
         'industry',
         'employees_count',
+        'risk_alert_threshold',
+        'bankruptcy_alert_threshold',
     ];
 
     public function users(): HasMany

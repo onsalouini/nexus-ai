@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import Chart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
 import { chefApi, type Member, type Overview, type Team, type Tracking } from "../../services/chefApi";
+import ProjectClientCard from "../../components/chef/ProjectClientCard";
 import {
   Field,
   PageHeader,
@@ -169,6 +170,16 @@ export default function TrackingPage() {
               <ProgressBar value={data.project.progress} />
             </div>
           </div>
+
+          <ProjectClientCard
+            projectId={data.project.id}
+            info={{
+              client: data.client ?? null,
+              client_invitation: data.client_invitation ?? null,
+              change_requests_pending: data.change_requests_pending ?? 0,
+            }}
+            onChange={() => refresh(selected)}
+          />
 
           <div className="grid gap-4 lg:grid-cols-3">
             <div className={`${cardCls} p-6`}>

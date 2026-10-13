@@ -49,9 +49,46 @@ export type Ticket = {
   status: TicketStatus;
   classification_corrected: boolean;
   assigned_to?: number | null;
-  assignee?: { id: number; first_name: string; last_name: string } | null;
+  assignee?: PersonRef | null;
+  created_by?: number | null;
+  creator?: (PersonRef & { role: string | null }) | null;
+  project_id?: number | null;
+  project?: { id: number; name: string } | null;
+  triage_source?: "ml" | "groq" | "keywords" | null;
+  triage_confidence?: Partial<Record<"category" | "urgency" | "sentiment", number>> | null;
+  messages_count?: number;
+  messages?: TicketMessage[];
   created_at: string;
   resolved_at?: string | null;
+};
+
+export type PersonRef = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  avatar_path?: string | null;
+  avatar_color?: string | null;
+};
+
+export type TicketMessage = {
+  id: number;
+  body: string;
+  created_at: string;
+  user_id: number | null;
+  author?: (PersonRef & { role: string | null }) | null;
+};
+
+export type TicketModelStatus = {
+  model: {
+    version: string;
+    trained_at: string;
+    n_samples: number;
+    n_feedback: number;
+    sources: string[];
+    metrics: Record<"holdout" | "handwritten", Partial<Record<"category" | "urgency" | "sentiment", { accuracy: number; f1_macro: number; n: number }>>>;
+  } | null;
+  corrections: number;
+  sources: Partial<Record<"ml" | "groq" | "keywords", number>>;
 };
 
 export type TicketStats = {
@@ -64,21 +101,47 @@ export type TicketStats = {
 
 /* ---------------- Notifications ---------------- */
 
+export type NotificationType =
+  | "task_late"
+  | "task_due_soon"
+  | "task_assigned"
+  | "task_completed"
+  | "project_high_risk"
+  | "project_risk_alert"
+  | "bankruptcy_alert"
+  | "project_late_tasks"
+  | "invitation_accepted"
+  | "ticket_critical"
+  | "ticket_new"
+  | "ticket_assigned"
+  | "ticket_reply"
+  | "ticket_client_reply"
+  | "ticket_in_progress"
+  | "ticket_resolved"
+  | "ai_report_auto"
+  | "message_new"
+  | "change_request_new"
+  | "change_request_updated";
+
 export type AppNotification = {
-  id: string;
-  type:
-    | "task_late"
-    | "task_due_soon"
-    | "project_high_risk"
-    | "project_late_tasks"
-    | "invitation_accepted"
-    | "ticket_critical"
-    | "ai_report_auto";
+  id: number;
+  type: NotificationType;
+  severity: "info" | "warning" | "critical";
   data: Record<string, string | number | null>;
   created_at: string;
   link: string | null;
   read: boolean;
 };
+
+/* ---------------- Alertes de risque ---------------- */
+
+export type RiskAlerts = {
+  thresholds: { risk: number; bankruptcy: number };
+  projects: { id: number; name: string; risk_level: string | null; risk_score: number | null }[];
+  bankruptcy: { probability: number; health_score: number; alert: boolean; date: string } | null;
+};
+
+export type ClientAccount = PersonRef & { email: string; client_projects: { id: number; name: string }[] };
 
 /* ---------------- Direction ---------------- */
 
@@ -144,10 +207,26 @@ export const workspaceApi = {
     api.post<Ticket>("/tickets", d).then((r) => r.data),
   updateTicket: (id: number, d: Partial<Pick<Ticket, "status" | "assigned_to" | "category" | "urgency" | "sentiment">>) =>
     api.patch<Ticket>(`/tickets/${id}`, d).then((r) => r.data),
+  ticket: (id: number) => api.get<Ticket>(`/tickets/${id}`).then((r) => r.data),
+  replyTicket: (id: number, body: string) => api.post<Ticket>(`/tickets/${id}/messages`, { body }).then((r) => r.data),
+  suggestReply: (id: number) => api.post<{ reply: string }>(`/tickets/${id}/suggest-reply`).then((r) => r.data.reply),
+  ticketModel: () => api.get<TicketModelStatus>("/tickets/model").then((r) => r.data),
+  retrainTicketModel: () => api.post<{ samples: number }>("/tickets/model/retrain", {}, { timeout: 200_000 }).then((r) => r.data),
 
   notifications: () =>
     api.get<{ notifications: AppNotification[]; unread: number }>("/notifications").then((r) => r.data),
   markNotificationsRead: () => api.post("/notifications/read"),
+  markNotificationRead: (id: number) => api.post<{ unread: number }>(`/notifications/${id}/read`).then((r) => r.data),
+  deleteNotification: (id: number) => api.delete<{ unread: number }>(`/notifications/${id}`).then((r) => r.data),
+
+  alerts: () => api.get<RiskAlerts>("/alerts").then((r) => r.data),
+  saveAlertThresholds: (d: { risk_alert_threshold: number; bankruptcy_alert_threshold: number }) =>
+    api.put<{ risk: number; bankruptcy: number }>("/alerts/settings", d).then((r) => r.data),
+  savePreferences: (d: { email_alerts?: boolean; avatar_color?: string }) => api.put("/account/preferences", d),
+
+  clients: () => api.get<ClientAccount[]>("/clients").then((r) => r.data),
+  assignClient: (projectId: number, clientId: number | null) =>
+    api.put(`/projects/${projectId}/client`, { client_id: clientId }).then((r) => r.data),
 
   healthScore: () => api.get<HealthScore>("/director/health-score").then((r) => r.data),
   auditLogs: (params: { page?: number; action?: string }) =>

@@ -131,7 +131,10 @@
     "resent": "Invitation resent to {{email}} (new link valid for 7 days).",
     "confirmCancel": "Cancel the invitation sent to {{email}}? The link will stop working.",
     "cancelled": "Invitation cancelled.",
-    "loadError": "Unable to load invitations."
+    "loadError": "Unable to load invitations.",
+    "clientProject": "Project followed by the client",
+    "noProject": "None for now",
+    "clientHint": "The client will see this project's progress (without internal data) and can open tickets."
   },
   "health": {
     "eyebrow": "Enterprise Health Engine",

@@ -9,6 +9,26 @@
     "project_late_tasks": "{{count}} late task(s) on \"{{project}}\"",
     "invitation_accepted": "{{name}} accepted their invitation ({{role}})",
     "ticket_critical": "Critical ticket waiting: \"{{title}}\"",
-    "ai_report_auto": "AI report automatically regenerated for \"{{project}}\""
+    "ai_report_auto": "AI report automatically regenerated for \"{{project}}\"",
+    "task_assigned": "New task: \"{{task}}\" ({{project}}), assigned by {{by}}",
+    "task_completed": "{{name}} completed \"{{task}}\" ({{project}})",
+    "project_risk_alert": "High risk on \"{{project}}\": predicted effort overrun of {{risk_score}} % (threshold {{threshold}} %)",
+    "bankruptcy_alert": "High bankruptcy risk: {{probability}} % probability (threshold {{threshold}} %)",
+    "ticket_new": "New ticket ({{urgency}}): \"{{title}}\"",
+    "ticket_assigned": "Ticket \"{{title}}\" was assigned to you",
+    "ticket_reply": "{{name}} replied to your ticket \"{{title}}\"",
+    "ticket_client_reply": "Customer {{name}} replied on \"{{title}}\"",
+    "ticket_in_progress": "Your ticket \"{{title}}\" is being handled",
+    "ticket_resolved": "Your ticket \"{{title}}\" is resolved",
+    "message_new": "New message from {{name}}: \"{{preview}}\"",
+    "change_request_new": "{{name}} requests a change on \"{{project}}\": {{title}}",
+    "change_request_updated": "Your request \"{{title}}\" ({{project}}): {{status}}"
+  },
+  "critical": "Alert",
+  "delete": "Delete",
+  "filters": {
+    "all": "All",
+    "unread": "Unread",
+    "alerts": "Alerts"
   }
 }

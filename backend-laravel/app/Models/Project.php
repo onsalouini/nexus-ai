@@ -32,6 +32,7 @@ class Project extends Model
         'deadline',
         'progress',
         'team_id',
+        'client_id',
     ];
 
     protected $casts = [
@@ -54,6 +55,16 @@ class Project extends Model
         'deadline' => 'date:Y-m-d',
         'progress' => 'integer',
     ];
+
+    public function changeRequests()
+    {
+        return $this->hasMany(ChangeRequest::class)->latest();
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(User::class, 'client_id');
+    }
 
     public function chefDeProjet()
     {

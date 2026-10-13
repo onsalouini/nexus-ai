@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { avatarUrl } from "../../lib/avatar";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 import LanguageSwitcher from "../common/LanguageSwitcher";
 import NotificationBell from "../common/NotificationBell";
 
+import Avatar from "../ui-nexus/Avatar";
 import {
   ChevronDown,
   LogOut,
@@ -33,10 +33,6 @@ export default function ChefTopbar({
     `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() ||
     t("chef.sidebar.user");
 
-  const initials =
-    `${user?.first_name?.charAt(0) ?? ""}${
-      user?.last_name?.charAt(0) ?? ""
-    }`.toUpperCase() || "N";
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/[0.055] bg-[#020817]/75 backdrop-blur-2xl">
@@ -175,66 +171,7 @@ export default function ChefTopbar({
             >
               {/* Avatar */}
 
-              {user?.avatar_path ? (
-                <div
-                  className="
-                    relative
-                    h-8 w-8
-                    overflow-hidden
-                    rounded-full
-                    ring-1 ring-white/[0.10]
-                    transition-all duration-200
-                    group-hover:ring-cyan-400/30
-                  "
-                >
-                  <img
-                    src={avatarUrl(user.avatar_path) ?? undefined}
-                    alt={fullName}
-                    className="h-full w-full object-cover"
-                  />
-
-                  <span
-                    className="
-                      absolute
-                      bottom-0.5 end-0.5
-                      h-1.5 w-1.5
-                      rounded-full
-                      border border-[#020817]
-                      bg-cyan-400
-                    "
-                  />
-                </div>
-              ) : (
-                <div
-                  className="
-                    relative
-                    flex h-8 w-8
-                    items-center justify-center
-                    rounded-full
-                    bg-gradient-to-br
-                    from-cyan-400
-                    via-blue-500
-                    to-violet-500
-                    text-[10px]
-                    font-semibold
-                    text-white
-                    ring-1 ring-white/[0.08]
-                  "
-                >
-                  {initials}
-
-                  <span
-                    className="
-                      absolute
-                      bottom-0.5 end-0.5
-                      h-1.5 w-1.5
-                      rounded-full
-                      border border-[#020817]
-                      bg-cyan-300
-                    "
-                  />
-                </div>
-              )}
+              <span className="relative inline-flex transition-all duration-200 group-hover:scale-105"><Avatar person={user} size="sm" /><span className="absolute bottom-0.5 end-0.5 h-1.5 w-1.5 rounded-full border border-[#020817] bg-cyan-400" /></span>
 
               {/* Prénom uniquement */}
 
@@ -315,34 +252,7 @@ export default function ChefTopbar({
                   >
                     <div className="flex items-center gap-3">
 
-                      {user?.avatar_path ? (
-                        <img
-                          src={avatarUrl(user.avatar_path) ?? undefined}
-                          alt={fullName}
-                          className="
-                            h-9 w-9
-                            rounded-full
-                            object-cover
-                            ring-1 ring-white/[0.10]
-                          "
-                        />
-                      ) : (
-                        <div
-                          className="
-                            flex h-9 w-9
-                            items-center justify-center
-                            rounded-full
-                            bg-gradient-to-br
-                            from-cyan-400
-                            to-violet-500
-                            text-[10px]
-                            font-semibold
-                            text-white
-                          "
-                        >
-                          {initials}
-                        </div>
-                      )}
+                      <Avatar person={user} size="sm" className="h-9! w-9!" />
 
                       <div className="min-w-0">
                         <p className="truncate text-xs font-semibold text-white/85">

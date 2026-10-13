@@ -15,11 +15,13 @@ class Ticket extends Model
         'company_id', 'created_by', 'assigned_to', 'title', 'description',
         'customer_name', 'customer_email', 'category', 'urgency', 'sentiment',
         'status', 'classification_corrected', 'resolved_at',
+        'project_id', 'triage_source', 'triage_confidence',
     ];
 
     protected $casts = [
         'classification_corrected' => 'boolean',
         'resolved_at' => 'datetime',
+        'triage_confidence' => 'array',
     ];
 
     public function assignee()
@@ -30,5 +32,15 @@ class Ticket extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(TicketMessage::class)->oldest();
     }
 }

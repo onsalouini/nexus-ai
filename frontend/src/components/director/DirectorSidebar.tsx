@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { avatarUrl } from "../../lib/avatar";
 import { useEffect, useState } from "react";
 import {
+  MessagesSquare,
   Activity,
   BarChart3,
   CalendarDays,
@@ -23,6 +23,8 @@ import LanguageSwitcher from "../common/LanguageSwitcher";
 
 import { useAuth } from "../../context/AuthContext";
 
+import Avatar from "../ui-nexus/Avatar";
+import UnreadMessagesBadge from "../common/UnreadMessagesBadge";
 type NavigationItem = {
   labelKey: string;
   path: string;
@@ -44,6 +46,11 @@ const navigation: NavigationItem[] = [
     labelKey: "director.sidebar.team",
     path: "/dashboard/direction/team",
     icon: Users,
+  },
+  {
+    labelKey: "nav.messages",
+    path: "/dashboard/direction/messages",
+    icon: MessagesSquare,
   },
   {
     labelKey: "director.sidebar.invitations",
@@ -102,9 +109,6 @@ export default function DirectorSidebar() {
     `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() ||
     t("chef.sidebar.user");
 
-  const initials =
-    `${user?.first_name?.charAt(0) ?? ""}${user?.last_name?.charAt(0) ?? ""}` ||
-    "N";
 
   const role = t(`common.roles.${user?.role ?? "direction"}`);
 
@@ -473,43 +477,7 @@ export default function DirectorSidebar() {
                     "
                   />
 
-                  {user?.avatar_path ? (
-                    <img
-                      src={avatarUrl(user.avatar_path) ?? undefined}
-                      alt={fullName}
-                      className="
-                        relative
-                        h-10
-                        w-10
-                        rounded-full
-                        border
-                        border-cyan-400/30
-                        object-cover
-                      "
-                    />
-                  ) : (
-                    <div
-                      className="
-                        relative
-                        flex
-                        h-10
-                        w-10
-                        items-center
-                        justify-center
-                        rounded-full
-                        border
-                        border-cyan-400/25
-                        bg-gradient-to-br
-                        from-cyan-400/15
-                        via-blue-500/10
-                        to-violet-500/15
-                      "
-                    >
-                      <span className="text-sm font-semibold text-cyan-200">
-                        {initials.toUpperCase()}
-                      </span>
-                    </div>
-                  )}
+                  <Avatar person={user} size="md" className="relative border border-cyan-400/30" />
 
                   {/* Online indicator */}
 
@@ -654,6 +622,8 @@ export default function DirectorSidebar() {
                         <span className="min-w-0 flex-1 truncate">
                           {t(item.labelKey)}
                         </span>
+
+                        {item.path.endsWith("/messages") && <UnreadMessagesBadge />}
 
                         {/* Active dot */}
 

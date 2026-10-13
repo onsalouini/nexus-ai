@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { avatarUrl, initials } from "../../lib/avatar";
+import { avatarGradient, avatarUrl, initials } from "../../lib/avatar";
 
-type Person = {
+export type AvatarPerson = {
   first_name?: string | null;
   last_name?: string | null;
   avatar_path?: string | null;
+  avatar_color?: string | null;
 };
 
 const SIZES = {
@@ -13,44 +14,36 @@ const SIZES = {
   md: "h-10 w-10 text-xs",
   lg: "h-14 w-14 text-base",
   xl: "h-20 w-20 text-xl",
+  "2xl": "h-24 w-24 text-2xl",
 };
 
-// Teinte stable par personne : les initiales ne sont pas toutes de la même couleur
-const GRADIENTS = [
-  "from-cyan-400/40 to-blue-500/30",
-  "from-violet-400/40 to-fuchsia-500/30",
-  "from-emerald-400/40 to-teal-500/30",
-  "from-amber-400/40 to-orange-500/30",
-  "from-rose-400/40 to-pink-500/30",
-  "from-sky-400/40 to-indigo-500/30",
-];
-
-/* Photo de profil, ou initiales colorées si pas de photo / image introuvable */
+/* Photo de profil, ou initiales sur la couleur choisie si pas de photo / image introuvable */
 export default function Avatar({
   person,
   size = "md",
   className = "",
   ring = true,
+  rounded = "rounded-full",
 }: {
-  person?: Person | null;
+  person?: AvatarPerson | null;
   size?: keyof typeof SIZES;
   className?: string;
   ring?: boolean;
+  rounded?: string;
 }) {
-  const [failed, setFailed] = useState(false);
   const src = avatarUrl(person?.avatar_path);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const name = `${person?.first_name ?? ""} ${person?.last_name ?? ""}`.trim();
-  const gradient = GRADIENTS[(name.charCodeAt(0) || 0) % GRADIENTS.length];
-  const base = `relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-white ${SIZES[size]} ${
+  const base = `relative inline-flex shrink-0 items-center justify-center overflow-hidden ${rounded} font-semibold text-white ${SIZES[size]} ${
     ring ? "ring-1 ring-white/15" : ""
   } ${className}`;
 
-  if (src && !failed) {
-    return <img src={src} alt={name} title={name} onError={() => setFailed(true)} className={`${base} object-cover`} />;
+  if (src && failedSrc !== src) {
+    return <img src={src} alt={name} title={name} onError={() => setFailedSrc(src)} className={`${base} object-cover`} />;
   }
 
   return (
-    <span className={`${base} bg-gradient-to-br ${gradient}`} title={name} aria-label={name}>
+    <span className={`${base} bg-gradient-to-br ${avatarGradient(person?.avatar_color, name)} shadow-inner`} title={name} aria-label={name}>
       {initials(person?.first_name, person?.last_name)}
     </span>
   );

@@ -9,7 +9,8 @@
     "product": "Produit",
     "ai": "Intelligence IA",
     "method": "Méthode",
-    "security": "Sécurité"
+    "security": "Sécurité",
+    "messages": "Messages"
   },
   "auth": {
     "welcomeBack": "Bonjour {{name}}, ravi de vous revoir",

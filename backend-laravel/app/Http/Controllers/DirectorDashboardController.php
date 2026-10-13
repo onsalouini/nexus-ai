@@ -57,6 +57,7 @@ class DirectorDashboardController extends Controller
                 'role',
                 'job_title',
                 'avatar_path',
+                'avatar_color',
                 'company_id',
             ])
             ->orderBy('first_name')
@@ -209,6 +210,7 @@ class DirectorDashboardController extends Controller
                 'role' => $user->role,
                 'job_title' => $user->job_title,
                 'avatar_path' => $user->avatar_path,
+                'avatar_color' => $user->avatar_color,
             ],
 
             'company' => $company,

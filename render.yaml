@@ -1,0 +1,19 @@
+# Render Blueprint : service de tri des tickets (modèle ML).
+# Render → New → Blueprint → choisir ce dépôt : le service est créé automatiquement.
+# Les services existants (backend, nexus-ai-ml, finance) ne sont pas modifiés.
+services:
+  - type: web
+    name: nexus-ticket-ai
+    runtime: python
+    plan: free
+    rootDir: ai-services/ticket-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      # Protège /train : à recopier dans TICKET_AI_TOKEN côté backend Laravel
+      - key: TICKET_AI_TOKEN
+        generateValue: true

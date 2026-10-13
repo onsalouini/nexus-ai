@@ -18,6 +18,11 @@ import EmployeeLayout from "../components/employee/EmployeeLayout";
 import MyTasksPage from "../pages/Employee/MyTasksPage";
 import MyProjectsPage from "../pages/Employee/MyProjectsPage";
 import TicketsPage from "../pages/Support/TicketsPage";
+import ClientProjectsPage from "../pages/Client/ClientProjectsPage";
+import ClientTicketsPage from "../pages/Client/ClientTicketsPage";
+import ClientProjectDetailPage from "../pages/Client/ClientProjectDetailPage";
+import MessagesPage from "../pages/Messages/MessagesPage";
+import ChangeRequestsPage from "../pages/Chef/ChangeRequestsPage";
 import PlanningPage from "../pages/Planning/PlanningPage";
 import AuditLogPage from "../pages/Direction/AuditLogPage";
 import ChefLayout from "../components/chef/ChefLayout";
@@ -127,6 +132,7 @@ export default function AppRoutes() {
         <Route path="/dashboard/direction/planning" element={<PlanningPage />} />
         <Route path="/dashboard/direction/support" element={<TicketsPage />} />
         <Route path="/dashboard/direction/audit" element={<AuditLogPage />} />
+        <Route path="/dashboard/direction/messages" element={<MessagesPage />} />
 
         <Route
           path="/dashboard/direction/model"
@@ -183,6 +189,8 @@ export default function AppRoutes() {
         />
 
         <Route path="/dashboard/chef/planning" element={<PlanningPage />} />
+        <Route path="/dashboard/chef/messages" element={<MessagesPage />} />
+        <Route path="/dashboard/chef/change-requests" element={<ChangeRequestsPage />} />
 
         <Route
           path="/dashboard/chef/models"
@@ -212,6 +220,7 @@ export default function AppRoutes() {
         <Route path="/dashboard/support/projects" element={<MyProjectsPage />} />
         <Route path="/dashboard/support/planning" element={<PlanningPage />} />
         <Route path="/dashboard/support/settings" element={<SettingsPage />} />
+        <Route path="/dashboard/support/messages" element={<MessagesPage />} />
       </Route>
 
       {/* Membre d'équipe : ses tâches en page d'accueil */}
@@ -226,6 +235,22 @@ export default function AppRoutes() {
         <Route path="/dashboard/membre/projects" element={<MyProjectsPage />} />
         <Route path="/dashboard/membre/planning" element={<PlanningPage />} />
         <Route path="/dashboard/membre/settings" element={<SettingsPage />} />
+        <Route path="/dashboard/membre/messages" element={<MessagesPage />} />
+      </Route>
+
+      {/* Client externe : suivi de ses projets et tickets de support */}
+      <Route
+        element={
+          <PrivateRoute roles={["client"]}>
+            <EmployeeLayout />
+          </PrivateRoute>
+        }
+      >
+        <Route path="/dashboard/client" element={<ClientProjectsPage />} />
+        <Route path="/dashboard/client/tickets" element={<ClientTicketsPage />} />
+        <Route path="/dashboard/client/settings" element={<SettingsPage />} />
+        <Route path="/dashboard/client/projects/:id" element={<ClientProjectDetailPage />} />
+        <Route path="/dashboard/client/messages" element={<MessagesPage />} />
       </Route>
 
       {/* =========================

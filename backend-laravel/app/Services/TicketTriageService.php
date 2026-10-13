@@ -7,8 +7,10 @@ use Illuminate\Support\Facades\Log;
 
 /*
 | Tri automatique d'un ticket support : catégorie, urgence et sentiment.
-| Utilise Groq si une clé est configurée, sinon une analyse par mots-clés
-| (français / anglais / arabe). L'agent peut toujours corriger le résultat.
+| 1. Modèle ML maison (ai-services/ticket-service, TF-IDF + régression logistique)
+| 2. Groq si le service ML est indisponible
+| 3. Analyse par mots-clés (français / anglais / arabe) en dernier recours
+| L'agent peut toujours corriger le résultat ; ses corrections ré-entraînent le modèle.
 */
 class TicketTriageService
 {
@@ -25,9 +27,78 @@ class TicketTriageService
         'positive' => ['merci', 'super', 'génial', 'bravo', 'thanks', 'great', 'awesome', 'شكرا', 'ممتاز', 'رائع'],
     ];
 
+    /** @return array{category:string, urgency:string, sentiment:string, triage_source:string, triage_confidence:?array} */
     public function classify(string $title, string $description): array
     {
-        return $this->classifyWithGroq($title, $description) ?? $this->classifyWithKeywords($title, $description);
+        if ($ml = $this->classifyWithModel($title, $description)) {
+            return $ml;
+        }
+        if ($groq = $this->classifyWithGroq($title, $description)) {
+            return [...$groq, 'triage_source' => 'groq', 'triage_confidence' => null];
+        }
+
+        return [...$this->classifyWithKeywords($title, $description), 'triage_source' => 'keywords', 'triage_confidence' => null];
+    }
+
+    private function serviceUrl(): ?string
+    {
+        $url = config('services.ticket_ai.url');
+
+        return $url ? rtrim($url, '/') : null;
+    }
+
+    private function classifyWithModel(string $title, string $description): ?array
+    {
+        if (! $url = $this->serviceUrl()) {
+            return null;
+        }
+
+        try {
+            $data = Http::timeout(8)->post("{$url}/predict", ['title' => $title, 'description' => $description])->throw()->json();
+
+            $valid = in_array($data['category'] ?? null, \App\Models\Ticket::CATEGORIES, true)
+                && in_array($data['urgency'] ?? null, \App\Models\Ticket::URGENCIES, true)
+                && in_array($data['sentiment'] ?? null, \App\Models\Ticket::SENTIMENTS, true);
+
+            return $valid ? [
+                'category' => $data['category'],
+                'urgency' => $data['urgency'],
+                'sentiment' => $data['sentiment'],
+                'triage_source' => 'ml',
+                'triage_confidence' => $data['confidence'] ?? null,
+            ] : null;
+        } catch (\Throwable $e) {
+            Log::warning('Service ML de tri des tickets indisponible', ['error' => $e->getMessage()]);
+
+            return null;
+        }
+    }
+
+    /** État du modèle (version, métriques) ; null si le service est injoignable. */
+    public function modelStatus(): ?array
+    {
+        if (! $url = $this->serviceUrl()) {
+            return null;
+        }
+        try {
+            return Http::timeout(5)->get("{$url}/health")->throw()->json('model');
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /** Ré-entraîne le modèle avec les tickets corrigés par les agents. */
+    public function retrain(array $samples): ?array
+    {
+        if (! $url = $this->serviceUrl()) {
+            return null;
+        }
+        $request = Http::timeout(180);
+        if ($token = config('services.ticket_ai.token')) {
+            $request = $request->withToken($token);
+        }
+
+        return $request->post("{$url}/train", ['samples' => $samples])->throw()->json('model');
     }
 
     public function classifyWithKeywords(string $title, string $description): array

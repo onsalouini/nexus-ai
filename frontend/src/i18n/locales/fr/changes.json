@@ -1,0 +1,40 @@
+{
+  "title": "Demandes de changement",
+  "new": "Demander un changement",
+  "hint": "Décrivez la modification souhaitée : votre chef de projet est notifié immédiatement et vous répondra ici.",
+  "fields": {
+    "title": "Objet",
+    "description": "Description",
+    "descriptionPlaceholder": "Ce que vous souhaitez changer, pourquoi, et pour quand si c'est important…",
+    "priority": "Priorité"
+  },
+  "priority": {
+    "low": "Faible",
+    "normal": "Normale",
+    "high": "Haute"
+  },
+  "status": {
+    "pending": "En attente",
+    "accepted": "Acceptée",
+    "in_progress": "En cours",
+    "done": "Réalisée",
+    "rejected": "Refusée"
+  },
+  "send": "Envoyer la demande",
+  "sent": "Demande envoyée à votre chef de projet.",
+  "emptyClient": "Aucune demande pour l'instant.",
+  "chef": "Chef de projet",
+  "chefTitle": "Demandes des clients",
+  "chefSubtitle": "Modifications demandées par les clients de vos projets : acceptez, planifiez ou refusez en expliquant pourquoi.",
+  "filters": {
+    "open": "À traiter",
+    "all": "Toutes"
+  },
+  "emptyChef": "Aucune demande de client à traiter.",
+  "decision": "Décision",
+  "response": "Réponse au client",
+  "responsePlaceholder": "Expliquez votre décision, le délai ou l'impact sur le planning…",
+  "writeClient": "Écrire au client",
+  "sendAnswer": "Envoyer la réponse",
+  "answered": "Réponse envoyée : le client est notifié."
+}

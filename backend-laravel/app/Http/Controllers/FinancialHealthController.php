@@ -271,6 +271,8 @@ class FinancialHealthController extends Controller
                 'explanations',
             ]);
 
+            app(\App\Services\RiskAlertService::class)->checkFinancialReport($report);
+
             return response()->json([
                 'success' => true,
                 'message' => __('Rapport financier enregistré.'),

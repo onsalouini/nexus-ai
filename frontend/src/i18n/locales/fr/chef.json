@@ -12,7 +12,8 @@
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
     "workspace": "Espace de travail",
-    "planning": "Planning"
+    "planning": "Planning",
+    "changeRequests": "Demandes clients"
   },
   "topbar": {
     "openTeam": "Ouvrir l'équipe",

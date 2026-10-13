@@ -1,0 +1,30 @@
+[
+  {"title": "Impossible d'enregistrer", "description": "Quand je valide le formulaire de tâche, j'ai un message d'erreur rouge et rien n'est sauvegardé.", "category": "bug", "urgency": "medium", "sentiment": "neutral"},
+  {"title": "Site down !!!", "description": "Plus personne ne peut travailler, la plateforme ne répond plus du tout. On perd de l'argent, c'est inadmissible.", "category": "bug", "urgency": "critical", "sentiment": "negative"},
+  {"title": "Graphique bizarre", "description": "Le graphique des revenus affiche des valeurs négatives, ce n'est pas normal. Pas urgent.", "category": "bug", "urgency": "low", "sentiment": "neutral"},
+  {"title": "Prélevé deux fois", "description": "Notre banque nous indique deux prélèvements identiques pour octobre. Merci de corriger rapidement.", "category": "billing", "urgency": "high", "sentiment": "neutral"},
+  {"title": "Remboursement", "description": "Nous avons résilié mais avons quand même été facturés. Je suis déçu, je veux être remboursé.", "category": "billing", "urgency": "medium", "sentiment": "negative"},
+  {"title": "Question facture", "description": "Bonjour, pourriez-vous m'envoyer la facture de septembre au format PDF ? Merci beaucoup !", "category": "billing", "urgency": "low", "sentiment": "positive"},
+  {"title": "Bloqué dehors", "description": "Mon mot de passe ne passe plus et je ne reçois pas l'email de réinitialisation. Ça bloque mon travail.", "category": "account", "urgency": "high", "sentiment": "neutral"},
+  {"title": "Nouvel utilisateur", "description": "Comment ajouter ma collègue comme utilisatrice sur notre espace ?", "category": "account", "urgency": "medium", "sentiment": "neutral"},
+  {"title": "Idée", "description": "Ce serait génial de pouvoir dupliquer un projet existant. Merci pour votre super travail !", "category": "feature", "urgency": "low", "sentiment": "positive"},
+  {"title": "Proposition", "description": "Pourriez-vous ajouter un export CSV des tickets ? Ça nous aiderait beaucoup.", "category": "feature", "urgency": "low", "sentiment": "neutral"},
+  {"title": "Contact commercial", "description": "Nous envisageons de passer à l'offre entreprise, qui puis-je contacter ?", "category": "other", "urgency": "low", "sentiment": "neutral"},
+  {"title": "Formation", "description": "Organisez-vous des webinaires pour les nouveaux utilisateurs ?", "category": "other", "urgency": "low", "sentiment": "neutral"},
+
+  {"title": "Can't save tasks", "description": "When I submit the task form I get a red error and nothing is saved.", "category": "bug", "urgency": "medium", "sentiment": "neutral"},
+  {"title": "Everything is down", "description": "Nobody can work, the platform doesn't respond at all. We're losing money, this is ridiculous.", "category": "bug", "urgency": "critical", "sentiment": "negative"},
+  {"title": "Double charge", "description": "Our bank shows two identical charges for October. Please fix this quickly.", "category": "billing", "urgency": "high", "sentiment": "neutral"},
+  {"title": "Need my invoice", "description": "Hi, could you send me September's invoice as a PDF? Thanks so much!", "category": "billing", "urgency": "low", "sentiment": "positive"},
+  {"title": "Locked out", "description": "My password stopped working and I never receive the reset email. It's blocking my work.", "category": "account", "urgency": "high", "sentiment": "neutral"},
+  {"title": "Idea", "description": "It would be awesome to duplicate an existing project. Thanks for the great work!", "category": "feature", "urgency": "low", "sentiment": "positive"},
+  {"title": "Enterprise plan", "description": "We're considering the enterprise plan, who should I contact?", "category": "other", "urgency": "low", "sentiment": "neutral"},
+  {"title": "Slow reports", "description": "Reports take ages to generate and sometimes time out. Very frustrating.", "category": "bug", "urgency": "medium", "sentiment": "negative"},
+
+  {"title": "لا يمكن الحفظ", "description": "عند إرسال نموذج المهمة تظهر رسالة خطأ ولا يتم حفظ أي شيء.", "category": "bug", "urgency": "medium", "sentiment": "neutral"},
+  {"title": "المنصة متوقفة", "description": "لا أحد يستطيع العمل، المنصة لا تستجيب إطلاقًا. نخسر المال، هذا غير مقبول.", "category": "bug", "urgency": "critical", "sentiment": "negative"},
+  {"title": "خصم مكرر", "description": "البنك يظهر عمليتي خصم متطابقتين لشهر أكتوبر. يرجى التصحيح بسرعة.", "category": "billing", "urgency": "high", "sentiment": "neutral"},
+  {"title": "كلمة المرور", "description": "كلمة المرور لم تعد تعمل ولا يصلني بريد إعادة التعيين.", "category": "account", "urgency": "high", "sentiment": "neutral"},
+  {"title": "فكرة", "description": "سيكون رائعًا لو أمكن نسخ مشروع موجود. شكرًا على عملكم الممتاز!", "category": "feature", "urgency": "low", "sentiment": "positive"},
+  {"title": "التواصل مع المبيعات", "description": "نفكر في الانتقال إلى باقة الشركات، بمن أتصل؟", "category": "other", "urgency": "low", "sentiment": "neutral"}
+]

@@ -1,0 +1,26 @@
+{
+  "settingsTitle": "Alertes et notifications",
+  "settingsHint": "Recevez les alertes critiques (risque projet élevé, risque de faillite, ticket critique) en temps réel.",
+  "email": "Alertes par email",
+  "emailHint": "Les alertes critiques sont aussi envoyées à votre adresse email.",
+  "emailOn": "Alertes par email activées.",
+  "emailOff": "Alertes par email désactivées.",
+  "desktop": "Notifications du navigateur",
+  "enableDesktop": "Activer",
+  "desktopTest": "Les notifications NEXUS AI sont activées.",
+  "thresholds": "Seuils d'alerte de l'entreprise",
+  "riskThreshold": "Risque projet : dépassement d'effort prédit",
+  "bankruptcyThreshold": "Probabilité de faillite",
+  "thresholdsHint": "Au-delà de ces seuils, le chef de projet et la direction reçoivent une alerte critique (notification + email). Un projet de niveau « Élevé » déclenche toujours une alerte.",
+  "saveThresholds": "Enregistrer les seuils",
+  "thresholdsSaved": "Seuils d'alerte enregistrés.",
+  "bannerTitle": "Alertes de risque actives",
+  "bannerHint": "Seuils : dépassement d'effort ≥ {{risk}} % · probabilité de faillite ≥ {{bankruptcy}} %.",
+  "bankruptcyChip": "Risque de faillite : {{probability}} %",
+  "desktopState": {
+    "granted": "Activées : les alertes s'affichent même quand l'onglet est en arrière-plan.",
+    "denied": "Bloquées par le navigateur : autorisez-les dans les réglages du site.",
+    "default": "Non activées sur cet appareil.",
+    "unsupported": "Non prises en charge par ce navigateur."
+  }
+}

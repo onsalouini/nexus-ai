@@ -1,0 +1,22 @@
+{
+  "title": "Messagerie",
+  "subtitle": "Échangez directement avec votre équipe, votre direction ou vos clients.",
+  "new": "Nouvelle conversation",
+  "conversations": "Conversations",
+  "empty": "Aucune conversation pour le moment.",
+  "you": "Vous",
+  "pick": "Choisissez une conversation ou démarrez-en une nouvelle.",
+  "startHint": "Écrivez le premier message de la conversation.",
+  "seen": "Vu",
+  "placeholder": "Écrire un message…",
+  "enterHint": "Entrée pour envoyer · Maj + Entrée pour un retour à la ligne",
+  "search": "Rechercher un contact",
+  "noContact": "Aucun contact disponible.",
+  "who": {
+    "direction": "Vous pouvez écrire aux chefs de projet de l'entreprise.",
+    "chef_de_projet": "Vous pouvez écrire à la direction, à vos membres d'équipe et aux clients de vos projets.",
+    "membre_equipe": "Vous pouvez écrire à votre chef de projet.",
+    "agent_support": "Vous pouvez écrire à votre chef de projet.",
+    "client": "Vous pouvez écrire au chef de projet de vos projets."
+  }
+}

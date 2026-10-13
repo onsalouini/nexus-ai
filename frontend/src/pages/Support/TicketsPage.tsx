@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Frown, Meh, Smile, Sparkles, UserPlus } from "lucide-react";
+import { BrainCircuit, Frown, Meh, MessageSquare, RefreshCw, Smile, Sparkles, UserPlus } from "lucide-react";
 import {
   workspaceApi,
   type Ticket,
@@ -15,6 +15,9 @@ import { Field, Modal, PageHeader, Stat, btnGhost, btnPrimary, cardCls, errMsg, 
 import { SkeletonRows } from "../../components/ui-nexus/Skeleton";
 import { formatRelative } from "../../i18n/format";
 import { toast } from "../../lib/toast";
+import TicketThread from "../../components/common/TicketThread";
+import Avatar from "../../components/ui-nexus/Avatar";
+import type { TicketModelStatus } from "../../services/workspaceApi";
 
 const CATEGORIES: TicketCategory[] = ["bug", "billing", "feature", "account", "other"];
 const URGENCIES: TicketUrgency[] = ["critical", "high", "medium", "low"];
@@ -32,6 +35,86 @@ const SENTIMENT_ICON = { negative: Frown, neutral: Meh, positive: Smile };
 const SENTIMENT_CLS = { negative: "text-red-300", neutral: "text-slate-400", positive: "text-emerald-300" };
 
 type Filter = "queue" | "mine" | "resolved";
+
+/* Origine du tri automatique : modèle ML maison (avec confiance), Groq ou mots-clés */
+function TriageBadge({ ticket }: { ticket: Ticket }) {
+  const { t } = useTranslation();
+  if (!ticket.triage_source) return null;
+  const confidence = ticket.triage_confidence?.urgency ?? ticket.triage_confidence?.category;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+        ticket.triage_source === "ml"
+          ? "border-violet-400/30 bg-violet-500/10 text-violet-200"
+          : "border-white/10 bg-white/[0.04] text-slate-400"
+      }`}
+      title={t("support.triage.title")}
+    >
+      <BrainCircuit className="h-3 w-3" />
+      {t(`support.triage.${ticket.triage_source}`)}
+      {confidence !== undefined && ` · ${Math.round(confidence * 100)} %`}
+    </span>
+  );
+}
+
+/* Direction : état du modèle de tri et ré-entraînement avec les corrections des agents */
+function ModelCard() {
+  const { t } = useTranslation();
+  const [status, setStatus] = useState<TicketModelStatus | null>(null);
+  const [training, setTraining] = useState(false);
+
+  const load = useCallback(() => {
+    workspaceApi.ticketModel().then(setStatus).catch(() => undefined);
+  }, []);
+  useEffect(load, [load]);
+
+  async function retrain() {
+    setTraining(true);
+    try {
+      const r = await workspaceApi.retrainTicketModel();
+      toast.success(t("support.model.retrained", { n: r.samples }));
+      load();
+    } catch (e) {
+      toast.error(errMsg(e));
+    } finally {
+      setTraining(false);
+    }
+  }
+
+  if (!status) return null;
+  const metrics = status.model?.metrics.handwritten;
+  return (
+    <div className={`${cardCls} flex flex-wrap items-center gap-5 p-5`}>
+      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/30 to-cyan-500/20 text-violet-100">
+        <BrainCircuit className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-medium text-white">{t("support.model.title")}</p>
+        <p className="text-xs text-slate-400">
+          {status.model
+            ? t("support.model.version", { version: status.model.version, samples: status.model.n_samples, feedback: status.model.n_feedback })
+            : t("support.model.offline")}
+        </p>
+      </div>
+      {metrics && (
+        <div className="flex gap-2">
+          {(["category", "urgency", "sentiment"] as const).map((k) =>
+            metrics[k] ? (
+              <div key={k} className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-center">
+                <p className="text-sm font-semibold text-white">{Math.round(metrics[k]!.accuracy * 100)} %</p>
+                <p className="text-[10px] text-slate-500">{t(`support.fields.${k}`)}</p>
+              </div>
+            ) : null
+          )}
+        </div>
+      )}
+      <button type="button" className={btnGhost} onClick={retrain} disabled={training || !status.model}>
+        <RefreshCw className={`h-4 w-4 ${training ? "animate-spin" : ""}`} />
+        {training ? t("support.model.training") : t("support.model.retrain", { n: status.corrections })}
+      </button>
+    </div>
+  );
+}
 
 export default function TicketsPage() {
   const { t } = useTranslation();
@@ -63,6 +146,22 @@ export default function TicketsPage() {
     setLoading(true);
     void load();
   }, [load]);
+
+  async function openTicket(ticket: Ticket) {
+    setSelected(ticket);
+    try {
+      setSelected(await workspaceApi.ticket(ticket.id));
+    } catch (e) {
+      toast.error(errMsg(e));
+    }
+  }
+
+  async function reply(body: string) {
+    if (!selected) return;
+    setSelected(await workspaceApi.replyTicket(selected.id, body));
+    toast.success(t("tickets.sent"));
+    void load();
+  }
 
   async function update(ticket: Ticket, patch: Parameters<typeof workspaceApi.updateTicket>[1], success?: string) {
     try {
@@ -116,6 +215,8 @@ export default function TicketsPage() {
         }
       />
 
+      {user?.role === "direction" && <ModelCard />}
+
       {stats && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Stat tone="sky" label={t("support.stats.open")} value={stats.open} />
@@ -152,7 +253,7 @@ export default function TicketsPage() {
               <button
                 key={ticket.id}
                 type="button"
-                onClick={() => setSelected(ticket)}
+                onClick={() => openTicket(ticket)}
                 className={`${cardCls} flex w-full flex-wrap items-center gap-3 p-4 text-start transition hover:border-cyan-400/25`}
               >
                 <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${URGENCY_CLS[ticket.urgency]}`}>
@@ -164,11 +265,20 @@ export default function TicketsPage() {
                     #{ticket.id} · {ticket.title}
                   </p>
                   <p className="truncate text-xs text-slate-500">
+                    {ticket.project ? `${ticket.project.name} · ` : ""}
                     {t(`support.category.${ticket.category}`)} · {ticket.customer_name || ticket.customer_email || t("support.anonymous")} ·{" "}
                     {formatRelative(ticket.created_at)}
                   </p>
                 </div>
-                <span className="text-xs text-slate-400">
+                <TriageBadge ticket={ticket} />
+                {!!ticket.messages_count && (
+                  <span className="flex items-center gap-1 text-xs text-slate-400">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    {ticket.messages_count}
+                  </span>
+                )}
+                <span className="flex items-center gap-2 text-xs text-slate-400">
+                  {ticket.assignee && <Avatar person={ticket.assignee} size="xs" />}
                   {ticket.assignee ? `${ticket.assignee.first_name} ${ticket.assignee.last_name}` : t("support.unassigned")}
                 </span>
                 <span className="rounded-lg bg-white/[0.05] px-2 py-1 text-xs text-slate-300">{t(`support.status.${ticket.status}`)}</span>
@@ -181,11 +291,23 @@ export default function TicketsPage() {
       {selected && (
         <Modal title={`#${selected.id} · ${selected.title}`} onClose={() => setSelected(null)} wide>
           <div className="space-y-5">
-            <p className="whitespace-pre-line rounded-xl bg-white/[0.03] p-4 text-sm leading-6 text-slate-300">{selected.description}</p>
-            <p className="text-xs text-slate-500">
-              {selected.customer_name || t("support.anonymous")}
-              {selected.customer_email && <span dir="ltr"> · {selected.customer_email}</span>} · {formatRelative(selected.created_at)}
-            </p>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              <span>
+                {selected.customer_name || t("support.anonymous")}
+                {selected.customer_email && <span dir="ltr"> · {selected.customer_email}</span>}
+              </span>
+              {selected.project && (
+                <span className="rounded-full border border-cyan-400/20 bg-cyan-400/5 px-2 py-0.5 text-cyan-200">{selected.project.name}</span>
+              )}
+              <TriageBadge ticket={selected} />
+            </div>
+
+            <TicketThread
+              ticket={selected}
+              currentUserId={user?.id}
+              onSend={reply}
+              onSuggest={() => workspaceApi.suggestReply(selected.id)}
+            />
 
             <div>
               <p className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-slate-400">

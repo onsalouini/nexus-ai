@@ -128,6 +128,10 @@ class ProjectTrackingController extends Controller
                 'tasks_late' => $tasks->filter(fn ($t) => $t->status !== 'done' && $t->due_date && $t->due_date->isPast())->count(),
             ],
             'workload' => $workload,
+            'client' => $project->client()->first(['id', 'first_name', 'last_name', 'email', 'organization', 'avatar_path', 'avatar_color']),
+            'client_invitation' => \App\Models\Invitation::where('project_id', $project->id)->where('role', 'client')
+                ->whereNull('accepted_at')->where('expires_at', '>', now())->latest()->first(['id', 'email', 'first_name', 'organization', 'expires_at']),
+            'change_requests_pending' => $project->changeRequests()->where('status', 'pending')->count(),
             'burndown' => $this->burndown($project, $tasks),
             'forecast' => $this->forecast($project, $tasks),
             'health' => $this->healthScore($project, $tasks),
@@ -291,6 +295,8 @@ class ProjectTrackingController extends Controller
 
         if ($assigned) {
             $this->log($project, $request, 'auto_assign', count($assigned) . ' tâche(s) réparties automatiquement');
+            $notifications = app(\App\Services\NotificationService::class);
+            $pending->each(fn (Task $t) => $notifications->taskAssigned($t->setRelation('project', $project)->load('assignee'), $request->user()));
         }
 
         return response()->json([

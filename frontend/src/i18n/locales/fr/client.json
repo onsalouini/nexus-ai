@@ -1,0 +1,69 @@
+{
+  "nav": {
+    "projects": "Mes projets",
+    "tickets": "Mes tickets"
+  },
+  "projects": {
+    "title": "Bonjour {{name}} 👋",
+    "subtitle": "Suivez l'avancement de vos projets en temps réel et contactez le support.",
+    "count": "Projets suivis",
+    "avgProgress": "Avancement moyen",
+    "openTickets": "Tickets en cours",
+    "emptyTitle": "Aucun projet pour le moment",
+    "empty": "Votre interlocuteur doit vous rattacher à un projet. Vous pouvez déjà ouvrir un ticket si vous avez une question.",
+    "start": "Début",
+    "deadline": "Échéance",
+    "tasks": {
+      "total": "Tâches",
+      "in_progress": "En cours",
+      "done": "Terminées"
+    },
+    "recent": "Dernières réalisations",
+    "upcoming": "Prochaines étapes",
+    "noneYet": "Rien pour le moment.",
+    "report": "Signaler un problème",
+    "details": "Suivi détaillé"
+  },
+  "schedule": {
+    "on_track": "Dans les temps",
+    "watch": "À surveiller",
+    "late": "En retard",
+    "done": "Terminé"
+  },
+  "tickets": {
+    "title": "Support",
+    "subtitle": "Vos demandes et vos échanges avec l'équipe support.",
+    "new": "Nouveau ticket",
+    "aiHint": "Notre IA analyse votre demande dès l'envoi (type, urgence, ton) pour la transmettre à la bonne personne en priorité.",
+    "openCount": "En cours : {{n}}",
+    "empty": "Vous n'avez encore ouvert aucun ticket.",
+    "project": "Projet concerné",
+    "noProject": "Question générale",
+    "descriptionPlaceholder": "Décrivez le problème : ce que vous faisiez, ce qui s'est passé, depuis quand…",
+    "send": "Envoyer",
+    "created": "Ticket envoyé : l'équipe support a été prévenue.",
+    "handledBy": "Pris en charge par {{name}}",
+    "solved": "Mon problème est résolu",
+    "closed": "Ticket clôturé. Merci !",
+    "closedHint": "Ce ticket est clôturé. Ouvrez un nouveau ticket si besoin."
+  },
+  "detail": {
+    "tasksDone": "{{done}} / {{total}} étapes terminées",
+    "yourContact": "Votre chef de projet",
+    "writeChef": "Écrire au chef de projet",
+    "evolution": "Évolution du projet",
+    "evolutionHint": "Avancement réel comparé au planning prévu.",
+    "planned": "Prévu",
+    "actual": "Réel",
+    "timeline": "Historique",
+    "steps": "Étapes du projet",
+    "event": {
+      "task_done": "Étape terminée",
+      "change_accepted": "Demande acceptée",
+      "change_in_progress": "Demande en cours",
+      "change_done": "Demande réalisée",
+      "change_rejected": "Demande refusée",
+      "change_pending": "Demande en attente"
+    }
+  }
+}

@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-import { avatarUrl } from "../../lib/avatar";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -22,6 +21,7 @@ import ProjectRiskSection from "../project/ProjectRiskSection";
 import { statusLabel } from "../ui-nexus/kit";
 import { riskLabel } from "../../i18n/labels";
 
+import NexusAvatar from "../ui-nexus/Avatar";
 export default function ProjectDetailsPage() {
   const { t } = useTranslation();
   const { id } = useParams();
@@ -350,24 +350,13 @@ function Avatar({
     first_name: string;
     last_name: string;
     avatar_path: string | null;
+    avatar_color?: string | null;
   };
 }) {
-  const initials =
-    `${member.first_name?.[0] ?? ""}${member.last_name?.[0] ?? ""}`.toUpperCase();
 
   return (
     <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-cyan-400/10 bg-cyan-400/[0.06]">
-      {member.avatar_path ? (
-        <img
-          src={avatarUrl(member.avatar_path) ?? undefined}
-          alt=""
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <span className="text-xs font-bold text-cyan-300">
-          {initials}
-        </span>
-      )}
+      <NexusAvatar person={member} rounded="rounded-none" ring={false} className="h-full! w-full!" />
     </div>
   );
 }

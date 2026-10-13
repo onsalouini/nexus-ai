@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use App\Http\Middleware\SetLocaleFromHeader;
 use App\Models\AuditLog;
+use App\Models\UserAvatar;
+use App\Services\AvatarService;
 use App\Services\TotpService;
 
 class AccountController extends Controller
@@ -41,15 +42,50 @@ class AccountController extends Controller
         return response()->json(['user' => $this->payload($user->fresh())]);
     }
 
-    public function updateAvatar(Request $request)
+    public function updateAvatar(Request $request, AvatarService $avatars)
     {
         $request->validate(['avatar' => 'required|image|max:2048']);
         $user = $request->user();
-
-        if ($user->avatar_path) Storage::disk('public')->delete($user->avatar_path);
-        $user->update(['avatar_path' => $request->file('avatar')->store('avatars', 'public')]);
+        $avatars->store($user, $request->file('avatar'));
 
         return response()->json(['user' => $this->payload($user->fresh())]);
+    }
+
+    /** Supprime la photo : l'avatar affiche alors les initiales sur la couleur choisie. */
+    public function removeAvatar(Request $request, AvatarService $avatars)
+    {
+        $data = $request->validate(['avatar_color' => ['nullable', Rule::in(AvatarService::COLORS)]]);
+        $user = $request->user();
+        $avatars->remove($user);
+        if (array_key_exists('avatar_color', $data)) {
+            $user->update(['avatar_color' => $data['avatar_color']]);
+        }
+
+        return response()->json(['user' => $this->payload($user->fresh())]);
+    }
+
+    /** Photo servie depuis la base (route publique : utilisée dans des balises <img>). */
+    public function avatar(int $userId)
+    {
+        $avatar = UserAvatar::find($userId);
+        abort_unless($avatar, 404);
+
+        return response($avatar->data, 200, [
+            'Content-Type' => $avatar->mime,
+            'Cache-Control' => 'public, max-age=31536000, immutable',
+        ]);
+    }
+
+    /** Préférences : couleur des initiales, alertes par email. */
+    public function updatePreferences(Request $request)
+    {
+        $data = $request->validate([
+            'avatar_color' => ['sometimes', 'nullable', Rule::in(AvatarService::COLORS)],
+            'email_alerts' => 'sometimes|boolean',
+        ]);
+        $request->user()->update($data);
+
+        return response()->json(['user' => $this->payload($request->user()->fresh())]);
     }
 
     public function updatePassword(Request $request)

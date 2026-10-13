@@ -37,6 +37,7 @@ class DirectorTeamController extends Controller
                         'manager_id',
                         'job_title',
                         'avatar_path',
+                        'avatar_color',
                         'cv_path',
                     ]);
                 }
@@ -52,6 +53,7 @@ class DirectorTeamController extends Controller
                 'manager_id',
                 'job_title',
                 'avatar_path',
+                'avatar_color',
                 'cv_path',
             ]);
 
@@ -69,7 +71,7 @@ class DirectorTeamController extends Controller
         }
 
         $member->load([
-            'manager:id,first_name,last_name,email,job_title,avatar_path',
+            'manager:id,first_name,last_name,email,job_title,avatar_path,avatar_color',
             'projects:id,name,status,risk_score',
         ]);
 

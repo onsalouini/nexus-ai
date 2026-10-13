@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-import { avatarUrl } from "../../lib/avatar";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -21,6 +20,7 @@ import {
 } from "../../services/directorProjects";
 import { statusLabel } from "../ui-nexus/kit";
 
+import NexusAvatar from "../ui-nexus/Avatar";
 export default function ProjectsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -428,13 +428,12 @@ type AvatarProps = {
     first_name: string;
     last_name: string;
     avatar_path: string | null;
+    avatar_color?: string | null;
   };
   cyan?: boolean;
 };
 
 function Avatar({ member, cyan = false }: AvatarProps) {
-  const initials =
-    `${member.first_name?.[0] ?? ""}${member.last_name?.[0] ?? ""}`.toUpperCase();
 
   return (
     <div
@@ -445,17 +444,7 @@ function Avatar({ member, cyan = false }: AvatarProps) {
           : "bg-gradient-to-br from-violet-400/20 to-blue-500/20"
       }`}
     >
-      {member.avatar_path ? (
-        <img
-          src={avatarUrl(member.avatar_path) ?? undefined}
-          alt={`${member.first_name} ${member.last_name}`}
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <span className="text-[10px] font-bold text-cyan-200">
-          {initials}
-        </span>
-      )}
+      <NexusAvatar person={member} rounded="rounded-none" ring={false} className="h-full! w-full!" />
     </div>
   );
 }

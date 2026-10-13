@@ -9,6 +9,26 @@
     "project_late_tasks": "{{count}} tâche(s) en retard sur « {{project}} »",
     "invitation_accepted": "{{name}} a accepté son invitation ({{role}})",
     "ticket_critical": "Ticket critique en attente : « {{title}} »",
-    "ai_report_auto": "Bilan IA régénéré automatiquement pour « {{project}} »"
+    "ai_report_auto": "Bilan IA régénéré automatiquement pour « {{project}} »",
+    "task_assigned": "Nouvelle tâche : « {{task}} » ({{project}}), assignée par {{by}}",
+    "task_completed": "{{name}} a terminé « {{task}} » ({{project}})",
+    "project_risk_alert": "Risque élevé sur « {{project}} » : dépassement d'effort prédit de {{risk_score}} % (seuil {{threshold}} %)",
+    "bankruptcy_alert": "Risque de faillite élevé : probabilité de {{probability}} % (seuil {{threshold}} %)",
+    "ticket_new": "Nouveau ticket ({{urgency}}) : « {{title}} »",
+    "ticket_assigned": "Le ticket « {{title}} » vous a été assigné",
+    "ticket_reply": "{{name}} a répondu à votre ticket « {{title}} »",
+    "ticket_client_reply": "Le client {{name}} a répondu sur « {{title}} »",
+    "ticket_in_progress": "Votre ticket « {{title}} » est pris en charge",
+    "ticket_resolved": "Votre ticket « {{title}} » est résolu",
+    "message_new": "Nouveau message de {{name}} : « {{preview}} »",
+    "change_request_new": "{{name}} demande un changement sur « {{project}} » : {{title}}",
+    "change_request_updated": "Votre demande « {{title}} » ({{project}}) : {{status}}"
+  },
+  "critical": "Alerte",
+  "delete": "Supprimer",
+  "filters": {
+    "all": "Toutes",
+    "unread": "Non lues",
+    "alerts": "Alertes"
   }
 }

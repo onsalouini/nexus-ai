@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { api } from "../lib/api";
 import i18n, { normalizeLanguage, type AppLanguage } from "../i18n";
 
-export type UserRole = "direction" | "chef_de_projet" | "agent_support" | "membre_equipe";
+export type UserRole = "direction" | "chef_de_projet" | "agent_support" | "membre_equipe" | "client";
 
 type Company = { id: number; name: string } | null;
 
@@ -12,6 +12,8 @@ export type NexusUser = {
   last_name: string;
   email: string;
   avatar_path?: string | null;
+  avatar_color?: string | null;
+  email_alerts?: boolean;
   job_title?: string | null;
   role: UserRole | null;
   company: Company;
@@ -65,6 +67,8 @@ export function getDashboardPath(role: UserRole | null): string {
       return "/dashboard/support";
     case "membre_equipe":
       return "/dashboard/membre";
+    case "client":
+      return "/dashboard/client";
     default:
       return "/dashboard";
   }

@@ -1,9 +1,11 @@
-import { ChangeEvent, FormEvent, useState } from "react";
+import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import LanguageSwitcher from "../common/LanguageSwitcher";
+import AvatarPicker from "../ui-nexus/AvatarPicker";
+import { appendAvatarChoice, DEFAULT_AVATAR_CHOICE, type AvatarChoice } from "../../lib/avatar";
 
 type Step = "info" | "verify" | "password";
 
@@ -23,19 +25,8 @@ export default function SignUpForm() {
   });
 
   const [verificationCode, setVerificationCode] = useState("");
-  // Photo de profil optionnelle, envoyée avec la création du compte
-  const [avatar, setAvatar] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-
-  function handleAvatar(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] ?? null;
-    if (file && (!file.type.startsWith("image/") || file.size > 2 * 1024 * 1024)) {
-      setError(t("settings.photoInvalid"));
-      return;
-    }
-    setAvatar(file);
-    setAvatarPreview(file ? URL.createObjectURL(file) : null);
-  }
+  // Avatar : photo (enregistrée en base) ou initiales colorées, envoyé avec la création du compte
+  const [avatar, setAvatar] = useState<AvatarChoice>(DEFAULT_AVATAR_CHOICE);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -182,7 +173,7 @@ export default function SignUpForm() {
     try {
       const data = new FormData();
       Object.entries(form).forEach(([key, value]) => data.append(key, value));
-      if (avatar) data.append("avatar", avatar);
+      appendAvatarChoice(data, avatar);
       await registerWithFiles(data);
       navigate("/onboarding/entreprise");
     } catch (err) {
@@ -322,22 +313,9 @@ export default function SignUpForm() {
             {t("auth.signup.step3.emailVerified")}
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-cyan-400/30 to-violet-500/30 text-xl text-white ring-1 ring-white/15">
-              {avatarPreview ? (
-                <img src={avatarPreview} alt={t("authFlow.complete.preview")} className="h-full w-full object-cover" />
-              ) : (
-                <span>✦</span>
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-700">{t("authFlow.complete.photo")}</p>
-              <label className="mt-1 inline-flex cursor-pointer text-sm font-semibold text-indigo-600 hover:underline">
-                {t("authFlow.complete.choosePhoto")}
-                <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatar} />
-              </label>
-              <p className="text-xs text-slate-500">{t("settings.photoHint")}</p>
-            </div>
+          <div className="rounded-2xl border border-white/10 bg-[#020817]/80 p-4">
+            <p className="mb-3 text-sm font-medium text-slate-200">{t("avatar.label")}</p>
+            <AvatarPicker firstName={form.first_name} lastName={form.last_name} value={avatar} onChange={setAvatar} />
           </div>
 
           <div>

@@ -157,6 +157,7 @@ class ProjectController extends Controller
 
             'risk_explanation' => $prediction['explanation'] ?? null,
         ]);
+        app(\App\Services\RiskAlertService::class)->checkProject($project);
     }
 
     /*
@@ -209,6 +210,7 @@ class ProjectController extends Controller
                     'risk_score' => isset($prediction['gap_percent']) ? (int) round($prediction['gap_percent']) : null,
                     'risk_explanation' => $prediction['explanation'] ?? null,
                 ]);
+                app(\App\Services\RiskAlertService::class)->checkProject($project);
             }
         }
 

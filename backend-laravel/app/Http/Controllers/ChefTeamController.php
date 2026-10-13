@@ -11,7 +11,7 @@ class ChefTeamController extends Controller
 {
     private const COLUMNS = [
         'id', 'first_name', 'last_name', 'email', 'role', 'job_title',
-        'avatar_path', 'phone', 'weekly_capacity',
+        'avatar_path', 'avatar_color', 'phone', 'weekly_capacity',
     ];
 
     private function ownMember(Request $request, User $member): User

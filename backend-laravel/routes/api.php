@@ -22,6 +22,11 @@ use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\HealthScoreController;
+use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\ClientManagementController;
+use App\Http\Controllers\Api\AlertController;
+use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\ChangeRequestController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -38,6 +43,8 @@ Route::post('/auth/verify-code', [AuthController::class, 'verifyCode']);
 // Second facteur (TOTP) après un login qui a renvoyé two_factor_required
 Route::post('/auth/2fa/verify', [AuthController::class, 'verifyTwoFactor'])->middleware('throttle:5,1');
 Route::get('/invitations/validate/{token}', [InvitationController::class, 'validateToken']);
+// Photo de profil stockée en base (publique : chargée par des balises <img>)
+Route::get('/avatars/{userId}', [AccountController::class, 'avatar'])->whereNumber('userId');
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -55,6 +62,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/account', [AccountController::class, 'show']);
     Route::put('/account/profile', [AccountController::class, 'updateProfile']);
     Route::post('/account/avatar', [AccountController::class, 'updateAvatar']);
+    Route::delete('/account/avatar', [AccountController::class, 'removeAvatar']);
+    Route::put('/account/preferences', [AccountController::class, 'updatePreferences']);
     Route::put('/account/password', [AccountController::class, 'updatePassword']);
     Route::put('/account/company', [AccountController::class, 'updateCompany']); // réservé direction (contrôleur)
     Route::put('/account/locale', [AccountController::class, 'updateLocale']);
@@ -65,6 +74,16 @@ Route::middleware('auth:sanctum')->group(function () {
     // Notifications calculées selon le rôle
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/read', [NotificationController::class, 'markAllRead']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
+
+    // Messagerie interne (le service limite les contacts selon le rôle)
+    Route::get('/messages/contacts', [MessageController::class, 'contacts']);
+    Route::get('/messages/conversations', [MessageController::class, 'conversations']);
+    Route::post('/messages/conversations', [MessageController::class, 'start']);
+    Route::get('/messages/conversations/{conversation}', [MessageController::class, 'show']);
+    Route::post('/messages/conversations/{conversation}', [MessageController::class, 'send'])->middleware('throttle:60,1');
+    Route::get('/messages/unread', [MessageController::class, 'unread']);
 
     /*
     |--------------------------------------------------------------------------
@@ -79,6 +98,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/director/team/{member}', [DirectorTeamController::class, 'show']);
         Route::get('/director/health-score', [HealthScoreController::class, 'index']);
         Route::get('/audit-logs', [AuditLogController::class, 'index']);
+        Route::put('/alerts/settings', [AlertController::class, 'updateSettings']);
+        Route::post('/tickets/model/retrain', [TicketController::class, 'retrain']);
 
         Route::post('/financial-health/predict', [FinancialHealthController::class, 'predict']);
         Route::post('/financial-health/explain', [FinancialHealthController::class, 'explain']);
@@ -123,6 +144,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/projects/{project}/team', [ProjectTrackingController::class, 'assignTeam']);
         Route::post('/projects/{project}/auto-assign', [ProjectTrackingController::class, 'autoAssign']);
         Route::post('/projects/{project}/generate-tasks', [ProjectTrackingController::class, 'generateTasks']);
+
+        // Demandes de changement des clients
+        Route::get('/chef/change-requests', [ChangeRequestController::class, 'index']);
+        Route::patch('/chef/change-requests/{changeRequest}', [ChangeRequestController::class, 'update']);
     });
 
     /*
@@ -149,6 +174,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/ai/conversations/{conversation}/attachments', [AIAttachmentController::class, 'store']);
 
         Route::post('/risk-predictions/test', [ProjectController::class, 'testPrediction']);
+
+        // Alertes de risque projet / faillite
+        Route::get('/alerts', [AlertController::class, 'index']);
+
+        // Comptes clients et rattachement aux projets
+        Route::get('/clients', [ClientManagementController::class, 'index']);
+        Route::put('/projects/{project}/client', [ClientManagementController::class, 'assign']);
         Route::get('/ai/model-status', [ProjectController::class, 'modelStatus']);
     });
 
@@ -171,6 +203,26 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:agent_support,direction')->group(function () {
         Route::get('/tickets', [TicketController::class, 'index']);
         Route::post('/tickets', [TicketController::class, 'store']);
+        Route::get('/tickets/model', [TicketController::class, 'modelStatus']);
+        Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->whereNumber('ticket');
         Route::patch('/tickets/{ticket}', [TicketController::class, 'update']);
+        Route::post('/tickets/{ticket}/messages', [TicketController::class, 'reply']);
+        Route::post('/tickets/{ticket}/suggest-reply', [TicketController::class, 'suggestReply']);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Client externe
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('role:client')->prefix('client')->group(function () {
+        Route::get('/projects', [ClientController::class, 'projects']);
+        Route::get('/projects/{project}', [ClientController::class, 'project']);
+        Route::post('/projects/{project}/change-requests', [ClientController::class, 'storeChangeRequest']);
+        Route::get('/tickets', [ClientController::class, 'tickets']);
+        Route::post('/tickets', [ClientController::class, 'storeTicket']);
+        Route::get('/tickets/{ticket}', [ClientController::class, 'showTicket']);
+        Route::post('/tickets/{ticket}/messages', [ClientController::class, 'replyTicket']);
+        Route::post('/tickets/{ticket}/close', [ClientController::class, 'closeTicket']);
     });
 });

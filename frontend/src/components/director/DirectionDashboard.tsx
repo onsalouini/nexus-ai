@@ -18,6 +18,7 @@ import {
   type DirectorDashboardData,
 } from "../../services/directorService";
 import GlobalHealthCard from "./GlobalHealthCard";
+import RiskAlertBanner from "../common/RiskAlertBanner";
 
 export default function DirectionDashboard() {
   const { t } = useTranslation();
@@ -195,6 +196,7 @@ export default function DirectionDashboard() {
 
           {/* Enterprise Health Score : projets + support + finance */}
           <div className="pt-9">
+            <RiskAlertBanner role="direction" />
             <GlobalHealthCard />
           </div>
 

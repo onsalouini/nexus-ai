@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectActivity;
 use App\Models\Task;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -47,7 +48,7 @@ class TaskController extends Controller
 
     public function index(Request $request)
     {
-        $query = Task::with(['assignee:id,first_name,last_name,job_title,avatar_path', 'project:id,name'])
+        $query = Task::with(['assignee:id,first_name,last_name,job_title,avatar_path,avatar_color', 'project:id,name'])
             ->whereHas('project', fn ($q) => $q->where('chef_de_projet_id', $request->user()->id));
 
         if ($request->filled('project_id')) $query->where('project_id', $request->project_id);
@@ -87,8 +88,9 @@ class TaskController extends Controller
             $project->team()->syncWithoutDetaching([$task->assigned_to]);
         }
         $this->log($project, $request, 'task_created', "Tâche « {$task->title} » créée");
+        app(NotificationService::class)->taskAssigned($task, $request->user());
 
-        return response()->json($task->load('assignee:id,first_name,last_name,job_title,avatar_path', 'project:id,name'), 201);
+        return response()->json($task->load('assignee:id,first_name,last_name,job_title,avatar_path,avatar_color', 'project:id,name'), 201);
     }
 
     public function update(Request $request, Task $task)
@@ -132,9 +134,10 @@ class TaskController extends Controller
         if ($oldAssignee !== $task->assigned_to) {
             $name = $task->assignee ? $task->assignee->first_name . ' ' . $task->assignee->last_name : 'personne';
             $this->log($project, $request, 'task_assigned', "« {$task->title} » assignée à {$name}");
+            app(NotificationService::class)->taskAssigned($task, $request->user());
         }
 
-        return response()->json($task->fresh()->load('assignee:id,first_name,last_name,job_title,avatar_path', 'project:id,name'));
+        return response()->json($task->fresh()->load('assignee:id,first_name,last_name,job_title,avatar_path,avatar_color', 'project:id,name'));
     }
 
     public function destroy(Request $request, Task $task)

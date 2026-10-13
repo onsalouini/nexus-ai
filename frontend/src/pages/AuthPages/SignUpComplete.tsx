@@ -1,9 +1,11 @@
-import { FormEvent, ChangeEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import { useAuth, getDashboardPath } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher";
+import AvatarPicker from "../../components/ui-nexus/AvatarPicker";
+import { appendAvatarChoice, DEFAULT_AVATAR_CHOICE, type AvatarChoice } from "../../lib/avatar";
 
 type Step = "info" | "verify" | "password";
 
@@ -23,20 +25,44 @@ export default function SignUpComplete() {
     email: "",
     password: "",
     password_confirmation: "",
+    phone: "",
+    organization: "",
+    job_title: "",
   });
 
-  const [avatar, setAvatar] = useState<File | null>(null);
+  // Informations de l'invitation : email imposé, rôle, projet et société pré-remplis
+  const [invite, setInvite] = useState<{
+    role: string;
+    email: string;
+    project?: string | null;
+    company?: string | null;
+    invited_by?: string | null;
+  } | null>(null);
+  const isClient = invite?.role === "client";
+
+  useEffect(() => {
+    if (!token) return;
+    api
+      .get(`/invitations/validate/${token}`)
+      .then(({ data }) => {
+        setInvite(data);
+        setForm((f) => ({
+          ...f,
+          email: data.email ?? f.email,
+          first_name: f.first_name || data.first_name || "",
+          organization: f.organization || data.organization || "",
+          job_title: f.job_title || data.job_title || "",
+        }));
+      })
+      .catch(() => undefined);
+  }, [token]);
+
+  // Avatar : photo (enregistrée en base) ou initiales colorées
+  const [avatar, setAvatar] = useState<AvatarChoice>(DEFAULT_AVATAR_CHOICE);
   const [cv, setCv] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
-
-  function handleAvatarChange(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] ?? null;
-    setAvatar(file);
-    setAvatarPreview(file ? URL.createObjectURL(file) : null);
-  }
 
   function extractMessage(err: unknown, fallback: string) {
     const message =
@@ -102,9 +128,13 @@ export default function SignUpComplete() {
     setLoading(true);
     try {
       const fd = new FormData();
-      Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+      Object.entries(form).forEach(([k, v]) => {
+        // Champs facultatifs : envoyés seulement s'ils sont remplis (société et fonction pour un client)
+        if (["phone", "organization", "job_title"].includes(k) && (!v || (k !== "phone" && !isClient))) return;
+        fd.append(k, v);
+      });
       fd.append("invitation_token", token);
-      if (avatar) fd.append("avatar", avatar);
+      appendAvatarChoice(fd, avatar);
       if (cv) fd.append("cv", cv);
 
       const { needsCompanySetup, role } = await registerWithFiles(fd);
@@ -228,25 +258,23 @@ export default function SignUpComplete() {
             {/* =========================== ETAPE 1 : INFO =========================== */}
             {step === "info" && (
               <>
-                <div className="mb-7 flex items-center gap-4">
-                  <div className="relative">
-                    <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#22D3EE]/20 to-[#8B5CF6]/20 blur-md" />
-                    <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/[0.10] bg-white/[0.035]">
-                      {avatarPreview ? (
-                        <img src={avatarPreview} alt={t("authFlow.complete.preview")} className="h-full w-full object-cover" />
-                      ) : (
-                        <span className="text-xl text-slate-600">✦</span>
-                      )}
-                    </div>
+                {invite && (
+                  <div className="mb-6 rounded-2xl border border-[#22D3EE]/15 bg-gradient-to-r from-[#22D3EE]/[0.06] to-[#8B5CF6]/[0.06] px-4 py-3">
+                    <p className="text-[11px] font-medium text-white">
+                      {t(isClient ? "authFlow.complete.clientWelcome" : "authFlow.complete.memberWelcome", { company: invite.company ?? "NEXUS AI" })}
+                    </p>
+                    {(invite.project || invite.invited_by) && (
+                      <p className="mt-1 text-[10px] leading-5 text-slate-400">
+                        {invite.project && <>{t("authFlow.complete.projectLabel")} : <span className="text-[#67E8F9]">{invite.project}</span></>}
+                        {invite.project && invite.invited_by && " · "}
+                        {invite.invited_by && <>{t("authFlow.complete.invitedBy", { name: invite.invited_by })}</>}
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-[11px] font-medium text-slate-200">{t("authFlow.complete.photo")}</p>
-                    <p className="mt-1 text-[8px] leading-4 text-slate-600">{t("authFlow.complete.photoHint")}</p>
-                    <label className="mt-2 inline-flex cursor-pointer rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 py-1.5 text-[9px] font-medium text-slate-400 transition hover:border-[#22D3EE]/25 hover:bg-white/[0.05] hover:text-[#67E8F9]">
-                      {t("authFlow.complete.choosePhoto")}
-                      <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-                    </label>
-                  </div>
+                )}
+                <div className="mb-7 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4">
+                  <p className="mb-3 text-[11px] font-medium text-slate-200">{t("avatar.label")}</p>
+                  <AvatarPicker firstName={form.first_name} lastName={form.last_name} value={avatar} onChange={setAvatar} />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -277,12 +305,55 @@ export default function SignUpComplete() {
                   <input
                     type="email"
                     required
+                    dir="ltr"
                     value={form.email}
+                    readOnly={!!invite?.email}
                     onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                     placeholder={t("authFlow.complete.emailPlaceholder")}
-                    className={inputClass}
+                    className={`${inputClass} ${invite?.email ? "cursor-not-allowed opacity-70" : ""}`}
                   />
+                  {invite?.email && <p className="mt-1.5 text-[9px] text-slate-600">{t("authFlow.complete.emailLocked")}</p>}
                 </div>
+
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className={labelClass}>
+                      {t("authFlow.complete.phone")} <span className="ms-1 normal-case tracking-normal text-slate-700">{t("authFlow.complete.cvOptional")}</span>
+                    </label>
+                    <input
+                      type="tel"
+                      dir="ltr"
+                      value={form.phone}
+                      onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                      placeholder="+216 20 000 000"
+                      className={inputClass}
+                    />
+                  </div>
+                  {isClient && (
+                    <div>
+                      <label className={labelClass}>{t("authFlow.complete.jobTitle")}</label>
+                      <input
+                        value={form.job_title}
+                        onChange={(e) => setForm((f) => ({ ...f, job_title: e.target.value }))}
+                        placeholder={t("authFlow.complete.jobTitlePlaceholder")}
+                        className={inputClass}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {isClient && (
+                  <div className="mt-4">
+                    <label className={labelClass}>{t("authFlow.complete.organization")}</label>
+                    <input
+                      required
+                      value={form.organization}
+                      onChange={(e) => setForm((f) => ({ ...f, organization: e.target.value }))}
+                      placeholder={t("authFlow.complete.organizationPlaceholder")}
+                      className={inputClass}
+                    />
+                  </div>
+                )}
               </>
             )}
 
@@ -347,6 +418,7 @@ export default function SignUpComplete() {
                   />
                 </div>
 
+                {!isClient && (
                 <div className="mt-5">
                   <label className={labelClass}>
                     {t("authFlow.complete.cv")} <span className="ms-2 normal-case tracking-normal text-slate-700">{t("authFlow.complete.cvOptional")}</span>
@@ -360,6 +432,7 @@ export default function SignUpComplete() {
                     <input type="file" accept="application/pdf" className="hidden" onChange={(e) => setCv(e.target.files?.[0] ?? null)} />
                   </label>
                 </div>
+                )}
               </>
             )}
 

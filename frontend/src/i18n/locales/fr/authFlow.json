@@ -109,6 +109,14 @@
           "1": "Suivez vos tâches et leurs échéances",
           "2": "Collaborez avec votre chef de projet en temps réel"
         }
+      },
+      "client": {
+        "title": "Bienvenue dans votre espace client",
+        "points": {
+          "0": "Suivez l'avancement de vos projets en temps réel",
+          "1": "Ouvrez des tickets, triés automatiquement par notre IA",
+          "2": "Échangez directement avec l'équipe support"
+        }
       }
     }
   },
@@ -137,6 +145,16 @@
     "cvOptional": "(PDF, optionnel)",
     "uploadCv": "Importer votre CV",
     "pdfOnly": "Format PDF uniquement",
-    "secureNote": "Vos données sont protégées et votre accès est sécurisé par NEXUS AI."
+    "secureNote": "Vos données sont protégées et votre accès est sécurisé par NEXUS AI.",
+    "clientWelcome": "{{company}} vous invite à suivre votre projet sur NEXUS AI.",
+    "memberWelcome": "Vous rejoignez l'espace de travail de {{company}}.",
+    "projectLabel": "Projet",
+    "invitedBy": "Invité(e) par {{name}}",
+    "emailLocked": "L'adresse est celle de l'invitation.",
+    "phone": "Téléphone",
+    "jobTitle": "Fonction",
+    "jobTitlePlaceholder": "Gérant, directeur marketing…",
+    "organization": "Société / organisation",
+    "organizationPlaceholder": "Nom de votre entreprise"
   }
 }

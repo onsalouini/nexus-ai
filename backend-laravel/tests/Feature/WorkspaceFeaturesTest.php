@@ -161,7 +161,7 @@ class WorkspaceFeaturesTest extends TestCase
 
         Sanctum::actingAs($chef);
         $types = collect($this->getJson('/api/notifications')->assertOk()->assertJsonPath('unread', 3)->json('notifications'))->pluck('type');
-        $this->assertEqualsCanonicalizing(['task_late', 'project_high_risk', 'invitation_accepted'], $types->all());
+        $this->assertEqualsCanonicalizing(['task_late', 'project_risk_alert', 'invitation_accepted'], $types->all());
 
         $this->postJson('/api/notifications/read')->assertOk();
         $this->getJson('/api/notifications')->assertJsonPath('unread', 0);
@@ -172,7 +172,7 @@ class WorkspaceFeaturesTest extends TestCase
         Sanctum::actingAs($this->user('direction'));
         $types = collect($this->getJson('/api/notifications')->json('notifications'))->pluck('type');
         $this->assertTrue($types->contains('project_late_tasks'));
-        $this->assertTrue($types->contains('project_high_risk'));
+        $this->assertTrue($types->contains('project_risk_alert'));
     }
 
     /* ---------------- Enterprise Health Score ---------------- */

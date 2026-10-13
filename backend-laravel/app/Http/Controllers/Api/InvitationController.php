@@ -24,8 +24,9 @@ class InvitationController extends Controller
         $validated = $request->validate([
             'email' => 'required|email',
             'first_name' => 'nullable|string|max:100',
-            'role' => 'required|in:chef_de_projet,agent_support,membre_equipe',
+            'role' => 'required|in:chef_de_projet,agent_support,membre_equipe,client',
             'job_title' => 'nullable|string|max:100',
+            'organization' => 'nullable|string|max:150',
             'project_id' => 'nullable|exists:projects,id',
             'locale' => ['nullable', Rule::in(SetLocaleFromHeader::SUPPORTED)],
         ]);
@@ -39,6 +40,13 @@ class InvitationController extends Controller
         // Seule la direction peut inviter un chef de projet
         if ($user->role !== 'direction' && $validated['role'] === 'chef_de_projet') {
             return response()->json(['message' => __('Seule la direction peut inviter un chef de projet.')], 403);
+        }
+
+        // Le projet rattaché doit appartenir à l'entreprise (et au chef s'il invite lui-même)
+        if (! empty($validated['project_id'])) {
+            $project = \App\Models\Project::find($validated['project_id']);
+            abort_unless($project->company_id === $user->company_id
+                && ($user->role === 'direction' || $project->chef_de_projet_id === $user->id), 403, __('Projet non autorisé.'));
         }
 
         $invitation = Invitation::create([
@@ -132,6 +140,11 @@ class InvitationController extends Controller
             'first_name' => $invitation->first_name,
             'role' => $invitation->role,
             'locale' => $invitation->locale,
+            'organization' => $invitation->organization,
+            'job_title' => $invitation->job_title,
+            'project' => $invitation->project?->name,
+            'company' => $invitation->company?->name,
+            'invited_by' => $invitation->inviter ? trim($invitation->inviter->first_name . ' ' . $invitation->inviter->last_name) : null,
         ]);
     }
 
