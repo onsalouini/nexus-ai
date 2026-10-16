@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { wakeAiServices } from "../../lib/wakeAi";
 import { Outlet } from "react-router";
 
 import ChefSidebar from "./ChefSidebar";
@@ -15,6 +16,8 @@ export default function ChefLayout() {
   const [showTeam, setShowTeam] = useState(false);
 
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(wakeAiServices, []);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#020817] font-['Inter',sans-serif] text-white">

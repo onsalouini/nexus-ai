@@ -35,13 +35,36 @@ export default function RiskModelsPage() {
   const { t } = useTranslation();
   const [status, setStatus] = useState<ModelStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [waking, setWaking] = useState(false);
 
+  // Le service IA endormi (Render gratuit) met ~1 min à se réveiller : on réessaie pendant 2 min
   useEffect(() => {
-    api
-      .get<ModelStatus>("/ai/model-status")
-      .then((res) => setStatus(res.data))
-      .catch(() => setStatus({ online: false }))
-      .finally(() => setLoading(false));
+    let cancelled = false;
+    let attempts = 0;
+    let timer: number | undefined;
+    const check = () => {
+      api
+        .get<ModelStatus>("/ai/model-status", { timeout: 30_000 })
+        .then((res) => res.data)
+        .catch(() => ({ online: false }))
+        .then((res) => {
+          if (cancelled) return;
+          attempts += 1;
+          if (!res.online && attempts < 8) {
+            setWaking(true);
+            timer = window.setTimeout(check, 15_000);
+            return;
+          }
+          setWaking(false);
+          setStatus(res);
+          setLoading(false);
+        });
+    };
+    check();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, []);
 
   return (
@@ -93,7 +116,7 @@ export default function RiskModelsPage() {
           </div>
 
           {loading ? (
-            <span className="text-xs text-slate-500">{t("chef.models.checking")}</span>
+            <span className="text-xs text-slate-500">{waking ? t("chef.models.waking") : t("chef.models.checking")}</span>
           ) : status?.online ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300">
               <CheckCircle2 className="h-3.5 w-3.5" />

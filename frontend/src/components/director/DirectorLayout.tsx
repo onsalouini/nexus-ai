@@ -1,8 +1,12 @@
+import { useEffect } from "react";
 import { Outlet } from "react-router";
+import { wakeAiServices } from "../../lib/wakeAi";
 import DirectorSidebar from "./DirectorSidebar";
 import NotificationBell from "../common/NotificationBell";
 
 export default function DirectorLayout() {
+  useEffect(wakeAiServices, []);
+
   return (
     <div className="min-h-screen bg-[#020617] text-white">
       <DirectorSidebar />

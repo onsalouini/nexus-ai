@@ -384,6 +384,7 @@
         "label": "Adjusted points (derived)",
         "desc": "Raw points × VAF"
       }
-    }
+    },
+    "waking": "Waking up the AI model (up to 1 min)…"
   }
 }

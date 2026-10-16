@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { NavLink, Outlet } from "react-router";
+import { wakeAiServices } from "../../lib/wakeAi";
 import { useTranslation } from "react-i18next";
 import { CalendarDays, CheckSquare, FolderKanban, LifeBuoy, LogOut, MessagesSquare, Settings } from "lucide-react";
 import { useAuth, getDashboardPath } from "../../context/AuthContext";
@@ -14,6 +16,9 @@ export default function EmployeeLayout() {
   const { user, logout } = useAuth();
   const base = getDashboardPath(user?.role ?? null);
   const isSupport = user?.role === "agent_support";
+
+  // Agents et clients créent des tickets : le service de tri doit être réveillé
+  useEffect(wakeAiServices, []);
 
   const items =
     user?.role === "client"

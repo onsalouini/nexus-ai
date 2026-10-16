@@ -23,11 +23,13 @@ class RiskPredictionService
 
     /**
      * Vérifie que le service FastAPI répond et que le modèle est chargé.
+     * Sur Render (offre gratuite), le service s'endort après 15 min : cet appel le réveille
+     * (50 à 70 s). Le frontend réinterroge tant que le réveil est en cours.
      */
     public function isOnline(): bool
     {
         try {
-            $response = Http::timeout(5)
+            $response = Http::timeout(12)
                 ->withOptions(['verify' => false])
                 ->get(config('services.ai.url') . '/health');
 
@@ -41,7 +43,9 @@ class RiskPredictionService
     public function predict(array $data): ?array
     {
         try {
-            $response = Http::timeout(60)
+            // 90 s : laisse le temps au service endormi de se réveiller ; une 2e tentative si la connexion échoue
+            $response = Http::timeout(90)
+    ->retry(2, 3000, fn ($e) => $e instanceof \Illuminate\Http\Client\ConnectionException, throw: false)
     ->withOptions(['verify' => false])
     ->post(config('services.ai.url') . '/predict-risk', [
                     'team_exp' => $data['team_exp'],

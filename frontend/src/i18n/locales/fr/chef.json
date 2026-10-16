@@ -384,6 +384,7 @@
         "label": "Points ajustés (dérivée)",
         "desc": "Points bruts × VAF"
       }
-    }
+    },
+    "waking": "Réveil du modèle IA en cours (jusqu'à 1 min)…"
   }
 }

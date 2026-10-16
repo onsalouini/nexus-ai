@@ -85,6 +85,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/messages/conversations/{conversation}', [MessageController::class, 'send'])->middleware('throttle:60,1');
     Route::get('/messages/unread', [MessageController::class, 'unread']);
 
+    // Réveil des services IA (Render gratuit) à l'ouverture d'un espace
+    Route::post('/ai/wake', [ProjectController::class, 'wakeServices'])->middleware('throttle:6,1');
+
     /*
     |--------------------------------------------------------------------------
     | Direction uniquement

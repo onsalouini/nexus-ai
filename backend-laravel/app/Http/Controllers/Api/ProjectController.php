@@ -64,6 +64,32 @@ class ProjectController extends Controller
     |--------------------------------------------------------------------------
     */
 
+    /*
+    | Réveille les services IA hébergés sur Render (offre gratuite : mise en veille après 15 min).
+    | Appelé à l'ouverture d'un espace : la simple requête lance le réveil, on n'attend pas la réponse.
+    */
+    public function wakeServices()
+    {
+        $urls = array_filter([
+            config('services.ai.url') ? rtrim(config('services.ai.url'), '/') . '/health' : null,
+            config('services.financial_ai.url') ? rtrim(config('services.financial_ai.url'), '/') . '/' : null,
+            config('services.ticket_ai.url') ? rtrim(config('services.ticket_ai.url'), '/') . '/health' : null,
+        ]);
+
+        if ($urls && ! app()->runningUnitTests()) {
+            try {
+                \Illuminate\Support\Facades\Http::pool(fn ($pool) => array_map(
+                    fn ($url) => $pool->timeout(2)->withOptions(['verify' => false])->get($url),
+                    array_values($urls)
+                ));
+            } catch (\Throwable) {
+                // délai dépassé : normal, le réveil est lancé
+            }
+        }
+
+        return response()->json(['woken' => count($urls)]);
+    }
+
     public function modelStatus(RiskPredictionService $riskPredictionService)
     {
         return response()->json([
